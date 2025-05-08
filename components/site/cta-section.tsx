@@ -18,7 +18,7 @@ export function CTASection() {
               </Button>
             </Link>
             <Link href="/planos">
-              <Button size="lg" variant="outline" className="border-white  #313895  hover:bg-purple-700">
+              <Button size="lg" variant="outline" className="bg-white dark:bg-gray-800 text-purple-600 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-700">
                 Ver Planos
               </Button>
             </Link>

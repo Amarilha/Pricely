@@ -2,66 +2,76 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Linkedin, Twitter } from "lucide-react"
 
 const team = [
-  {
-    name: "Ana Silva",
-    role: "CEO & Fundadora",
-    bio: "Empreendedora com mais de 15 anos de experiência em tecnologia e gestão de projetos. Fundou a Valluo com a missão de ajudar freelancers e agências a crescerem de forma sustentável.",
-    avatar: "/placeholder.svg?height=300&width=300",
-    social: {
-      linkedin: "#",
-      twitter: "#",
-    },
+{
+  name: "Matheus",
+  role: "CEO & Fundador",
+  bio: "Líder visionário e especialista em empreendedorismo e gestão de projetos. Matheus fundou a Valluo com o propósito de ajudar freelancers e agências a crescerem de forma sustentável.",
+  avatar: "/placeholder.svg?height=300&width=300",
+  social: {
+    linkedin: "#",
+    twitter: "#",
   },
-  {
-    name: "Carlos Mendes",
-    role: "CTO",
-    bio: "Desenvolvedor full-stack com experiência em startups de tecnologia. Lidera o desenvolvimento da plataforma Valluo com foco em performance e experiência do usuário.",
-    avatar: "/placeholder.svg?height=300&width=300",
-    social: {
-      linkedin: "#",
-      twitter: "#",
-    },
+},
+{
+  name: "Igor Amarilha",
+  role: "CTO & Fundador",
+  bio: "Desenvolvedor full-stack com ampla experiência em startups de tecnologia. Igor lidera a evolução técnica da plataforma Valluo, com foco em performance e experiência do usuário.",
+  avatar: "/placeholder.svg?height=300&width=300",
+  social: {
+    linkedin: "#",
+    twitter: "#",
   },
-  {
-    name: "Mariana Costa",
-    role: "Diretora de Produto",
-    bio: "Especialista em UX/UI com background em design e negócios. Responsável por garantir que a Valluo atenda às necessidades reais dos usuários.",
-    avatar: "/placeholder.svg?height=300&width=300",
-    social: {
-      linkedin: "#",
-      twitter: "#",
-    },
+},
+{
+  name: "Hellen",
+  role: "CRO & Fundadora",
+  bio: "Responsável pelo crescimento da Valluo, Hellen atua com foco em oportunidades estratégicas e expansão de mercado, sempre com uma visão orientada a resultados.",
+  avatar: "/placeholder.svg?height=300&width=300",
+  social: {
+    linkedin: "#",
+    twitter: "#",
   },
-  {
-    name: "Rafael Oliveira",
-    role: "Diretor de Marketing",
-    bio: "Estrategista de marketing digital com experiência em SaaS. Lidera as estratégias de aquisição e retenção de clientes da Valluo.",
-    avatar: "/placeholder.svg?height=300&width=300",
-    social: {
-      linkedin: "#",
-      twitter: "#",
-    },
+},
+{
+  name: "Andressa",
+  role: "CMO & Fundadora",
+  bio: "Especialista em marketing digital com foco em SaaS, Andressa lidera as estratégias de aquisição, engajamento e retenção de clientes da Valluo.",
+  avatar: "/placeholder.svg?height=300&width=300",
+  social: {
+    linkedin: "#",
+    twitter: "#",
   },
-  {
-    name: "Juliana Santos",
-    role: "Diretora de Operações",
-    bio: "Especialista em processos e operações com experiência em empresas de tecnologia. Garante que a Valluo opere com eficiência e qualidade.",
-    avatar: "/placeholder.svg?height=300&width=300",
-    social: {
-      linkedin: "#",
-      twitter: "#",
-    },
+},
+{
+  name: "Diogo",
+  role: "Diretor de Operações & Fundador",
+  bio: "Especialista em processos e operações, Diogo garante que todas as engrenagens da Valluo funcionem com eficiência, qualidade e alinhamento estratégico.",
+  avatar: "/placeholder.svg?height=300&width=300",
+  social: {
+    linkedin: "#",
+    twitter: "#",
   },
-  {
-    name: "Pedro Almeida",
-    role: "Líder de Suporte",
-    bio: "Apaixonado por ajudar pessoas, lidera a equipe de suporte da Valluo com foco em resolver problemas e garantir a satisfação dos clientes.",
-    avatar: "/placeholder.svg?height=300&width=300",
-    social: {
-      linkedin: "#",
-      twitter: "#",
-    },
+},
+{
+  name: "Thiago",
+  role: "Conselheiro de Compras & Fundador",
+  bio: "Com olhar estratégico para aquisições e parcerias, Thiago atua no conselho da Valluo com foco em decisões de compras e alinhamento de recursos.",
+  avatar: "/placeholder.svg?height=300&width=300",
+  social: {
+    linkedin: "#",
+    twitter: "#",
   },
+},
+{
+  name: "Nathalia",
+  role: "Sales Manager & Fundadora",
+  bio: "Com forte atuação em vendas e relacionamento, Nathalia impulsiona as estratégias comerciais da Valluo, conectando a empresa aos seus clientes ideais.",
+  avatar: "/placeholder.svg?height=300&width=300",
+  social: {
+    linkedin: "#",
+    twitter: "#",
+  },
+},
 ]
 
 export function TeamMembers() {
