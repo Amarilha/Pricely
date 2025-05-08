@@ -12,12 +12,12 @@ export function CTASection() {
             Valluo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/site/cadastro">
+            <Link href="/cadastro">
               <Button size="lg" className="bg-white text-purple-600 hover:bg-purple-50">
                 Começar Grátis
               </Button>
             </Link>
-            <Link href="/site/planos">
+            <Link href="/planos">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-purple-700">
                 Ver Planos
               </Button>

@@ -24,7 +24,7 @@ export function HeroSection() {
               e aumentarem a lucratividade.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/site/cadastro">
+              <Link href="/cadastro">
                 <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
                   Começar Grátis
                 </Button>

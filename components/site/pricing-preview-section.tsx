@@ -88,7 +88,7 @@ export function PricingPreviewSection() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Link href="/site/planos" className="w-full">
+              <Link href="/planos" className="w-full">
                 <Button
                   className={`w-full ${plan.popular ? "bg-purple-600 hover:bg-purple-700" : ""}`}
                   variant={plan.popular ? "default" : "outline"}
@@ -102,7 +102,7 @@ export function PricingPreviewSection() {
       </div>
 
       <div className="text-center mt-12">
-        <Link href="/site/planos">
+        <Link href="/planos">
           <Button variant="link" className="text-purple-600">
             Ver todos os detalhes dos planos
           </Button>

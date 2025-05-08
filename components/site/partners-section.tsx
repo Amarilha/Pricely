@@ -30,7 +30,7 @@ export function PartnersSection() {
       </div>
 
       <div className="text-center">
-        <Link href="/site/parceiros">
+        <Link href="/parceiros">
           <Button variant="outline" className="group">
             Conheça todos os nossos parceiros
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

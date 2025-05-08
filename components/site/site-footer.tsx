@@ -69,12 +69,12 @@ export function SiteFooter() {
             <h3 className="font-medium text-lg mb-4">Empresa</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/site/equipe" className="text-muted-foreground hover:text-purple-600">
+                <Link href="/equipe" className="text-muted-foreground hover:text-purple-600">
                   Sobre nós
                 </Link>
               </li>
               <li>
-                <Link href="/site/parceiros" className="text-muted-foreground hover:text-purple-600">
+                <Link href="/parceiros" className="text-muted-foreground hover:text-purple-600">
                   Parceiros
                 </Link>
               </li>
