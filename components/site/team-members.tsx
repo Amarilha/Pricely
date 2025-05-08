@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Linkedin, Twitter } from "lucide-react"
+import { Linkedin, Instagram  } from "lucide-react"
 
 const team = [
 {
@@ -9,7 +9,7 @@ const team = [
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
-    twitter: "#",
+    instagram: "#",
   },
 },
 {
@@ -19,7 +19,7 @@ const team = [
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
-    twitter: "#",
+    instagram: "#",
   },
 },
 {
@@ -29,7 +29,7 @@ const team = [
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
-    twitter: "#",
+    instagram: "#",
   },
 },
 {
@@ -39,7 +39,7 @@ const team = [
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
-    twitter: "#",
+    instagram: "#",
   },
 },
 {
@@ -49,7 +49,7 @@ const team = [
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
-    twitter: "#",
+    instagram: "#",
   },
 },
 {
@@ -59,7 +59,7 @@ const team = [
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
-    twitter: "#",
+    instagram: "#",
   },
 },
 {
@@ -69,7 +69,7 @@ const team = [
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
-    twitter: "#",
+    instagram: "#",
   },
 },
 ]
@@ -91,8 +91,8 @@ export function TeamMembers() {
                 <a href={member.social.linkedin} className="text-muted-foreground hover:text-purple-600">
                   <Linkedin className="h-5 w-5" />
                 </a>
-                <a href={member.social.twitter} className="text-muted-foreground hover:text-purple-600">
-                  <Twitter className="h-5 w-5" />
+                <a href={member.social.instagram } className="text-muted-foreground hover:text-purple-600">
+                  <Instagram  className="h-5 w-5" />
                 </a>
               </div>
             </div>

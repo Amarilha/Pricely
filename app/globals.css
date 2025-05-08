@@ -4,29 +4,29 @@
 
 @layer base {
   :root {
-    --background: 247 60% 99%;  /* #f7f6f2 (convertido para HSL) */
+    --background: 48 2% 97%;  /* #f7f6f2 (convertido para HSL) */
     --foreground: 240 10% 3.9%;
     --card: 247 60% 99%;        /* #f7f6f2 */
     --card-foreground: 240 10% 3.9%;
     --popover: 247 60% 99%;     /* #f7f6f2 */
     --popover-foreground: 240 10% 3.9%;
-    --primary: 256 52% 44%;     /* #5635a6 */
+    --primary: 258 68% 65%;     /* #5635a6 */
     --primary-foreground: 0 0% 98%;
-    --secondary: 234 50% 37%;   /* #313895 */
+    --secondary: 236 67% 58%;   /* #313895 */
     --secondary-foreground: 0 0% 98%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 267 70% 92%;      /* #e9ddf7 */
-    --accent-foreground: 256 52% 44%; /* #5635a6 */
+    --accent: 48 2% 97%;      /* #e9ddf7 */
+    --accent-foreground: 258 68% 65%; /* #5635a6 */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 267 70% 92%;      /* #e9ddf7 */
+    --border: 48 2% 97%;      /* #e9ddf7 */
     --input: 240 5.9% 90%;
-    --ring: 256 52% 44%;        /* #5635a6 */
+    --ring: 258 68% 65%;        /* #5635a6 */
     --radius: 0.5rem;
     --sidebar-background: 247 60% 99%; /* #f7f6f2 */
     --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-border: 267 70% 92%;    /* #e9ddf7 */
+    --sidebar-border: 48 2% 97%;    /* #e9ddf7 */
   }
 
   .dark {
@@ -36,9 +36,9 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 256 52% 44%;     /* #5635a6 */
+    --primary: 258 68% 65%;     /* #5635a6 */
     --primary-foreground: 0 0% 98%;
-    --secondary: 234 50% 37%;   /* #313895 */
+    --secondary: 236 67% 58%;   /* #313895 */
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
@@ -48,7 +48,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 256 52% 44%;        /* #5635a6 */
+    --ring: 258 68% 65%;        /* #5635a6 */
     --sidebar-background: 240 10% 3.9%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-border: 240 3.7% 15.9%;
