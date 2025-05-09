@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react"
 export function HeroSection() {
   return (
     <div className="relative overflow-hidden bg-primary">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary to-background dark:from-primary/20 dark:to-background z-0" />
+      <div className="absolute inset-0 bg-gradient-to-b from-primary to-background dark:from-primary/20 dark:to-background z-0" />
 
       <div className="container relative z-10 py-20 md:py-32 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -16,7 +16,7 @@ export function HeroSection() {
                 Novo: Consultor IA para seus projetos
               </div>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+            <h1 className="text-4xl  text-primary-foreground md:text-5xl lg:text-6xl font-bold tracking-tight">
               Gerencie projetos e precifique com precisão
             </h1>
             <p className="text-xl text-primary-foreground">

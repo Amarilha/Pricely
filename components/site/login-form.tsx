@@ -1,5 +1,5 @@
 "use client"
-
+//login-form.tsx
 import type React from "react"
 
 import { useState } from "react"
@@ -11,9 +11,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Github, Mail } from "lucide-react"
+import {authGoogle} from "@/app/src/services/auth.js"
+
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
+  
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,10 +76,23 @@ export function LoginForm() {
             <Github className="mr-2 h-4 w-4" />
             GitHub
           </Button>
-          <Button variant="outline" className="w-full">
-            <Mail className="mr-2 h-4 w-4" />
-            Google
-          </Button>
+          <Button 
+              id="googleLogin" 
+              variant="outline" 
+              className="w-full"
+              onClick={async () => {
+                try {
+                  console.log("Initiating Google login...");
+                  await authGoogle();
+                  window.location.href = "/dashboard";
+                } catch (error) {
+                  console.error("Login error:", error);
+                  // You can show a user-friendly error message here
+                }
+              }}>
+                <Mail className="mr-2 h-4 w-4" />
+                Google
+            </Button>
         </div>
       </CardContent>
 
@@ -88,5 +105,6 @@ export function LoginForm() {
         </p>
       </CardFooter>
     </Card>
+    
   )
 }
