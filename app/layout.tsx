@@ -9,7 +9,10 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Valluo - Gestão de Projetos e Precificação",
   description: "Plataforma completa para gestão de projetos e precificação para freelancers e agências",
-    generator: 'v0.dev'
+  icons:{
+    icon:'shared.png',
+  },
+  
 }
 
 export default function RootLayout({
