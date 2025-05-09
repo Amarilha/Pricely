@@ -39,7 +39,7 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Senha</Label>
-              <Link href="#" className="text-xs text-purple-600 hover:underline">
+              <Link href="#" className="text-xs text-primary hover:underline">
                 Esqueceu a senha?
               </Link>
             </div>
@@ -53,7 +53,7 @@ export function LoginForm() {
             </Label>
           </div>
 
-          <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoading}>
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
@@ -63,7 +63,7 @@ export function LoginForm() {
             <Separator />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-background px-2 text-xs text-muted-foreground">Ou continue com</span>
+          <span className="bg-background px-2 text-xs text-muted-foreground">Ou continue com</span>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export function LoginForm() {
       <CardFooter className="flex justify-center border-t p-6">
         <p className="text-sm text-muted-foreground">
           Não tem uma conta?{" "}
-          <Link href="/cadastro" className="text-purple-600 hover:underline">
+          <Link href="/cadastro" className="text-primary hover:underline">
             Cadastre-se
           </Link>
         </p>

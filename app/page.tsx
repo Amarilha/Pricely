@@ -13,10 +13,10 @@ export default function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <HeroSection />
-        <FeaturesSection />
-        <TestimonialsSection />
-        <PricingPreviewSection />
         <PartnersSection />
+        <FeaturesSection />
+        {/* <TestimonialsSection /> */}
+        <PricingPreviewSection />
         <CTASection />
       </main>
       <SiteFooter />

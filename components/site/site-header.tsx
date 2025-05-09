@@ -29,10 +29,7 @@ const menuItems = [
     name: "Parceiros",
     href: "/parceiros",
   },
-  {
-    name: "Equipe",
-    href: "/equipe",
-  },
+
 ]
 
 export function SiteHeader() {
@@ -44,10 +41,10 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-              <span className="text-white font-bold">V</span>
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold">V</span>
             </div>
-            <span className="font-bold text-lg text-purple-600">Valluo</span>
+            <span className="font-bold text-lg text-primary">Valluo</span>
           </Link>
         </div>
 
@@ -79,7 +76,7 @@ export function SiteHeader() {
             <Button variant="ghost">Entrar</Button>
           </Link>
           <Link href="/cadastro">
-            <Button className="bg-purple-600 hover:bg-purple-700">Começar Grátis</Button>
+            <Button className="bg-primary hover:bg-primary/90">Começar Grátis</Button>
           </Link>
         </div>
 
@@ -99,8 +96,8 @@ export function SiteHeader() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "text-lg font-medium transition-colors hover:text-purple-600",
-                      pathname === item.href ? "text-purple-600" : "text-foreground",
+                      "text-lg font-medium transition-colors hover:text-primary",
+                      pathname === item.href ? "text-primary" : "text-foreground",
                     )}
                     onClick={() => setIsOpen(false)}
                   >
@@ -114,7 +111,7 @@ export function SiteHeader() {
                   </Button>
                 </Link>
                 <Link href="/cadastro" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">Começar Grátis</Button>
+                  <Button className="w-full bg-primary hover:bg-primary/90">Começar Grátis</Button>
                 </Link>
               </div>
             </SheetContent>

@@ -64,9 +64,9 @@ export function PricingPlans() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
       {plans.map((plan, index) => (
-        <Card key={index} className={cn("flex flex-col", plan.popular && "border-purple-600 shadow-lg")}>
+        <Card key={index} className={cn("flex flex-col", plan.popular && "border-primary shadow-lg")}>
           {plan.popular && (
-            <div className="bg-purple-600 text-white text-center py-1 text-sm font-medium">Mais Popular</div>
+            <div className="bg-primary text-primary-foreground text-center py-1 text-sm font-medium">Mais Popular</div>
           )}
           <CardHeader>
             <CardTitle>{plan.name}</CardTitle>
@@ -92,7 +92,7 @@ export function PricingPlans() {
           </CardContent>
           <CardFooter>
             <Button
-              className={cn("w-full", plan.popular && "bg-purple-600 hover:bg-purple-700")}
+              className={cn("w-full", plan.popular && "bg-primary hover:bg-primary/90")}
               variant={plan.popular ? "default" : "outline"}
             >
               {plan.cta}

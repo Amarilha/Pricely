@@ -85,13 +85,13 @@ export function TeamMembers() {
             </div>
             <div className="p-6">
               <h3 className="text-xl font-bold mb-1">{member.name}</h3>
-              <p className="text-purple-600 font-medium mb-3">{member.role}</p>
+              <p className="text-primary font-medium mb-3">{member.role}</p>
               <p className="text-muted-foreground mb-4">{member.bio}</p>
               <div className="flex gap-3">
-                <a href={member.social.linkedin} className="text-muted-foreground hover:text-purple-600">
+                <a href={member.social.linkedin} className="text-muted-foreground hover:text-primary">
                   <Linkedin className="h-5 w-5" />
                 </a>
-                <a href={member.social.instagram } className="text-muted-foreground hover:text-purple-600">
+                <a href={member.social.instagram } className="text-muted-foreground hover:text-primary">
                   <Instagram  className="h-5 w-5" />
                 </a>
               </div>

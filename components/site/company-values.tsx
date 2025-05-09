@@ -50,8 +50,8 @@ export function CompanyValues() {
           <Card key={index}>
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center mb-4">
-                  <value.icon className="h-6 w-6 text-purple-600" />
+                <div className="w-12 h-12 rounded-full bg-primary dark:bg-primary/20 flex items-center justify-center mb-4">
+                  <value.icon className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">{value.title}</h3>
                 <p className="text-muted-foreground">{value.description}</p>

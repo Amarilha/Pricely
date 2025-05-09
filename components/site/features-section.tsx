@@ -48,8 +48,8 @@ export function FeaturesSection() {
         {features.map((feature, index) => (
           <Card key={index}>
             <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-purple-600" />
+              <div className="w-12 h-12 rounded-lg bg-primary dark:bg-primary/20 flex items-center justify-center mb-4">
+                <feature.icon className="h-6 w-6 text-primary-foreground" />
               </div>
               <CardTitle>{feature.title}</CardTitle>
             </CardHeader>

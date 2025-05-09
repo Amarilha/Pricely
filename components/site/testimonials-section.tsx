@@ -31,11 +31,11 @@ const testimonials = [
 
 export function TestimonialsSection() {
   return (
-    <div className="bg-slate-50 dark:bg-slate-900/30">
+    <div className="bg-background dark:bg-background/30">
       <div className="container py-20 px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-4">O que nossos clientes dizem</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-primary-foreground max-w-2xl mx-auto">
             Milhares de profissionais e agências já transformaram seus negócios com a Valluo.
           </p>
         </div>
@@ -74,7 +74,7 @@ export function TestimonialsSection() {
 
         <div className="mt-16 text-center">
           <div className="inline-flex items-center gap-2 bg-background rounded-full px-4 py-2 shadow-sm">
-            <span className="text-purple-600 font-medium">4.9</span>
+            <span className="text-primary font-medium">4.9</span>
             <div className="flex">
               {Array(5)
                 .fill(0)

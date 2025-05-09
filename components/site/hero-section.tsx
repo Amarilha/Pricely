@@ -4,28 +4,28 @@ import { ArrowRight } from "lucide-react"
 
 export function HeroSection() {
   return (
-    <div className="relative overflow-hidden bg-background">
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background z-0" />
+    <div className="relative overflow-hidden bg-primary">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary to-background dark:from-primary/20 dark:to-background z-0" />
 
       <div className="container relative z-10 py-20 md:py-32 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="flex flex-col gap-6">
             <div className="inline-block">
               <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-background">
-                <span className="flex h-1.5 w-1.5 rounded-full bg-purple-600 mr-1"></span>
+                <span className="flex h-1.5 w-1.5 rounded-full bg-primary mr-1"></span>
                 Novo: Consultor IA para seus projetos
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
               Gerencie projetos e precifique com precisão
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-primary-foreground">
               Valluo é a plataforma completa para freelancers e agências gerenciarem projetos, calcularem preços justos
               e aumentarem a lucratividade.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/cadastro">
-                <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 hover:text-primary-foreground">
                   Começar Grátis
                 </Button>
               </Link>
@@ -35,7 +35,7 @@ export function HeroSection() {
                 </Button>
               </Link>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-primary-foreground">
               Não é necessário cartão de crédito. Plano gratuito disponível.
             </p>
           </div>
@@ -49,8 +49,8 @@ export function HeroSection() {
 
             <div className="absolute -bottom-6 -left-6 rounded-lg border bg-background p-4 shadow-lg hidden md:block">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-xl">+</span>
+                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-xl">+</span>
                 </div>
                 <div>
                   <p className="font-medium">Aumento de produtividade</p>
@@ -61,8 +61,8 @@ export function HeroSection() {
 
             <div className="absolute -top-6 -right-6 rounded-lg border bg-background p-4 shadow-lg hidden md:block">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-xl">$</span>
+                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-xl">$</span>
                 </div>
                 <div>
                   <p className="font-medium">Aumento de faturamento</p>

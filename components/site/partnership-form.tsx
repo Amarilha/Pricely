@@ -84,7 +84,7 @@ export function PartnershipForm() {
             />
           </div>
 
-          <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/80" disabled={isLoading}>
             {isLoading ? "Enviando..." : "Enviar Solicitação"}
           </Button>
         </form>

@@ -48,7 +48,7 @@ export function RegistrationForm() {
             </p>
           </div>
 
-          <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/80" disabled={isLoading}>
             {isLoading ? "Criando conta..." : "Criar conta"}
           </Button>
         </form>
@@ -77,7 +77,7 @@ export function RegistrationForm() {
       <CardFooter className="flex justify-center border-t p-6">
         <p className="text-sm text-muted-foreground">
           Já tem uma conta?{" "}
-          <Link href="/login" className="text-purple-600 hover:underline">
+          <Link href="/login" className="text-primary hover:underline">
             Faça login
           </Link>
         </p>
