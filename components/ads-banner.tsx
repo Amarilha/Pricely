@@ -47,8 +47,8 @@ export function AdsBanner({ position = "top", className }: AdsBannerProps) {
         </div>
         <div className="mt-2 w-full max-w-md rounded bg-background p-2 text-center">
           <div className="flex items-center justify-center gap-2">
-            <div className="h-8 w-8 rounded bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-              <span className="text-purple-600 font-bold text-xs">AD</span>
+            <div className="h-8 w-8 rounded bg-primary dark:bg-primary/20 flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xs">AD</span>
             </div>
             <div className="text-left">
               <p className="text-xs font-medium">Aumente sua produtividade com Valluo Pro</p>

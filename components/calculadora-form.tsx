@@ -366,7 +366,7 @@ export function CalculadoraForm() {
         </div>
 
         <div className="flex gap-4 pt-4">
-          <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+          <Button className="flex-1 bg-primary hover:bg-primary/80">
             <Calculator className="mr-2 h-4 w-4" />
             Calcular
           </Button>
@@ -379,7 +379,7 @@ export function CalculadoraForm() {
           <h3 className="text-sm font-medium mb-2">Importar Arquivo (Plano PRO)</h3>
           <div className="border border-dashed border-border rounded-md p-6 text-center">
             <div className="mb-2 flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-white font-bold">PRO</span>
               </div>
             </div>
