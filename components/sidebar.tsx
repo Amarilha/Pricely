@@ -1,4 +1,4 @@
-"use client"
+"use client" // Esta diretiva deve ser a PRIMEIRA linha do arquivo
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -24,8 +24,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ModeToggle } from "@/components/mode-toggle"
+import { useEffect, useState } from "react"
+import { onAuthStateChanged } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+import { auth, db } from "@/app/src/config/firebaseConfig"
+import Image from "next/image"
 
-// Atualizar as rotas no menu lateral
+// Definição das rotas do menu lateral
 const menuItems = [
   {
     name: "Dashboard",
@@ -62,11 +67,37 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const { expanded, toggleSidebar } = useSidebar()
+  const [userData, setUserData] = useState<any>(null)
 
-  const handleLogout = () => {
-    // Aqui você implementaria a lógica de logout
-    // Por enquanto, apenas redirecionamos para a página inicial
-    window.location.href = "/"
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Busca informações adicionais do usuário no Firestore
+        const userDoc = await getDoc(doc(db, "users", user.uid))
+        if (userDoc.exists()) {
+          setUserData(userDoc.data())
+        } else {
+          // Se não encontrar no Firestore, usa os dados básicos do auth
+          setUserData({
+            name: user.displayName || "Usuário",
+            email: user.email,
+            photoURL: user.photoURL,
+            role: "user"
+          })
+        }
+      }
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      window.location.href = "/"
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error)
+    }
   }
 
   return (
@@ -90,6 +121,7 @@ export function Sidebar() {
           </Button>
         </div>
       </div>
+
       <div className="flex-1 py-4 overflow-auto">
         <nav className="space-y-1 px-2">
           {menuItems.map((item) => (
@@ -110,18 +142,37 @@ export function Sidebar() {
           ))}
         </nav>
       </div>
+
       <div className="p-4 border-t border-border">
         {expanded ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full flex items-center justify-between px-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                    <span className="text-white font-bold">U</span>
-                  </div>
+                  {userData?.photoURL ? (
+                    <div className="w-8 h-8 rounded-full overflow-hidden">
+                      <Image
+                        src={userData.photoURL}
+                        alt="Foto do perfil"
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                      <span className="text-white font-bold">
+                        {userData?.name?.charAt(0).toUpperCase() || "U"}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex flex-col text-left">
-                    <span className="text-sm font-medium">Usuário</span>
-                    <span className="text-xs text-muted-foreground">Plano Free</span>
+                    <span className="text-sm font-medium">
+                      {userData?.name || "Usuário"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {userData?.role === "admin" ? "Plano Pro" : "Plano Free"}
+                    </span>
                   </div>
                 </div>
                 <ChevronDown className="h-4 w-4 opacity-50" />
@@ -153,9 +204,23 @@ export function Sidebar() {
         ) : (
           <div className="flex flex-col items-center gap-4">
             <ModeToggle />
-            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer">
-              <span className="text-white font-bold">U</span>
-            </div>
+            {userData?.photoURL ? (
+              <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer">
+                <Image
+                  src={userData.photoURL}
+                  alt="Foto do perfil"
+                  width={32}
+                  height={32}
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer">
+                <span className="text-white font-bold">
+                  {userData?.name?.charAt(0).toUpperCase() || "U"}
+                </span>
+              </div>
+            )}
             <Button variant="ghost" size="icon" onClick={handleLogout} className="text-red-500">
               <LogOut className="h-5 w-5" />
             </Button>
@@ -164,4 +229,4 @@ export function Sidebar() {
       </div>
     </div>
   )
-}
+};
