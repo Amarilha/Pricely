@@ -13,7 +13,6 @@ export default function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <HeroSection />
-        <PartnersSection />
         <FeaturesSection />
         {/* <TestimonialsSection /> */}
         <PricingPreviewSection />
