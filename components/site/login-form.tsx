@@ -1,7 +1,4 @@
 "use client"
-//login-form.tsx
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -10,26 +7,64 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Github, Mail } from "lucide-react"
+import { Github, Mail, Google } from "lucide-react"
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { auth, provider } from "@/app/src/config/firebaseConfig"
 import {authGoogle} from "@/app/src/services/auth.js"
-
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
-  
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  // Login com email/senha usando Firebase Auth
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
-    // Simulando um atraso de processamento
-    setTimeout(() => {
-      setIsLoading(false)
-      // Redirecionar para o dashboard após o login
-      window.location.href = "/dashboard"
-    }, 1500)
-  }
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    // Validação manual
+    if (!email || !password) {
+      setError("Preencha todos os campos");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Usuário logado:", userCredential.user);
+      window.location.href = "/dashboard";
+    } catch (error) {
+      let errorMessage = "Falha no login";
+      
+      if (error instanceof Error) {
+        switch (error.code) {  // Note: Aqui usamos error.code em vez de error.message
+          case "auth/invalid-email":
+            errorMessage = "Email inválido";
+            break;
+          case "auth/user-not-found":
+            errorMessage = "Usuário não cadastrado";
+            break;
+          case "auth/wrong-password":
+            errorMessage = "Senha incorreta";
+            break;
+          case "auth/too-many-requests":
+            errorMessage = "Muitas tentativas. Tente mais tarde";
+            break;
+        }
+      }
+      
+      setError(errorMessage);
+      console.error("Erro no login:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <Card>
