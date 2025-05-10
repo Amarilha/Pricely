@@ -69,11 +69,6 @@ export function SiteFooter() {
             <h3 className="font-medium text-lg mb-4">Empresa</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/parceiros" className="text-muted-foreground hover:text-primary">
-                  Parceiros
-                </Link>
-              </li>
-              <li>
                 <Link href="#" className="text-muted-foreground hover:text-primary">
                   Blog
                 </Link>

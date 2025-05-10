@@ -25,10 +25,7 @@ const menuItems = [
     name: "Planos",
     href: "/planos",
   },
-  {
-    name: "Parceiros",
-    href: "/parceiros",
-  },
+  
 
 ]
 
