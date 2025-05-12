@@ -20,32 +20,37 @@ export function AdsBanner({
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     // Verifica se o script do AdSense já foi carregado
-    if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
+    if ((window as any).adsbygoogle) {
       setScriptLoaded(true)
-    } else {
-      // Carrega o script do AdSense
-      const script = document.createElement('script')
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6983643349322034'
-      script.async = true
-      script.crossOrigin = "anonymous"
-      script.onload = () => {
-        setScriptLoaded(true)
-      }
-      document.head.appendChild(script)
+      return
+    }
+
+    // Carrega o script dinamicamente
+    const script = document.createElement('script')
+    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6983643349322034'
+    script.async = true
+    script.crossOrigin = 'anonymous'
+    script.onload = () => setScriptLoaded(true)
+    document.head.appendChild(script)
+
+    return () => {
+      // Limpeza opcional: remove o script se o componente for desmontado
+      document.head.removeChild(script)
     }
   }, [])
 
   useEffect(() => {
-    // Carrega os anúncios quando o script estiver pronto
-    if (scriptLoaded) {
+    if (scriptLoaded && !dismissed) {
       try {
-        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+        ;((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
       } catch (e) {
         console.error("AdSense error:", e)
       }
     }
-  }, [scriptLoaded])
+  }, [scriptLoaded, dismissed])
 
   if (dismissed) {
     return null
