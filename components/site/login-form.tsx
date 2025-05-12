@@ -1,6 +1,4 @@
 "use client"
-//login-form.tsx
-import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
@@ -11,43 +9,126 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Github, Mail } from "lucide-react"
-import {authGoogle} from "@/app/src/services/auth.js"
 
+import { auth, signInWithEmailAndPassword } from "@/app/src/config/firebaseConfig.js"
+import { authGoogle } from "@/app/src/services/auth.js"
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
-  
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Simulando um atraso de processamento
-    setTimeout(() => {
+    const formData = new FormData(e.currentTarget as HTMLFormElement)
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
+
+    if (!email || !password) {
+      setError("Preencha todos os campos")
       setIsLoading(false)
-      // Redirecionar para o dashboard após o login
+      return
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
       window.location.href = "/dashboard"
-    }, 1500)
+    } catch (error: any) { // Usando any temporariamente para acessar a propriedade code
+      let errorMessage = "Falha no login"
+      
+      if (error.code) {
+        switch (error.code) {
+          case "auth/invalid-email":
+            errorMessage = "Email inválido"
+            break
+          case "auth/user-not-found":
+            errorMessage = "Usuário não cadastrado"
+            break
+          case "auth/wrong-password":
+            errorMessage = "Senha incorreta"
+            break
+          case "auth/too-many-requests":
+            errorMessage = "Muitas tentativas. Tente mais tarde"
+            break
+          default:
+            errorMessage = "Erro desconhecido durante o login"
+        }
+      }
+      
+      setError(errorMessage)
+      console.error("Erro no login:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true)
+    setError(null)
+    
+    try {
+      await authGoogle()
+      window.location.href = "/dashboard"
+    } catch (error: any) {
+      let errorMessage = "Falha no login com Google"
+      
+      if (error.code) {
+        switch (error.code) {
+          case "auth/account-exists-with-different-credential":
+            errorMessage = "Este email já está cadastrado com outro método"
+            break
+          case "auth/popup-closed-by-user":
+            errorMessage = "Login cancelado pelo usuário"
+            break
+          default:
+            errorMessage = "Erro ao fazer login com Google"
+        }
+      }
+      setError(errorMessage)
+      console.error("Erro no login com Google:", error)
+    } finally {
+      setIsGoogleLoading(false)
+    }
   }
 
   return (
     <Card>
       <CardContent className="pt-6">
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" placeholder="Digite seu e-mail" required />
+            <Input 
+              id="email" 
+              name="email" 
+              type="email" 
+              placeholder="Digite seu e-mail" 
+              required 
+            />
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Senha</Label>
-              <Link href="#" className="text-xs text-primary hover:underline">
+              <Link href="/recuperar-senha" className="text-xs text-primary hover:underline">
                 Esqueceu a senha?
               </Link>
             </div>
-            <Input id="password" type="password" placeholder="Digite sua senha" required />
+            <Input 
+              id="password" 
+              name="password" 
+              type="password" 
+              placeholder="Digite sua senha" 
+              required 
+            />
           </div>
 
           <div className="flex items-center space-x-2">
@@ -67,32 +148,26 @@ export function LoginForm() {
             <Separator />
           </div>
           <div className="relative flex justify-center">
-          <span className="bg-background px-2 text-xs text-muted-foreground">Ou continue com</span>
+            <span className="bg-background px-2 text-xs text-muted-foreground">
+              Ou continue com
+            </span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" disabled>
             <Github className="mr-2 h-4 w-4" />
             GitHub
           </Button>
           <Button 
-              id="googleLogin" 
-              variant="outline" 
-              className="w-full"
-              onClick={async () => {
-                try {
-                  console.log("Initiating Google login...");
-                  await authGoogle();
-                  window.location.href = "/dashboard";
-                } catch (error) {
-                  console.error("Login error:", error);
-                  // You can show a user-friendly error message here
-                }
-              }}>
-                <Mail className="mr-2 h-4 w-4" />
-                Google
-            </Button>
+            variant="outline" 
+            className="w-full"
+            onClick={handleGoogleLogin}
+            disabled={isGoogleLoading}
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            {isGoogleLoading ? "Entrando..." : "Google"}
+          </Button>
         </div>
       </CardContent>
 
@@ -105,6 +180,5 @@ export function LoginForm() {
         </p>
       </CardFooter>
     </Card>
-    
   )
 }
