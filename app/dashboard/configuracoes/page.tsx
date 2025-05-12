@@ -1,3 +1,5 @@
+"use client"
+
 import { PageHeader } from "@/components/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -5,14 +7,142 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { AdsBanner } from "@/components/ads-banner"
+import { useEffect, useState } from "react"
+import { onAuthStateChanged } from "firebase/auth"
+import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { auth, db } from "@/app/src/config/firebaseConfig"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/use-toast"
+
+interface UserData {
+  name?: string
+  email?: string | null
+  photoURL?: string | null
+  role?: string
+  plan?: string
+  provider?: string
+  notifications?: {
+    emailMarketing?: boolean
+    emailUpdates?: boolean
+    emailSecurity?: boolean
+    appUpdates?: boolean
+    appReminders?: boolean
+  }
+}
 
 export default function ConfiguracoesPage() {
-  // Simulando um usuário do plano gratuito
-  const userPlan = "free"
+
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid))
+        if (userDoc.exists()) {
+          setUserData({
+            name: user.displayName || userDoc.data().name || "Usuário",
+            email: user.email,
+            photoURL: user.photoURL || userDoc.data().photoURL,
+            role: userDoc.data().role || "user",
+            plan: userDoc.data().plan || "free",
+            provider: userDoc.data().provider || "email",
+            notifications: {
+              emailMarketing: userDoc.data()?.notifications?.emailMarketing ?? true,
+              emailUpdates: userDoc.data()?.notifications?.emailUpdates ?? true,
+              emailSecurity: userDoc.data()?.notifications?.emailSecurity ?? true,
+              appUpdates: userDoc.data()?.notifications?.appUpdates ?? true,
+              appReminders: userDoc.data()?.notifications?.appReminders ?? true,
+            }
+          })
+        } else {
+          const isGoogleUser = user.providerData.some(
+            (provider) => provider.providerId === 'google.com'
+          )
+          
+          setUserData({
+            name: user.displayName || "Usuário",
+            email: user.email,
+            photoURL: user.photoURL,
+            role: "user",
+            plan: "free",
+            provider: isGoogleUser ? "google" : "email",
+            notifications: {
+              emailMarketing: true,
+              emailUpdates: true,
+              emailSecurity: true,
+              appUpdates: true,
+              appReminders: true,
+            }
+          })
+        }
+      }
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!auth.currentUser || !userData) return
+
+    setLoading(true)
+    try {
+      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        name: userData.name,
+        email: userData.email,
+        photoURL: userData.photoURL
+      })
+      toast({
+        title: "Sucesso",
+        description: "Perfil atualizado com sucesso!",
+        variant: "default"
+      })
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao atualizar o perfil.",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateNotifications = async () => {
+    if (!auth.currentUser || !userData?.notifications) return
+
+    setLoading(true)
+    try {
+      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        notifications: userData.notifications
+      })
+      toast({
+        title: "Sucesso",
+        description: "Preferências de notificação atualizadas!",
+        variant: "default"
+      })
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao atualizar as notificações.",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!userData) {
+    return <div className="p-6">Carregando...</div>
+  }
+
+  const isGoogleUser = userData.provider === "google"
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {userPlan === "free" && <AdsBanner />}
+      {userData.plan === "free" && <AdsBanner />}
       <PageHeader title="Configurações" description="Gerencie as configurações da sua conta e preferências." />
 
       <Tabs defaultValue="conta" className="w-full">
@@ -27,70 +157,90 @@ export default function ConfiguracoesPage() {
           <Card>
             <CardHeader>
               <CardTitle>Informações da Conta</CardTitle>
-              <CardDescription>Gerencie as informações da sua conta e preferências de segurança.</CardDescription>
+              <CardDescription>
+                {isGoogleUser 
+                  ? "Gerencie as informações da sua conta do Google." 
+                  : "Gerencie as informações da sua conta e preferências de segurança."}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Perfil</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome</Label>
-                    <input
-                      id="name"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      defaultValue="Usuário"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <input
-                      id="email"
-                      type="email"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      defaultValue="usuario@email.com"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Segurança</h3>
+              <form onSubmit={handleUpdateProfile}>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="current-password">Senha Atual</Label>
-                    <input
-                      id="current-password"
-                      type="password"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="••••••••"
-                    />
-                  </div>
+                  <h3 className="text-lg font-medium">Perfil</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Overlay de manutenção */}
+      <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+        <div className="text-[80px] font-bold text-gray-400 opacity-50 rotate-[-30deg]">
+          EM MANUTENÇÃO
+        </div>
+      </div>
                     <div className="space-y-2">
-                      <Label htmlFor="new-password">Nova Senha</Label>
-                      <input
-                        id="new-password"
-                        type="password"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        placeholder="••••••••"
+                      <Label htmlFor="name">Nome</Label>
+                      <Input
+                        id="name"
+                        value={userData.name}
+                        onChange={(e) => setUserData({...userData, name: e.target.value})}
+                        disabled={isGoogleUser}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                      <input
-                        id="confirm-password"
-                        type="password"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        placeholder="••••••••"
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={userData.email || ''}
+                        onChange={(e) => setUserData({...userData, email: e.target.value})}
+                        disabled={isGoogleUser}
                       />
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button className="bg-purple-600 hover:bg-purple-700">Salvar Alterações</Button>
-              </div>
+                {/*
+                {!isGoogleUser && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Segurança</h3>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="current-password">Senha Atual</Label>
+                        <Input
+                          id="current-password"
+                          type="password"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">Nova Senha</Label>
+                          <Input
+                            id="new-password"
+                            type="password"
+                            placeholder="••••••••"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                          <Input
+                            id="confirm-password"
+                            type="password"
+                            placeholder="••••••••"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end mt-6">
+                  <Button 
+                    type="submit" 
+                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={loading || isGoogleUser}
+                  >
+                    {loading ? "Salvando..." : "Salvar Alterações"}
+                  </Button>
+                </div>
+                */}
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
