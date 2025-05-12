@@ -14,7 +14,7 @@ interface AdsBannerProps {
 export function AdsBanner({ 
   position = "top", 
   className,
-  adSlot = "SEU_AD_SLOT_AQUI" 
+  adSlot = "1086-7640-4153" 
 }: AdsBannerProps) {
   const [dismissed, setDismissed] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
