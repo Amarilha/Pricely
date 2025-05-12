@@ -29,7 +29,7 @@ export function AdsBanner({
       <Script 
         strategy="lazyOnload"
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6983643349322034"
-        crossOrigin="anonymous"
+         crossorigin="anonymous
       />
 
       <div
