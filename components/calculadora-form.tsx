@@ -374,7 +374,7 @@ export function CalculadoraForm() {
             Limpar
           </Button>
         </div>
-
+        {/* 
         <div className="pt-4 border-t border-border">
           <h3 className="text-sm font-medium mb-2">Importar Arquivo (Plano PRO)</h3>
           <div className="border border-dashed border-border rounded-md p-6 text-center">
@@ -390,6 +390,7 @@ export function CalculadoraForm() {
             <p className="text-xs text-muted-foreground mt-2">Nenhum arquivo escolhido</p>
           </div>
         </div>
+        */}
       </CardContent>
     </Card>
   )
