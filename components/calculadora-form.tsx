@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { Plus, Minus, Calculator } from "lucide-react"
+import { Plus, Minus, Calculator, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type CustoFixo = {
@@ -44,6 +44,12 @@ export function CalculadoraForm() {
   const [horasDia, setHorasDia] = useState("0")
   const [horasEstimadas, setHorasEstimadas] = useState("0")
   const [faturamentoBruto, setFaturamentoBruto] = useState("0,00")
+  const [tipoServico, setTipoServico] = useState("geral")
+  const [unidadeTempo, setUnidadeTempo] = useState("horas")
+  
+  // Novo estado para controlar a exibição do resumo
+  const [mostrarResumo, setMostrarResumo] = useState(false)
+  const [valorCalculado, setValorCalculado] = useState("0,00")
 
   const formatarValorMonetario = (valor: string): string => {
     // Remove todos os caracteres não numéricos
@@ -111,6 +117,72 @@ export function CalculadoraForm() {
     setHorasDia("0")
     setHorasEstimadas("0")
     setFaturamentoBruto("0,00")
+    setMostrarResumo(false)
+    setValorCalculado("0,00")
+  }
+
+  const converterParaNumero = (valor: string) => {
+    return parseFloat(valor.replace(".", "").replace(",", ".")) || 0
+  }
+
+  const calcularPreco = () => {
+    // Converter todos os custos fixos para números e somá-los
+    const totalCustosFixos = custosFixos.reduce(
+      (total, custo) => total + converterParaNumero(custo.valor),
+      0
+    )
+
+    // Converter todos os custos variáveis para números e somá-los
+    const totalCustosVariaveis = custosVariaveis.reduce(
+      (total, custo) => total + converterParaNumero(custo.valor),
+      0
+    )
+
+    // Calcular o valor do imposto dependendo do tipo de empresa
+    let valorImposto = 0
+    if (tipoEmpresa === "mei") {
+      valorImposto = 70.60 // Valor fixo para MEI
+    } else {
+      // Para ME, baseado no faturamento bruto (simplificado)
+      valorImposto = Math.max(181.14, converterParaNumero(faturamentoBruto) * (converterParaNumero(imposto) / 100))
+    }
+
+    // Calcular o valor da hora
+    let valorPorHora = converterParaNumero(remuneracao)
+    if (valorHora) {
+      // Se o usuário não sabe o valor por hora, calcule com base na remuneração mensal
+      const diasUteisNum = parseInt(diasUteis) || 20 // padrão para 20 dias se não for fornecido
+      const horasDiaNum = parseInt(horasDia) || 8 // padrão para 8 horas se não for fornecido
+      valorPorHora = converterParaNumero(remuneracao) / (diasUteisNum * horasDiaNum)
+    }
+
+    // Calcular horas estimadas com base na unidade selecionada
+    let horasTotais = parseInt(horasEstimadas) || 0
+    if (unidadeTempo === "dias") {
+      horasTotais *= parseInt(horasDia) || 8 // padrão para 8 horas se não for fornecido
+    } else if (unidadeTempo === "semanas") {
+      horasTotais *= (parseInt(horasDia) || 8) * 5 // 5 dias úteis por semana
+    }
+
+    // Calcular o valor total do projeto
+    const custoMensal = totalCustosFixos + valorImposto
+    const custoHora = custoMensal / ((parseInt(diasUteis) || 20) * (parseInt(horasDia) || 8))
+    const custoProjetoPorHora = custoHora * horasTotais
+    const custoVariavelProjeto = totalCustosVariaveis
+    const remuneracaoProjeto = valorPorHora * horasTotais
+
+    const valorTotalProjeto = custoProjetoPorHora + custoVariavelProjeto + remuneracaoProjeto
+
+    // Formatar o valor total para moeda brasileira
+    setValorCalculado(
+      valorTotalProjeto.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).replace(".", ",")
+    )
+
+    // Mostrar o resumo
+    setMostrarResumo(true)
   }
 
   return (
@@ -186,7 +258,7 @@ export function CalculadoraForm() {
 
         <div>
           <h3 className="text-sm font-medium mb-2">Serviço</h3>
-          <Select defaultValue="geral">
+          <Select value={tipoServico} onValueChange={setTipoServico}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione o tipo de serviço" />
             </SelectTrigger>
@@ -325,7 +397,11 @@ export function CalculadoraForm() {
                 <Input
                   id="dias-uteis"
                   value={diasUteis}
-                  onChange={(e) => setDiasUteis(e.target.value)}
+                  onChange={(e) => {
+                    // Permitir apenas números
+                    const numeroApenas = e.target.value.replace(/\D/g, "")
+                    setDiasUteis(numeroApenas)
+                  }}
                   placeholder="Dias úteis no mês"
                 />
               </div>
@@ -336,7 +412,11 @@ export function CalculadoraForm() {
                 <Input
                   id="horas-dia"
                   value={horasDia}
-                  onChange={(e) => setHorasDia(e.target.value)}
+                  onChange={(e) => {
+                    // Permitir apenas números
+                    const numeroApenas = e.target.value.replace(/\D/g, "")
+                    setHorasDia(numeroApenas)
+                  }}
                   placeholder="Horas produtivas por dia"
                 />
               </div>
@@ -349,10 +429,14 @@ export function CalculadoraForm() {
           <div className="flex gap-2">
             <Input
               value={horasEstimadas}
-              onChange={(e) => setHorasEstimadas(e.target.value)}
+              onChange={(e) => {
+                // Permitir apenas números
+                const numeroApenas = e.target.value.replace(/\D/g, "")
+                setHorasEstimadas(numeroApenas)
+              }}
               placeholder="Horas estimadas"
             />
-            <Select defaultValue="horas">
+            <Select value={unidadeTempo} onValueChange={setUnidadeTempo}>
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Unidade" />
               </SelectTrigger>
@@ -366,7 +450,10 @@ export function CalculadoraForm() {
         </div>
 
         <div className="flex gap-4 pt-4">
-          <Button className="flex-1 bg-primary hover:bg-primary/80">
+          <Button 
+            className="flex-1 bg-primary hover:bg-primary/80"
+            onClick={calcularPreco}
+          >
             <Calculator className="mr-2 h-4 w-4" />
             Calcular
           </Button>
@@ -374,23 +461,89 @@ export function CalculadoraForm() {
             Limpar
           </Button>
         </div>
-        {/* 
-        <div className="pt-4 border-t border-border">
-          <h3 className="text-sm font-medium mb-2">Importar Arquivo (Plano PRO)</h3>
-          <div className="border border-dashed border-border rounded-md p-6 text-center">
-            <div className="mb-2 flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-white font-bold">PRO</span>
+
+        {/* Resumo de cálculo */}
+        {mostrarResumo && (
+          <div className="mt-6 border border-border rounded-lg p-4 bg-muted/30">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-medium text-lg">Resumo do Orçamento</h3>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setMostrarResumo(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Tipo de empresa</p>
+                <p className="font-medium">{tipoEmpresa === "mei" ? "MEI" : "ME"}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Tipo de serviço</p>
+                <p className="font-medium capitalize">{tipoServico}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Custos fixos mensais</p>
+                <ul className="space-y-1">
+                  {custosFixos.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
+                    <li key={custo.id} className="flex justify-between">
+                      <span>{custo.nome}</span>
+                      <span>R$ {custo.valor}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Custos variáveis</p>
+                <ul className="space-y-1">
+                  {custosVariaveis.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
+                    <li key={custo.id} className="flex justify-between">
+                      <span>{custo.nome}</span>
+                      <span>R$ {custo.valor}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Impostos</p>
+                <p className="font-medium">
+                  {tipoEmpresa === "mei" ? "R$ 70,60 (fixo)" : `${imposto}%`}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Remuneração</p>
+                <p className="font-medium">
+                  {valorHora 
+                    ? `R$ ${remuneracao} por mês (${diasUteis} dias × ${horasDia} horas)`
+                    : `R$ ${remuneracao} por hora`}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Tempo estimado</p>
+                <p className="font-medium">{horasEstimadas} {unidadeTempo}</p>
+              </div>
+              
+              <Separator />
+              
+              <div className="pt-2">
+                <p className="text-lg font-semibold flex justify-between">
+                  <span>Valor total do serviço:</span>
+                  <span className="text-purple-600">R$ {valorCalculado}</span>
+                </p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mb-2">Arraste e solte o arquivo aqui ou</p>
-            <Button variant="outline" size="sm">
-              Selecionar Arquivo
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">Nenhum arquivo escolhido</p>
           </div>
-        </div>
-        */}
+        )}
       </CardContent>
     </Card>
   )

@@ -15,7 +15,9 @@ export default function ChatPage() {
         </div>
       </div>
       <div className="p-6">
-        {userPlan === "free" && <AdsBanner className="mb-6" />}
+       {/* 
+      {userPlan === "free" && <AdsBanner />}
+      */}
         <PageHeader
           title="Consultor IA"
           description="Converse com nosso consultor de IA para obter insights sobre seus projetos."

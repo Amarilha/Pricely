@@ -4,13 +4,7 @@ import { Inter } from "next/font/google"
 import { SidebarProvider } from "@/components/sidebar-provider"
 import { Sidebar } from "@/components/sidebar"
 import Script from 'next/script'
-
-// No seu layout ou componente principal
-<Script 
-  strategy="lazyOnload"
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3875072008507470"
-  crossOrigin="anonymous"
-/>
+import { cn } from "@/lib/utils"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,10 +20,27 @@ export default function DashboardLayout({
 }>) {
   return (
     <SidebarProvider>
-      <div className="flex h-screen">
-        <Sidebar />
-        <main className="flex-1 overflow-auto">{children}</main>
+      <div className="min-h-screen">
+        <Script 
+          strategy="lazyOnload"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3875072008507470"
+          crossOrigin="anonymous"
+        />
+        
+        <div className="flex">
+          {/* Sidebar fixo */}
+          <Sidebar />
+          
+          {/* Conteúdo principal com margem ajustável */}
+          <main className={cn(
+            "flex-1 p-8 min-h-screen transition-margin duration-300",
+            "ml-20", // Margem padrão quando sidebar recolhido
+            "lg:ml-64" // Margem quando sidebar expandido (ajuste conforme necessário)
+          )}>
+            {children}
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   )
-}
+};

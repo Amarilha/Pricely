@@ -1,4 +1,4 @@
-"use client" // Esta diretiva deve ser a PRIMEIRA linha do arquivo
+"use client"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -30,7 +30,6 @@ import { doc, getDoc } from "firebase/firestore"
 import { auth, db } from "@/app/src/config/firebaseConfig"
 import Image from "next/image"
 
-// Definição das rotas do menu lateral
 const menuItems = [
   {
     name: "Dashboard",
@@ -72,12 +71,10 @@ export function Sidebar() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Busca informações adicionais do usuário no Firestore
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
           setUserData(userDoc.data())
         } else {
-          // Se não encontrar no Firestore, usa os dados básicos do auth
           setUserData({
             name: user.displayName || "Usuário",
             email: user.email,
@@ -87,7 +84,6 @@ export function Sidebar() {
         }
       }
     })
-
     return () => unsubscribe()
   }, [])
 
@@ -104,9 +100,11 @@ export function Sidebar() {
     <div
       className={cn(
         "h-screen bg-background border-r border-border transition-all duration-300 flex flex-col",
-        expanded ? "w-64" : "w-20",
+        "fixed top-0 left-0 z-50", // Classes fixas adicionadas aqui
+        expanded ? "w-64" : "w-20"
       )}
     >
+      {/* Cabeçalho do menu */}
       <div className="p-4 flex items-center justify-between border-b border-border">
         <div className={cn("flex items-center", expanded ? "gap-2" : "justify-center w-full")}>
           <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
@@ -122,6 +120,7 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* Itens do menu */}
       <div className="flex-1 py-4 overflow-auto">
         <nav className="space-y-1 px-2">
           {menuItems.map((item) => (
@@ -143,6 +142,7 @@ export function Sidebar() {
         </nav>
       </div>
 
+      {/* Footer do menu */}
       <div className="p-4 border-t border-border">
         {expanded ? (
           <DropdownMenu>
@@ -229,4 +229,4 @@ export function Sidebar() {
       </div>
     </div>
   )
-};
+}
