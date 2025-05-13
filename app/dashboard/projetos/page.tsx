@@ -14,7 +14,9 @@ export default function ProjetosPage() {
           EM MANUTENÇÃO
         </div>
       </div>
+      {/* 
       {userPlan === "free" && <AdsBanner />}
+      */}
       <PageHeader title="Projetos" description="Visualize e gerencie todos os seus projetos." />
       <ProjectsList />
     </div>
