@@ -21,7 +21,7 @@ const benefits = [
   {
     icon: Award,
     title: "Certificação Oficial",
-    description: "Torne-se um parceiro certificado Valluo e destaque-se no mercado.",
+    description: "Torne-se um parceiro certificado Nexprice e destaque-se no mercado.",
   },
   {
     icon: Zap,

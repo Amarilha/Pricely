@@ -39,9 +39,9 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">V</span>
+              <span className="text-primary-foreground font-bold">N</span>
             </div>
-            <span className="font-bold text-lg text-primary">Valluo</span>
+            <span className="font-bold text-lg text-primary">Nexprice</span>
           </Link>
         </div>
 

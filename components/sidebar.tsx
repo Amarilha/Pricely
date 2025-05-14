@@ -108,9 +108,9 @@ export function Sidebar() {
       <div className="p-4 flex items-center justify-between border-b border-border">
         <div className={cn("flex items-center", expanded ? "gap-2" : "justify-center w-full")}>
           <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-            <span className="text-white font-bold">V</span>
+            <span className="text-white font-bold">N</span>
           </div>
-          {expanded && <span className="font-bold text-lg text-purple-600">Valluo</span>}
+          {expanded && <span className="font-bold text-lg text-purple-600">Nexprice</span>}
         </div>
         <div className="flex items-center gap-2">
           {expanded && <ModeToggle />}

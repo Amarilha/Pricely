@@ -29,7 +29,7 @@ export function PartnershipForm() {
       <CardHeader>
         <CardTitle>Solicite uma Parceria</CardTitle>
         <CardDescription>
-          Preencha o formulário abaixo para iniciar o processo de parceria com a Valluo.
+          Preencha o formulário abaixo para iniciar o processo de parceria com a Nexprice.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -75,10 +75,10 @@ export function PartnershipForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="message">Por que deseja ser um parceiro Valluo?</Label>
+            <Label htmlFor="message">Por que deseja ser um parceiro Nexprice?</Label>
             <Textarea
               id="message"
-              placeholder="Conte-nos sobre sua empresa e como pretende trabalhar com a Valluo"
+              placeholder="Conte-nos sobre sua empresa e como pretende trabalhar com a Nexprice"
               rows={4}
               required
             />

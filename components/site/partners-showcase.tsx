@@ -5,33 +5,33 @@ const partners = [
     name: "Empresa ABC",
     logo: "/placeholder.svg?height=60&width=180",
     description:
-      "Empresa líder em soluções de marketing digital, utilizando a Valluo para gerenciar projetos de clientes.",
+      "Empresa líder em soluções de marketing digital, utilizando a Nexprice para gerenciar projetos de clientes.",
   },
   {
     name: "Startup XYZ",
     logo: "/placeholder.svg?height=60&width=180",
     description:
-      "Startup inovadora no setor de tecnologia, usando a Valluo para precificação de serviços de desenvolvimento.",
+      "Startup inovadora no setor de tecnologia, usando a Nexprice para precificação de serviços de desenvolvimento.",
   },
   {
     name: "Consultoria 123",
     logo: "/placeholder.svg?height=60&width=180",
-    description: "Consultoria especializada em gestão de negócios, recomendando a Valluo para seus clientes.",
+    description: "Consultoria especializada em gestão de negócios, recomendando a Nexprice para seus clientes.",
   },
   {
     name: "Agência DEF",
     logo: "/placeholder.svg?height=60&width=180",
-    description: "Agência de design premiada, utilizando a Valluo para gerenciar projetos criativos e equipes.",
+    description: "Agência de design premiada, utilizando a Nexprice para gerenciar projetos criativos e equipes.",
   },
   {
     name: "Tech Solutions",
     logo: "/placeholder.svg?height=60&width=180",
-    description: "Empresa de soluções tecnológicas, integrando a Valluo com seus sistemas internos.",
+    description: "Empresa de soluções tecnológicas, integrando a Nexprice com seus sistemas internos.",
   },
   {
     name: "Design Studio",
     logo: "/placeholder.svg?height=60&width=180",
-    description: "Estúdio de design especializado em UI/UX, usando a Valluo para precificação de projetos.",
+    description: "Estúdio de design especializado em UI/UX, usando a Nexprice para precificação de projetos.",
   },
 ]
 

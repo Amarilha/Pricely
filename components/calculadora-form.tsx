@@ -9,8 +9,21 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { Plus, Minus, Calculator, X } from "lucide-react"
+import { Plus, Minus, Calculator, X, PieChart, BarChart2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts'
 
 type CustoFixo = {
   id: string
@@ -23,6 +36,8 @@ type CustoVariavel = {
   nome: string
   valor: string
 }
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
 
 export function CalculadoraForm() {
   const [tipoEmpresa, setTipoEmpresa] = useState("mei")
@@ -42,26 +57,22 @@ export function CalculadoraForm() {
   const [remuneracao, setRemuneracao] = useState("0,00")
   const [diasUteis, setDiasUteis] = useState("0")
   const [horasDia, setHorasDia] = useState("0")
-  const [horasEstimadas, setHorasEstimadas] = useState("0")
+  const [horasEstimadas, setHorasEstimadas] = useState("")
   const [faturamentoBruto, setFaturamentoBruto] = useState("0,00")
   const [tipoServico, setTipoServico] = useState("geral")
   const [unidadeTempo, setUnidadeTempo] = useState("horas")
-  
-  // Novo estado para controlar a exibição do resumo
   const [mostrarResumo, setMostrarResumo] = useState(false)
   const [valorCalculado, setValorCalculado] = useState("0,00")
+  const [proLabore, setProLabore] = useState("0,00")
+  const [chartData, setChartData] = useState<any[]>([])
+  const [barChartData, setBarChartData] = useState<any[]>([])
+  const [showPieChart, setShowPieChart] = useState(false)
+  const [showBarChart, setShowBarChart] = useState(false)
 
   const formatarValorMonetario = (valor: string): string => {
-    // Remove todos os caracteres não numéricos
     const apenasNumeros = valor.replace(/\D/g, "")
-
-    // Se não houver números, retorna "0,00"
     if (!apenasNumeros) return "0,00"
-
-    // Converte para número e divide por 100 para obter o valor com decimais
     const numero = Number.parseInt(apenasNumeros, 10) / 100
-
-    // Formata o número com vírgula como separador decimal e milhares com ponto
     return numero.toLocaleString("pt-BR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -115,10 +126,15 @@ export function CalculadoraForm() {
     setRemuneracao("0,00")
     setDiasUteis("0")
     setHorasDia("0")
-    setHorasEstimadas("0")
+    setHorasEstimadas("")
     setFaturamentoBruto("0,00")
     setMostrarResumo(false)
     setValorCalculado("0,00")
+    setProLabore("0,00")
+    setChartData([])
+    setBarChartData([])
+    setShowPieChart(false)
+    setShowBarChart(false)
   }
 
   const converterParaNumero = (valor: string) => {
@@ -126,62 +142,77 @@ export function CalculadoraForm() {
   }
 
   const calcularPreco = () => {
-    // Converter todos os custos fixos para números e somá-los
     const totalCustosFixos = custosFixos.reduce(
       (total, custo) => total + converterParaNumero(custo.valor),
       0
     )
 
-    // Converter todos os custos variáveis para números e somá-los
     const totalCustosVariaveis = custosVariaveis.reduce(
       (total, custo) => total + converterParaNumero(custo.valor),
       0
     )
 
-    // Calcular o valor do imposto dependendo do tipo de empresa
     let valorImposto = 0
     if (tipoEmpresa === "mei") {
-      valorImposto = 70.60 // Valor fixo para MEI
+      valorImposto = 70.60
     } else {
-      // Para ME, baseado no faturamento bruto (simplificado)
       valorImposto = Math.max(181.14, converterParaNumero(faturamentoBruto) * (converterParaNumero(imposto) / 100))
     }
 
-    // Calcular o valor da hora
     let valorPorHora = converterParaNumero(remuneracao)
     if (valorHora) {
-      // Se o usuário não sabe o valor por hora, calcule com base na remuneração mensal
-      const diasUteisNum = parseInt(diasUteis) || 20 // padrão para 20 dias se não for fornecido
-      const horasDiaNum = parseInt(horasDia) || 8 // padrão para 8 horas se não for fornecido
+      const diasUteisNum = parseInt(diasUteis) || 20
+      const horasDiaNum = parseInt(horasDia) || 8
       valorPorHora = converterParaNumero(remuneracao) / (diasUteisNum * horasDiaNum)
     }
 
-    // Calcular horas estimadas com base na unidade selecionada
     let horasTotais = parseInt(horasEstimadas) || 0
     if (unidadeTempo === "dias") {
-      horasTotais *= parseInt(horasDia) || 8 // padrão para 8 horas se não for fornecido
+      horasTotais *= parseInt(horasDia) || 8
     } else if (unidadeTempo === "semanas") {
-      horasTotais *= (parseInt(horasDia) || 8) * 5 // 5 dias úteis por semana
+      horasTotais *= (parseInt(horasDia) || 8) * 5
     }
 
-    // Calcular o valor total do projeto
     const custoMensal = totalCustosFixos + valorImposto
     const custoHora = custoMensal / ((parseInt(diasUteis) || 20) * (parseInt(horasDia) || 8))
     const custoProjetoPorHora = custoHora * horasTotais
     const custoVariavelProjeto = totalCustosVariaveis
     const remuneracaoProjeto = valorPorHora * horasTotais
 
-    const valorTotalProjeto = custoProjetoPorHora + custoVariavelProjeto + remuneracaoProjeto
+    const valorProLabore = tipoEmpresa === "mei" ? remuneracaoProjeto * 0.28 : 0
+    setProLabore(valorProLabore.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
 
-    // Formatar o valor total para moeda brasileira
+    const valorTotalProjeto = custoProjetoPorHora + custoVariavelProjeto + remuneracaoProjeto + valorProLabore
+
     setValorCalculado(
       valorTotalProjeto.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).replace(".", ",")
+      })
     )
 
-    // Mostrar o resumo
+    const pieData = [
+      { name: 'Custos Fixos', value: custoProjetoPorHora },
+      { name: 'Custos Variáveis', value: custoVariavelProjeto },
+      { name: 'Remuneração', value: remuneracaoProjeto },
+      { name: 'Pró-labore', value: valorProLabore },
+      { name: 'Impostos', value: valorImposto }
+    ].filter(item => item.value > 0)
+
+    setChartData(pieData)
+
+    const barData = [
+      {
+        name: 'Distribuição de Custos',
+        'Custos Fixos': custoProjetoPorHora,
+        'Custos Variáveis': custoVariavelProjeto,
+        'Remuneração': remuneracaoProjeto,
+        'Pró-labore': valorProLabore,
+        'Impostos': valorImposto
+      }
+    ]
+
+    setBarChartData(barData)
     setMostrarResumo(true)
   }
 
@@ -196,42 +227,25 @@ export function CalculadoraForm() {
         <CardTitle className="text-xl text-foreground">Calculadora de Precificação</CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
+        {/* Seção Tipo de Empresa */}
         <div>
           <h3 className="text-sm font-medium mb-2">Tipo de Empresa</h3>
           <RadioGroup value={tipoEmpresa} onValueChange={setTipoEmpresa} className="flex gap-2">
-            <div
-              className={cn(
-                "flex items-center justify-center rounded-md border border-border px-4 py-2",
-                tipoEmpresa === "mei" && "bg-purple-600/10 border-purple-600",
-              )}
-            >
+            <div className={cn("flex items-center justify-center rounded-md border border-border px-4 py-2", tipoEmpresa === "mei" && "bg-purple-600/10 border-purple-600")}>
               <RadioGroupItem value="mei" id="mei" className="sr-only" />
-              <Label
-                htmlFor="mei"
-                className={cn("cursor-pointer font-medium", tipoEmpresa === "mei" && "text-purple-600")}
-              >
+              <Label htmlFor="mei" className={cn("cursor-pointer font-medium", tipoEmpresa === "mei" && "text-purple-600")}>
                 MEI
               </Label>
             </div>
-            <div
-              className={cn(
-                "flex items-center justify-center rounded-md border border-border px-4 py-2",
-                tipoEmpresa === "me" && "bg-purple-600/10 border-purple-600",
-              )}
-            >
+            <div className={cn("flex items-center justify-center rounded-md border border-border px-4 py-2", tipoEmpresa === "me" && "bg-purple-600/10 border-purple-600")}>
               <RadioGroupItem value="me" id="me" className="sr-only" />
-              <Label
-                htmlFor="me"
-                className={cn("cursor-pointer font-medium", tipoEmpresa === "me" && "text-purple-600")}
-              >
+              <Label htmlFor="me" className={cn("cursor-pointer font-medium", tipoEmpresa === "me" && "text-purple-600")}>
                 ME
               </Label>
             </div>
           </RadioGroup>
           <p className="text-xs text-muted-foreground mt-2">
-            {tipoEmpresa === "mei"
-              ? "MEI: R$ 70,60"
-              : "ME: Imposto variável conforme faturamento (a partir de R$ 181,14)"}
+            {tipoEmpresa === "mei" ? "MEI: R$ 70,60" : "ME: Imposto variável conforme faturamento (a partir de R$ 181,14)"}
           </p>
 
           {tipoEmpresa === "me" && (
@@ -249,13 +263,11 @@ export function CalculadoraForm() {
                   placeholder="Faturamento bruto anual"
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Usado para calcular o imposto conforme a faixa de faturamento
-              </p>
             </div>
           )}
         </div>
 
+        {/* Seção Tipo de Serviço */}
         <div>
           <h3 className="text-sm font-medium mb-2">Serviço</h3>
           <Select value={tipoServico} onValueChange={setTipoServico}>
@@ -271,6 +283,7 @@ export function CalculadoraForm() {
           </Select>
         </div>
 
+        {/* Seção Custos Fixos */}
         <div>
           <h3 className="text-sm font-medium mb-2">Custos Fixos Mensais</h3>
           <div className="space-y-2">
@@ -306,6 +319,7 @@ export function CalculadoraForm() {
           </div>
         </div>
 
+        {/* Seção Custos Variáveis */}
         <div>
           <h3 className="text-sm font-medium mb-2">Custos Variáveis</h3>
           <div className="space-y-2">
@@ -341,17 +355,19 @@ export function CalculadoraForm() {
           </div>
         </div>
 
+        {/* Seção Impostos */}
         <div>
           <h3 className="text-sm font-medium mb-2">Impostos e Taxas</h3>
           <div className="flex gap-2 items-center">
             <Input
               value={imposto}
               onChange={(e) => {
-                // Para o campo de imposto, permitimos apenas números e vírgula
-                const valor = e.target.value.replace(/[^\d,]/g, "")
-                // Garantimos que haja apenas uma vírgula
-                const partes = valor.split(",")
-                const valorFormatado = partes[0] + (partes.length > 1 ? "," + partes.slice(1).join("") : "")
+                const apenasNumeros = e.target.value.replace(/\D/g, "")
+                const numero = apenasNumeros ? parseInt(apenasNumeros, 10) / 100 : 0
+                const valorFormatado = numero.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
                 setImposto(valorFormatado)
               }}
               placeholder="Percentual de imposto"
@@ -362,6 +378,7 @@ export function CalculadoraForm() {
 
         <Separator />
 
+        {/* Seção Remuneração */}
         <div>
           <h3 className="text-sm font-medium mb-2">Remuneração por Hora</h3>
           <div className="flex items-center space-x-2 mb-4">
@@ -397,11 +414,7 @@ export function CalculadoraForm() {
                 <Input
                   id="dias-uteis"
                   value={diasUteis}
-                  onChange={(e) => {
-                    // Permitir apenas números
-                    const numeroApenas = e.target.value.replace(/\D/g, "")
-                    setDiasUteis(numeroApenas)
-                  }}
+                  onChange={(e) => setDiasUteis(e.target.value.replace(/\D/g, ""))}
                   placeholder="Dias úteis no mês"
                 />
               </div>
@@ -412,11 +425,7 @@ export function CalculadoraForm() {
                 <Input
                   id="horas-dia"
                   value={horasDia}
-                  onChange={(e) => {
-                    // Permitir apenas números
-                    const numeroApenas = e.target.value.replace(/\D/g, "")
-                    setHorasDia(numeroApenas)
-                  }}
+                  onChange={(e) => setHorasDia(e.target.value.replace(/\D/g, ""))}
                   placeholder="Horas produtivas por dia"
                 />
               </div>
@@ -424,16 +433,13 @@ export function CalculadoraForm() {
           )}
         </div>
 
+        {/* Seção Horas Estimadas */}
         <div>
           <h3 className="text-sm font-medium mb-2">Horas Estimadas do Serviço/Projeto</h3>
           <div className="flex gap-2">
             <Input
               value={horasEstimadas}
-              onChange={(e) => {
-                // Permitir apenas números
-                const numeroApenas = e.target.value.replace(/\D/g, "")
-                setHorasEstimadas(numeroApenas)
-              }}
+              onChange={(e) => setHorasEstimadas(e.target.value.replace(/\D/g, ""))}
               placeholder="Horas estimadas"
             />
             <Select value={unidadeTempo} onValueChange={setUnidadeTempo}>
@@ -449,6 +455,7 @@ export function CalculadoraForm() {
           </div>
         </div>
 
+        {/* Botões de Ação */}
         <div className="flex gap-4 pt-4">
           <Button 
             className="flex-1 bg-primary hover:bg-primary/80"
@@ -462,7 +469,7 @@ export function CalculadoraForm() {
           </Button>
         </div>
 
-        {/* Resumo de cálculo */}
+        {/* Resumo de Cálculo */}
         {mostrarResumo && (
           <div className="mt-6 border border-border rounded-lg p-4 bg-muted/30">
             <div className="flex justify-between items-center mb-4">
@@ -470,7 +477,11 @@ export function CalculadoraForm() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={() => setMostrarResumo(false)}
+                onClick={() => {
+                  setMostrarResumo(false)
+                  setShowPieChart(false)
+                  setShowBarChart(false)
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X className="h-4 w-4" />
@@ -527,6 +538,15 @@ export function CalculadoraForm() {
                     : `R$ ${remuneracao} por hora`}
                 </p>
               </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Pró-labore</p>
+                <p className="font-medium">
+                  {tipoEmpresa === "mei" 
+                    ? `R$ ${proLabore} (28% da remuneração)` 
+                    : "Não aplicável para ME"}
+                </p>
+              </div>
               
               <div>
                 <p className="text-sm text-muted-foreground">Tempo estimado</p>
@@ -541,6 +561,83 @@ export function CalculadoraForm() {
                   <span className="text-purple-600">R$ {valorCalculado}</span>
                 </p>
               </div>
+
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowPieChart(!showPieChart)}
+                  className="flex-1"
+                >
+                  <PieChart className="mr-2 h-4 w-4" />
+                  Gráfico Pizza
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowBarChart(!showBarChart)}
+                  className="flex-1"
+                >
+                  <BarChart2 className="mr-2 h-4 w-4" />
+                  Gráfico Barras
+                </Button>
+              </div>
+
+              {showPieChart && chartData.length > 0 && (
+                <div className="mt-4 h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor']}
+                      />
+                      <Legend />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {showBarChart && barChartData.length > 0 && (
+                <div className="mt-4 h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={barChartData}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis 
+                        tickFormatter={(value) => `R$ ${value.toFixed(2)}`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => [`R$ ${Number(value).toFixed(2)}`, 'Valor']}
+                      />
+                      <Legend />
+                      <Bar dataKey="Custos Fixos" fill="#0088FE" />
+                      <Bar dataKey="Custos Variáveis" fill="#00C49F" />
+                      <Bar dataKey="Remuneração" fill="#FFBB28" />
+                      <Bar dataKey="Pró-labore" fill="#FF8042" />
+                      <Bar dataKey="Impostos" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
           </div>
         )}

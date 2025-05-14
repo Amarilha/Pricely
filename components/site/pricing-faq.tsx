@@ -38,7 +38,7 @@ export function PricingFAQ() {
     <div className="max-w-3xl mx-auto mt-20">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold mb-2">Perguntas Frequentes</h2>
-        <p className="text-muted-foreground">Tire suas dúvidas sobre os planos e funcionalidades da Valluo</p>
+        <p className="text-muted-foreground">Tire suas dúvidas sobre os planos e funcionalidades da Nexprice</p>
       </div>
 
       <Accordion type="single" collapsible className="w-full">
