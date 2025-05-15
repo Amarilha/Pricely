@@ -30,7 +30,7 @@ export default function RootLayout({
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange={false}
-          storageKey="valluo-theme"
+          storageKey="Nexprice-theme"
         >
           {children}
         </ThemeProvider>
