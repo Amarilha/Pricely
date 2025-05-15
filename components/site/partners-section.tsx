@@ -17,7 +17,7 @@ export function PartnersSection() {
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold mb-4">Parceiros de Confiança</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Empresas que confiam na Valluo para impulsionar seus negócios.
+          Empresas que confiam na Nexprice para impulsionar seus negócios.
         </p>
       </div>
 

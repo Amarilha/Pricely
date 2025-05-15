@@ -24,7 +24,7 @@ const testimonials = [
     role: "Agência de Marketing",
     avatar: "/placeholder.svg?height=40&width=40",
     content:
-      "O consultor IA da Valluo é incrível! Ele me dá insights valiosos sobre como melhorar meus projetos e aumentar minha lucratividade. É como ter um consultor de negócios 24/7.",
+      "O consultor IA da Nexprice é incrível! Ele me dá insights valiosos sobre como melhorar meus projetos e aumentar minha lucratividade. É como ter um consultor de negócios 24/7.",
     rating: 4,
   },
 ]
@@ -36,7 +36,7 @@ export function TestimonialsSection() {
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-4">O que nossos clientes dizem</h2>
           <p className="text-xl text-primary-foreground max-w-2xl mx-auto">
-            Milhares de profissionais e agências já transformaram seus negócios com a Valluo.
+            Milhares de profissionais e agências já transformaram seus negócios com a Nexprice.
           </p>
         </div>
 

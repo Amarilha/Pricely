@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Valluo - Gestão de Projetos e Precificação",
+  title: "Nexprice - Gestão de Projetos e Precificação",
   description: "Plataforma completa para gestão de projetos e precificação para freelancers e agências",
   icons:{
     icon:'shared.png',

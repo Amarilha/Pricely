@@ -11,9 +11,9 @@ export function SiteFooter() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold">V</span>
+                <span className="text-primary-foreground font-bold">N</span>
               </div>
-              <span className="font-bold text-lg text-primary">Valluo</span>
+              <span className="font-bold text-lg text-primary">Nexprice</span>
             </div>
             <p className="text-muted-foreground">
               Plataforma completa para gestão de projetos e precificação para freelancers e agências.
@@ -100,7 +100,7 @@ export function SiteFooter() {
 
         <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Valluo. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} Nexprice. Todos os direitos reservados.
           </p>
           <div className="flex gap-6">
             <Link href="#" className="text-sm text-muted-foreground hover:text-primary">

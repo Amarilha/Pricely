@@ -103,7 +103,7 @@ export function AdsBanner({
               <span className="text-primary-foreground font-bold text-xs">AD</span>
             </div>
             <div className="text-left">
-              <p className="text-xs font-medium">Aumente sua produtividade com Valluo Pro</p>
+              <p className="text-xs font-medium">Aumente sua produtividade com Nexprice Pro</p>
               <p className="text-xs text-muted-foreground">Acesso a recursos premium por apenas R$49/mês</p>
             </div>
           </div>

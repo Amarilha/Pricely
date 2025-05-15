@@ -9,7 +9,7 @@ export function CTASection() {
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Pronto para transformar a gestão dos seus projetos?</h2>
           <p className="text-xl mb-8 text-primary-foreground">
             Junte-se a milhares de profissionais que já estão economizando tempo e aumentando a lucratividade com a
-            Valluo.
+            Nexprice.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/cadastro">

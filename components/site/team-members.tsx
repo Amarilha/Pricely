@@ -5,7 +5,7 @@ const team = [
 {
   name: "Matheus",
   role: "CEO & Fundador",
-  bio: "Líder visionário e especialista em empreendedorismo e gestão de projetos. Matheus fundou a Valluo com o propósito de ajudar freelancers e agências a crescerem de forma sustentável.",
+  bio: "Líder visionário e especialista em empreendedorismo e gestão de projetos. Matheus fundou a Nexprice com o propósito de ajudar freelancers e agências a crescerem de forma sustentável.",
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
@@ -15,7 +15,7 @@ const team = [
 {
   name: "Igor Amarilha",
   role: "CTO & Fundador",
-  bio: "Desenvolvedor full-stack com ampla experiência em startups de tecnologia. Igor lidera a evolução técnica da plataforma Valluo, com foco em performance e experiência do usuário.",
+  bio: "Desenvolvedor full-stack com ampla experiência em startups de tecnologia. Igor lidera a evolução técnica da plataforma Nexprice, com foco em performance e experiência do usuário.",
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
@@ -25,7 +25,7 @@ const team = [
 {
   name: "Hellen",
   role: "CRO & Fundadora",
-  bio: "Responsável pelo crescimento da Valluo, Hellen atua com foco em oportunidades estratégicas e expansão de mercado, sempre com uma visão orientada a resultados.",
+  bio: "Responsável pelo crescimento da Nexprice, Hellen atua com foco em oportunidades estratégicas e expansão de mercado, sempre com uma visão orientada a resultados.",
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
@@ -35,7 +35,7 @@ const team = [
 {
   name: "Andressa",
   role: "CMO & Fundadora",
-  bio: "Especialista em marketing digital com foco em SaaS, Andressa lidera as estratégias de aquisição, engajamento e retenção de clientes da Valluo.",
+  bio: "Especialista em marketing digital com foco em SaaS, Andressa lidera as estratégias de aquisição, engajamento e retenção de clientes da Nexprice.",
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
@@ -45,7 +45,7 @@ const team = [
 {
   name: "Diogo",
   role: "Diretor de Operações & Fundador",
-  bio: "Especialista em processos e operações, Diogo garante que todas as engrenagens da Valluo funcionem com eficiência, qualidade e alinhamento estratégico.",
+  bio: "Especialista em processos e operações, Diogo garante que todas as engrenagens da Nexprice funcionem com eficiência, qualidade e alinhamento estratégico.",
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
@@ -55,7 +55,7 @@ const team = [
 {
   name: "Thiago",
   role: "Conselheiro de Compras & Fundador",
-  bio: "Com olhar estratégico para aquisições e parcerias, Thiago atua no conselho da Valluo com foco em decisões de compras e alinhamento de recursos.",
+  bio: "Com olhar estratégico para aquisições e parcerias, Thiago atua no conselho da Nexprice com foco em decisões de compras e alinhamento de recursos.",
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",
@@ -65,7 +65,7 @@ const team = [
 {
   name: "Nathalia",
   role: "Sales Manager & Fundadora",
-  bio: "Com forte atuação em vendas e relacionamento, Nathalia impulsiona as estratégias comerciais da Valluo, conectando a empresa aos seus clientes ideais.",
+  bio: "Com forte atuação em vendas e relacionamento, Nathalia impulsiona as estratégias comerciais da Nexprice, conectando a empresa aos seus clientes ideais.",
   avatar: "/placeholder.svg?height=300&width=300",
   social: {
     linkedin: "#",

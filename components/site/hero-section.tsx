@@ -20,7 +20,7 @@ export function HeroSection() {
               Gerencie projetos e precifique com precisão
             </h1>
             <p className="text-xl text-primary-foreground">
-              Valluo é a plataforma completa para freelancers e agências gerenciarem projetos, calcularem preços justos
+              Nexprice é a plataforma completa para freelancers e agências gerenciarem projetos, calcularem preços justos
               e aumentarem a lucratividade.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -43,7 +43,7 @@ export function HeroSection() {
           <div className="relative">
             <div className="relative rounded-lg border bg-background p-2 shadow-lg">
               <div className="rounded-md overflow-hidden">
-                <img src="/placeholder.svg?height=600&width=800" alt="Dashboard Valluo" className="w-full h-auto" />
+                <img src="/placeholder.svg?height=600&width=800" alt="Dashboard Nexprice" className="w-full h-auto" />
               </div>
             </div>
 
