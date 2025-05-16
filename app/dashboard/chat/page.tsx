@@ -8,12 +8,13 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Overlay de manutenção */}
+      {/* Overlay de manutenção
       <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
         <div className="text-[80px] font-bold text-gray-400 opacity-50 rotate-[-30deg]">
           EM MANUTENÇÃO
         </div>
       </div>
+      */}
       <div className="p-6">
        {/* 
       {userPlan === "free" && <AdsBanner />}
