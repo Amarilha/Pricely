@@ -174,4 +174,3 @@ export function ChatInterface(): JSX.Element {
     </Card>
   );
 }
-

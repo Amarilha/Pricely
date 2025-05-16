@@ -14,9 +14,9 @@ export default function RelatoriosPage() {
           EM MANUTENÇÃO
         </div>
       </div>
-      {/* 
+
       {userPlan === "free" && <AdsBanner />}
-      */}
+
       <PageHeader title="Relatórios" description="Relatórios detalhados sobre faturamento e desempenho dos projetos." />
       <ReportsView />
     </div>

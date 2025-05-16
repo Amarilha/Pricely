@@ -35,9 +35,7 @@ export function HeroSection() {
                 </Button>
               </Link>
             </div>
-            <p className="text-sm text-primary-foreground">
-              Não é necessário cartão de crédito. Plano gratuito disponível.
-            </p>
+            
           </div>
 
           <div className="relative">

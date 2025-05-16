@@ -14,21 +14,28 @@ interface AdsBannerProps {
 export function AdsBanner({ 
   position = "top", 
   className,
-  adSlot = "1086-7640-4153" 
+  adSlot = "1469366432" 
 }: AdsBannerProps) {
   const [dismissed, setDismissed] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
+  const isLocalhost = () => 
+    typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || 
+     window.location.hostname === '127.0.0.1')
 
-    // Verifica se o script do AdSense já foi carregado
+  useEffect(() => {
+    if (typeof window === 'undefined' || isLocalhost()) {
+      console.log('[DEV] AdsBanner carregado (modo de desenvolvimento)')
+      setScriptLoaded(true)
+      return
+    }
+
     if ((window as any).adsbygoogle) {
       setScriptLoaded(true)
       return
     }
 
-    // Carrega o script dinamicamente
     const script = document.createElement('script')
     script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6983643349322034'
     script.async = true
@@ -37,13 +44,12 @@ export function AdsBanner({
     document.head.appendChild(script)
 
     return () => {
-      // Limpeza opcional: remove o script se o componente for desmontado
       document.head.removeChild(script)
     }
   }, [])
 
   useEffect(() => {
-    if (scriptLoaded && !dismissed) {
+    if (scriptLoaded && !dismissed && !isLocalhost()) {
       try {
         ;((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
       } catch (e) {
@@ -77,17 +83,25 @@ export function AdsBanner({
       </Button>
       
       <div className="flex flex-col items-center justify-center gap-2">
-        {/* Google AdSense Ad Unit */}
-        <div className="mt-4 w-full min-h-[90px]">
-          <ins 
-            className="adsbygoogle"
-            style={{ display: 'block' }}
-            data-ad-client="ca-pub-6983643349322034"
-            data-ad-slot={adSlot}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
-        </div>
+        {isLocalhost() ? (
+          <div className="bg-yellow-100 border border-yellow-400 p-4 mb-4 w-full">
+            <p className="text-yellow-700 text-sm">[Modo Desenvolvimento]</p>
+            <div className="h-[90px] w-full bg-gray-200 flex items-center justify-center">
+              Mock de Anúncio (300x250)
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 w-full min-h-[90px]">
+            <ins 
+              className="adsbygoogle"
+              style={{ display: 'block' }}
+              data-ad-client="ca-pub-6983643349322034"
+              data-ad-slot={adSlot}
+              data-ad-format="auto"
+              data-full-width-responsive="true"
+            />
+          </div>
+        )}
         
         <p className="font-medium">Você está usando o plano gratuito</p>
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">

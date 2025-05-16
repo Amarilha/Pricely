@@ -30,6 +30,8 @@ interface UserData {
   }
 }
 
+const userPlan = "free"
+
 export default function ConfiguracoesPage() {
 
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -142,9 +144,9 @@ export default function ConfiguracoesPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* 
-      {userPlan === "free" && <AdsBanner />}
-      */}
+
+       {userPlan === "free" && <AdsBanner />}
+
       <PageHeader title="Configurações" description="Gerencie as configurações da sua conta e preferências." />
 
       <Tabs defaultValue="conta" className="w-full">
