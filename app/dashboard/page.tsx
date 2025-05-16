@@ -17,9 +17,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 
+      
       {userPlan === "free" && <AdsBanner />}
-      */}
+      
       <DashboardHeader />
       <DashboardCards />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
