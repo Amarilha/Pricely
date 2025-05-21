@@ -45,7 +45,7 @@ export function AdsBanner() {
               data-full-width-responsive="true"
             />
           </div>
-        )};
+        )}
       </div>
     </div>
   )
