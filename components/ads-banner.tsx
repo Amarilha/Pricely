@@ -36,14 +36,17 @@ export function AdsBanner() {
           </div>
         ) : (
           <div className="mt-4 w-full min-h-[90px]">
-            <ins
-              className="adsbygoogle"
-              style={{ display: "block" }}
-              data-ad-client="ca-pub-6983643349322034"
-              data-ad-slot="1469366432"
-              data-ad-format="auto"
-              data-full-width-responsive="true"
-            />
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6983643349322034" crossOrigin="anonymous"></script>
+            {/* ads */ } 
+            <ins className="adsbygoogle"
+                style={{ display: "block" }}
+                data-ad-client="ca-pub-6983643349322034"
+                data-ad-slot="1469366432"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
           </div>
         )}
       </div>
