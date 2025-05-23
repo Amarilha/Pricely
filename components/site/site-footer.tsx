@@ -88,11 +88,15 @@ export function SiteFooter() {
 
           <div>
             <h3 className="font-medium text-lg mb-4">Newsletter</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mt-2">
               Receba dicas e novidades sobre gestão de projetos e precificação.
             </p>
             <div className="flex gap-2">
-              <Input placeholder="Seu e-mail" className="max-w-[220px]" />
+              <Input 
+                placeholder="Seu e-mail" 
+                className="max-w-[220px]"
+                type="email"
+              />
               <Button className="bg-primary hover:bg-primary/90">Assinar</Button>
             </div>
           </div>
