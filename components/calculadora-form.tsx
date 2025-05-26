@@ -9,7 +9,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { Plus, Minus, Calculator, X, PieChart, BarChart2 } from "lucide-react"
+import { Plus, Minus, Calculator, X, PieChart, BarChart2, HelpCircle } from "lucide-react"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { cn } from "@/lib/utils"
 import {
   PieChart as RechartsPieChart,
@@ -216,6 +217,19 @@ export function CalculadoraForm() {
     setMostrarResumo(true)
   }
 
+  const HelpTooltip = ({ text }: { text: string }) => (
+    <HoverCard>
+      <HoverCardTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-4 w-4 p-0 text-muted-foreground hover:text-foreground">
+          <HelpCircle className="h-4 w-4" />
+        </Button>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-80 text-sm">
+        {text}
+      </HoverCardContent>
+    </HoverCard>
+  )
+
   return (
     <Card className="bg-background border-border">
       <CardHeader className="bg-background text-center border-b border-border">
@@ -229,7 +243,10 @@ export function CalculadoraForm() {
       <CardContent className="p-6 space-y-6">
         {/* Seção Tipo de Empresa */}
         <div>
-          <h3 className="text-sm font-medium mb-2">Tipo de Empresa</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Tipo de Empresa</h3>
+            <HelpTooltip text="Escolha entre MEI (Microempreendedor Individual) ou ME (Microempresa). MEI tem imposto fixo de R$ 70,60, enquanto ME tem imposto variável conforme faturamento." />
+          </div>
           <RadioGroup value={tipoEmpresa} onValueChange={setTipoEmpresa} className="flex gap-2">
             <div className={cn("flex items-center justify-center rounded-md border border-border px-4 py-2", tipoEmpresa === "mei" && "bg-purple-600/10 border-purple-600")}>
               <RadioGroupItem value="mei" id="mei" className="sr-only" />
@@ -269,23 +286,46 @@ export function CalculadoraForm() {
 
         {/* Seção Tipo de Serviço */}
         <div>
-          <h3 className="text-sm font-medium mb-2">Serviço</h3>
-          <Select value={tipoServico} onValueChange={setTipoServico}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo de serviço" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="geral">Geral</SelectItem>
-              <SelectItem value="design">Design</SelectItem>
-              <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-              <SelectItem value="marketing">Marketing</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Serviço</h3>
+            <HelpTooltip text="Selecione a categoria do serviço que você oferece. Isso ajuda a organizar seus projetos e pode influenciar na precificação." />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Select value={tipoServico} onValueChange={setTipoServico}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo de serviço" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="geral">Geral</SelectItem>
+                <SelectItem value="design">Design</SelectItem>
+                <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                <SelectItem value="marketing">Marketing</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+                <SelectItem value="personalizado">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+            {tipoServico === "outro" ? (
+              <Input
+                placeholder="Digite o tipo de serviço"
+                onChange={(e) => setTipoServico(e.target.value)}
+                className="flex-1"
+              />
+            ) : (
+              <Input
+                placeholder="Descreva o serviço em detalhes"
+                onChange={(e) => setTipoServico(e.target.value)}
+                className="flex-1"
+              />
+            )}
+          </div>
         </div>
 
         {/* Seção Custos Fixos */}
         <div>
-          <h3 className="text-sm font-medium mb-2">Custos Fixos Mensais</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Custos Fixos Mensais</h3>
+            <HelpTooltip text="Custos que você tem todo mês, independente da quantidade de trabalho. Por exemplo: aluguel, internet, software, equipamentos, etc." />
+          </div>
           <div className="space-y-2">
             {custosFixos.map((custo) => (
               <div key={custo.id} className="flex gap-2">
@@ -321,7 +361,10 @@ export function CalculadoraForm() {
 
         {/* Seção Custos Variáveis */}
         <div>
-          <h3 className="text-sm font-medium mb-2">Custos Variáveis</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Custos Variáveis</h3>
+            <HelpTooltip text="Custos que variam conforme o projeto ou quantidade de trabalho. Por exemplo: deslocamento, materiais específicos, terceirização, etc." />
+          </div>
           <div className="space-y-2">
             {custosVariaveis.map((custo) => (
               <div key={custo.id} className="flex gap-2">
@@ -357,7 +400,10 @@ export function CalculadoraForm() {
 
         {/* Seção Impostos */}
         <div>
-          <h3 className="text-sm font-medium mb-2">Impostos e Taxas</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Impostos e Taxas</h3>
+            <HelpTooltip text="Para MEI, o imposto é fixo em R$ 70,60. Para ME, insira a porcentagem de impostos que você paga (DAS, ISS, etc)." />
+          </div>
           <div className="flex gap-2 items-center">
             <Input
               value={imposto}
@@ -380,7 +426,10 @@ export function CalculadoraForm() {
 
         {/* Seção Remuneração */}
         <div>
-          <h3 className="text-sm font-medium mb-2">Remuneração por Hora</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Remuneração por Hora</h3>
+            <HelpTooltip text="Quanto você quer ganhar por hora de trabalho. Se não souber, ative a opção para calcular com base no salário mensal desejado." />
+          </div>
           <div className="flex items-center space-x-2 mb-4">
             <Switch id="valor-hora" checked={valorHora} onCheckedChange={setValorHora} />
             <Label htmlFor="valor-hora">Não sei o valor por hora</Label>
@@ -435,7 +484,10 @@ export function CalculadoraForm() {
 
         {/* Seção Horas Estimadas */}
         <div>
-          <h3 className="text-sm font-medium mb-2">Horas Estimadas do Serviço/Projeto</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Horas Estimadas do Serviço/Projeto</h3>
+            <HelpTooltip text="Tempo total estimado para realizar o projeto. Você pode informar em horas, dias ou semanas. Para dias e semanas, usaremos suas horas produtivas por dia para o cálculo." />
+          </div>
           <div className="flex gap-2">
             <Input
               value={horasEstimadas}
