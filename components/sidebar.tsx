@@ -15,6 +15,7 @@ import {
   Menu,
   LogOut,
   ChevronDown,
+  Building,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -55,6 +56,11 @@ const menuItems = [
     name: "Relatórios",
     href: "/dashboard/relatorios",
     icon: BarChart3,
+  },
+  {
+    name: "Empresas",
+    href: "/dashboard/empresas",
+    icon: Building,
   },
   {
     name: "Configurações",

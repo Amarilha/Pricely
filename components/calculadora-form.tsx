@@ -296,12 +296,15 @@ export function CalculadoraForm() {
                 <SelectValue placeholder="Selecione o tipo de serviço" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="geral">Geral</SelectItem>
+                <SelectItem value="consultoria">Consultoria</SelectItem>
                 <SelectItem value="design">Design</SelectItem>
                 <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
                 <SelectItem value="marketing">Marketing</SelectItem>
+                <SelectItem value="redacao">Redação</SelectItem>
+                <SelectItem value="traducao">Tradução</SelectItem>
+                <SelectItem value="audiovisual">Audiovisual</SelectItem>
+                <SelectItem value="fotografia">Fotografia</SelectItem>
                 <SelectItem value="outro">Outro</SelectItem>
-                <SelectItem value="personalizado">Personalizado</SelectItem>
               </SelectContent>
             </Select>
             {tipoServico === "outro" ? (
@@ -311,11 +314,48 @@ export function CalculadoraForm() {
                 className="flex-1"
               />
             ) : (
-              <Input
-                placeholder="Descreva o serviço em detalhes"
-                onChange={(e) => setTipoServico(e.target.value)}
-                className="flex-1"
-              />
+              <div className="flex flex-col gap-2">
+                <Input
+                  placeholder="Descreva o serviço em detalhes"
+                  onChange={(e) => setTipoServico(e.target.value)}
+                  className="flex-1"
+                />
+                <Select value={tipoServico} onValueChange={setTipoServico}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a especialidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tipoServico === "consultoria" && (
+                      <>
+                        <SelectItem value="negocios">Negócios</SelectItem>
+                        <SelectItem value="financeira">Financeira</SelectItem>
+                        <SelectItem value="rh">Recursos Humanos</SelectItem>
+                      </>
+                    )}
+                    {tipoServico === "design" && (
+                      <>
+                        <SelectItem value="grafico">Gráfico</SelectItem>
+                        <SelectItem value="ui">UI/UX</SelectItem>
+                        <SelectItem value="produto">Produto</SelectItem>
+                      </>
+                    )}
+                    {tipoServico === "desenvolvimento" && (
+                      <>
+                        <SelectItem value="web">Web</SelectItem>
+                        <SelectItem value="mobile">Mobile</SelectItem>
+                        <SelectItem value="desktop">Desktop</SelectItem>
+                      </>
+                    )}
+                    {tipoServico === "marketing" && (
+                      <>
+                        <SelectItem value="digital">Digital</SelectItem>
+                        <SelectItem value="social">Social Media</SelectItem>
+                        <SelectItem value="conteudo">Conteúdo</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
         </div>
