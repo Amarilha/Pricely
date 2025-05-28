@@ -41,19 +41,13 @@ export default function EmpresasPage() {
               <div>
                 <label className="text-sm font-medium">CNPJ</label>
                 <Input 
-                  value={cnpj}
-                  onChange={(e) => setCnpj(e.target.value)}
-                  placeholder="Digite o CNPJ"
+                  value={cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g, '$1.$2.$3/$4-$5')}
+                  onChange={(e) => setCnpj(e.target.value.replace(/\D/g, '').slice(0, 14))}
+                  placeholder="Digite o CNPJ (XX.XXX.XXX/XXXX-XX)"
+                  maxLength={18}
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium">Arquivo JSON</label>
-                <Input 
-                  type="file" 
-                  accept=".json"
-                  onChange={handleFileUpload}
-                />
-              </div>
+             
             </div>
           </DialogContent>
         </Dialog>

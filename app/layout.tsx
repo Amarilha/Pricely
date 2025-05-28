@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "Nexprice - Gestão de Projetos e Precificação",
   description: "Plataforma completa para gestão de projetos e precificação para freelancers e agências",
   icons:{
-    icon:'shared.png',
+    icon:'nexprice.jpeg',
   },
   
 }
