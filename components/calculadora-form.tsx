@@ -284,126 +284,27 @@ export function CalculadoraForm() {
           )}
         </div>
 
-        {/* Seção Tipo de Serviço */}
+        {/* Seção Tipo de Serviço - Movida para o topo */}
         <div>
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-sm font-medium">Serviço</h3>
-            <HelpTooltip text="Selecione a categoria do serviço que você oferece. Isso ajuda a organizar seus projetos e pode influenciar na precificação." />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Select value={tipoServico} onValueChange={setTipoServico}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de serviço" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="consultoria">Consultoria</SelectItem>
-                <SelectItem value="design">Design</SelectItem>
-                <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-                <SelectItem value="marketing">Marketing</SelectItem>
-                <SelectItem value="redacao">Redação</SelectItem>
-                <SelectItem value="traducao">Tradução</SelectItem>
-                <SelectItem value="audiovisual">Audiovisual</SelectItem>
-                <SelectItem value="fotografia">Fotografia</SelectItem>
-                <SelectItem value="outro">Outro</SelectItem>
-              </SelectContent>
-            </Select>
-            {tipoServico === "outro" ? (
-              <Input
-                placeholder="Digite o tipo de serviço"
-                onChange={(e) => setTipoServico(e.target.value)}
-                className="flex-1"
-              />
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Input
-                  placeholder="Descreva o serviço em detalhes"
-                  onChange={(e) => setTipoServico(e.target.value)}
-                  className="flex-1"
-                />
-                <Select value={tipoServico} onValueChange={setTipoServico}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a especialidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tipoServico === "consultoria" && (
-                      <>
-                        <SelectItem value="negocios">Negócios</SelectItem>
-                        <SelectItem value="financeira">Financeira</SelectItem>
-                        <SelectItem value="rh">Recursos Humanos</SelectItem>
-                      </>
-                    )}
-                    {tipoServico === "design" && (
-                      <>
-                        <SelectItem value="grafico">Gráfico</SelectItem>
-                        <SelectItem value="ui">UI/UX</SelectItem>
-                        <SelectItem value="produto">Produto</SelectItem>
-                      </>
-                    )}
-                    {tipoServico === "desenvolvimento" && (
-                      <>
-                        <SelectItem value="web">Web</SelectItem>
-                        <SelectItem value="mobile">Mobile</SelectItem>
-                        <SelectItem value="desktop">Desktop</SelectItem>
-                      </>
-                    )}
-                    {tipoServico === "marketing" && (
-                      <>
-                        <SelectItem value="digital">Digital</SelectItem>
-                        <SelectItem value="social">Social Media</SelectItem>
-                        <SelectItem value="conteudo">Conteúdo</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Seção Custos Fixos */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Custos Fixos Mensais</h3>
-            <HelpTooltip text="Custos que você tem todo mês, independente da quantidade de trabalho. Por exemplo: aluguel, internet, software, equipamentos, etc." />
+            <HelpTooltip text="Descreva detalhadamente o serviço que será prestado. Isso ajudará na precificação adequada." />
           </div>
           <div className="space-y-2">
-            {custosFixos.map((custo) => (
-              <div key={custo.id} className="flex gap-2">
-                <Input
-                  value={custo.nome}
-                  onChange={(e) => atualizarCustoFixo(custo.id, "nome", e.target.value)}
-                  placeholder="Nome do custo"
-                />
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">R$</span>
-                  <Input
-                    value={custo.valor}
-                    onChange={(e) => atualizarCustoFixo(custo.id, "valor", e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removerCustoFixo(custo.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-100"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <Button variant="outline" size="sm" onClick={adicionarCustoFixo} className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar custo fixo
-            </Button>
+            <Input
+              placeholder="Digite o tipo de serviço"
+              value={tipoServico}
+              onChange={(e) => setTipoServico(e.target.value)}
+              className="flex-1"
+            />
           </div>
         </div>
 
-        {/* Seção Custos Variáveis */}
+        {/* Seção Custos Variáveis - Movida para segundo lugar */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Custos Variáveis</h3>
-            <HelpTooltip text="Custos que variam conforme o projeto ou quantidade de trabalho. Por exemplo: deslocamento, materiais específicos, terceirização, etc." />
+            <h3 className="text-sm font-medium">Custos do Serviço</h3>
+            <HelpTooltip text="Custos específicos para este serviço, como materiais, deslocamento, etc." />
           </div>
           <div className="space-y-2">
             {custosVariaveis.map((custo) => (
@@ -433,42 +334,16 @@ export function CalculadoraForm() {
             ))}
             <Button variant="outline" size="sm" onClick={adicionarCustoVariavel} className="w-full">
               <Plus className="h-4 w-4 mr-2" />
-              Adicionar custo variável
+              Adicionar custo do serviço
             </Button>
           </div>
         </div>
 
-        {/* Seção Impostos */}
+        {/* Seção Remuneração - Movida para terceiro lugar */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Impostos e Taxas</h3>
-            <HelpTooltip text="Para MEI, o imposto é fixo em R$ 70,60. Para ME, insira a porcentagem de impostos que você paga (DAS, ISS, etc)." />
-          </div>
-          <div className="flex gap-2 items-center">
-            <Input
-              value={imposto}
-              onChange={(e) => {
-                const apenasNumeros = e.target.value.replace(/\D/g, "")
-                const numero = apenasNumeros ? parseInt(apenasNumeros, 10) / 100 : 0
-                const valorFormatado = numero.toLocaleString("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
-                setImposto(valorFormatado)
-              }}
-              placeholder="Percentual de imposto"
-            />
-            <span className="text-muted-foreground">%</span>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Seção Remuneração */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Remuneração por Hora</h3>
-            <HelpTooltip text="Quanto você quer ganhar por hora de trabalho. Se não souber, ative a opção para calcular com base no salário mensal desejado." />
+            <h3 className="text-sm font-medium">Valor do Trabalho</h3>
+            <HelpTooltip text="Quanto você quer receber pelo seu trabalho neste serviço." />
           </div>
           <div className="flex items-center space-x-2 mb-4">
             <Switch id="valor-hora" checked={valorHora} onCheckedChange={setValorHora} />
@@ -561,50 +436,17 @@ export function CalculadoraForm() {
           </Button>
         </div>
 
-        {/* Resumo de Cálculo */}
+        {/* Resumo de Cálculo - Atualizado para mostrar primeiro os custos do serviço */}
         {mostrarResumo && (
           <div className="mt-6 border border-border rounded-lg p-4 bg-muted/30">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium text-lg">Resumo do Orçamento</h3>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => {
-                  setMostrarResumo(false)
-                  setShowPieChart(false)
-                  setShowBarChart(false)
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
             <div className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Tipo de empresa</p>
-                <p className="font-medium">{tipoEmpresa === "mei" ? "MEI" : "ME"}</p>
-              </div>
-              
               <div>
                 <p className="text-sm text-muted-foreground">Tipo de serviço</p>
                 <p className="font-medium capitalize">{tipoServico}</p>
               </div>
               
               <div>
-                <p className="text-sm text-muted-foreground">Custos fixos mensais</p>
-                <ul className="space-y-1">
-                  {custosFixos.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
-                    <li key={custo.id} className="flex justify-between">
-                      <span>{custo.nome}</span>
-                      <span>R$ {custo.valor}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <p className="text-sm text-muted-foreground">Custos variáveis</p>
+                <p className="text-sm text-muted-foreground">Custos do serviço</p>
                 <ul className="space-y-1">
                   {custosVariaveis.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
                     <li key={custo.id} className="flex justify-between">
@@ -614,16 +456,9 @@ export function CalculadoraForm() {
                   ))}
                 </ul>
               </div>
-              
+
               <div>
-                <p className="text-sm text-muted-foreground">Impostos</p>
-                <p className="font-medium">
-                  {tipoEmpresa === "mei" ? "R$ 70,60 (fixo)" : `${imposto}%`}
-                </p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-muted-foreground">Remuneração</p>
+                <p className="text-sm text-muted-foreground">Valor do trabalho</p>
                 <p className="font-medium">
                   {valorHora 
                     ? `R$ ${remuneracao} por mês (${diasUteis} dias × ${horasDia} horas)`
@@ -631,12 +466,12 @@ export function CalculadoraForm() {
                 </p>
               </div>
 
+              <Separator />
+
               <div>
-                <p className="text-sm text-muted-foreground">Pró-labore</p>
+                <p className="text-sm text-muted-foreground">Impostos e taxas</p>
                 <p className="font-medium">
-                  {tipoEmpresa === "mei" 
-                    ? `R$ ${proLabore} (28% da remuneração)` 
-                    : "Não aplicável para ME"}
+                  {tipoEmpresa === "mei" ? "R$ 70,60 (fixo)" : `${imposto}%`}
                 </p>
               </div>
               

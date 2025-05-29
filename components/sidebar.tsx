@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   Menu,
+  HomeIcon,
   LogOut,
   ChevronDown,
   Building,
@@ -33,9 +34,9 @@ import Image from "next/image"
 
 const menuItems = [
   {
-    name: "Dashboard",
+    name: "Home",
     href: "/dashboard",
-    icon: LayoutDashboard,
+    icon: HomeIcon,
   },
   {
     name: "Calculadora",
@@ -122,7 +123,7 @@ export function Sidebar() {
         </div>
         <div className="flex items-center gap-2">
           {expanded && <ModeToggle />}
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn(!expanded && "hidden")}>
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn(expanded ? "" : "absolute top-14 left-1/2 -translate-x-1/2 h-5 w-5")}>
             <Menu className="h-5 w-5" />
           </Button>
         </div>
@@ -139,7 +140,7 @@ export function Sidebar() {
                 "flex items-center px-3 py-2 rounded-md transition-colors",
                 pathname === item.href
                   ? "bg-purple-600/10 text-purple-600"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground ",
                 !expanded && "justify-center",
               )}
             >
