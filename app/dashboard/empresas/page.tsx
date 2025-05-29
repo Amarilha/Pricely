@@ -36,16 +36,16 @@ export default function EmpresasPage() {
       alert('CNPJ inválido')
       return
     }
-
+  
     setLoading(true)
     try {
       const response = await fetch(`/api/cnpj?cnpj=${cnpj}`)
       const data = await response.json()
-
+  
       if (data.error) {
         throw new Error(data.error)
       }
-
+  
       const novaEmpresa: Empresa = {
         cnpj: data.cnpj || '',
         nome: data.nome || 'Nome não disponível',
@@ -56,8 +56,12 @@ export default function EmpresasPage() {
         bairro: data.bairro || 'Bairro não disponível',
         municipio: data.municipio || 'Município não disponível',
         uf: data.uf || 'UF não disponível',
-        atividade_principal: data.atividade_principal 
-          ? { code: data.atividade_principal.code || 'N/A', text: data.atividade_principal.text || 'Atividade não disponível' }
+        // Handle atividade_principal as an array and take the first item
+        atividade_principal: Array.isArray(data.atividade_principal) && data.atividade_principal.length > 0
+          ? {
+              code: data.atividade_principal[0].code || 'N/A',
+              text: data.atividade_principal[0].text || 'Atividade não disponível'
+            }
           : null,
         atividades_secundarias: Array.isArray(data.atividades_secundarias)
           ? data.atividades_secundarias.map((ativ: any) => ({
@@ -66,7 +70,7 @@ export default function EmpresasPage() {
             }))
           : []
       }
-
+  
       setEmpresas([...empresas, novaEmpresa])
       setCnpj('')
       setOpenDialog(false)
