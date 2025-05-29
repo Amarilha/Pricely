@@ -1,4 +1,6 @@
 import { initializeApp } from "firebase/app";
+import { AuthErrorCodes } from 'firebase/auth';
+// E use AuthErrorCodes em vez de FirebaseError onde necessário
 import { 
   getAuth, 
   GoogleAuthProvider, 
