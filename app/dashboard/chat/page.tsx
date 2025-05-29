@@ -1,3 +1,6 @@
+'use client'
+import React from "react"
+
 import { ChatInterface } from "@/components/chat-interface"
 import { PageHeader } from "@/components/page-header"
 import { AdsBanner } from "@/components/ads-banner"
