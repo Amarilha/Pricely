@@ -132,7 +132,7 @@ function QuestionnairePopup({ onSubmit, onClose }: { onSubmit: (data: any) => vo
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              className="px-4 py-2 text-black bg-gray-300 rounded-md hover:bg-gray-400"
             >
               Cancelar
             </button>
