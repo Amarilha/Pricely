@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronDown,
   Building,
+  MessageCircleQuestion ,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -62,6 +63,11 @@ const menuItems = [
     name: "Empresas",
     href: "/dashboard/empresas",
     icon: Building,
+  },
+  {
+    name: "Perguntas Frequentes",
+    href: "/dashboard/faq",
+    icon: MessageCircleQuestion,
   },
   {
     name: "Configurações",
