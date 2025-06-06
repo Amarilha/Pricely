@@ -5,6 +5,7 @@ import { SidebarProvider } from "@/components/sidebar-provider"
 import { Sidebar } from "@/components/sidebar"
 import Script from 'next/script'
 import { cn } from "@/lib/utils"
+import { DataConsentDialog } from "@/components/data-consent-dialog"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -40,6 +41,7 @@ export default function DashboardLayout({
             {children}
           </main>
         </div>
+        <DataConsentDialog />
       </div>
     </SidebarProvider>
   )
