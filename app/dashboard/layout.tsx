@@ -13,6 +13,10 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Dashboard de Faturamento",
   description: "Dashboard para visualização de faturamentos de projetos",
+  icons:{
+    icon:'nexprice.jpeg',
+  },
+  themeColor: "#111827",
 }
 
 export default function DashboardLayout({
