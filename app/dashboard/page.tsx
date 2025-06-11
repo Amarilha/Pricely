@@ -18,7 +18,7 @@ export default function DashboardPage() {
       </div>
 
       
-      {userPlan === "free" && <AdsBanner />}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="1469366432"/>}
       
       <DashboardHeader />
       <DashboardCards />

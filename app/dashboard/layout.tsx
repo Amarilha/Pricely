@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/sidebar"
 import Script from 'next/script'
 import { cn } from "@/lib/utils"
 import { DataConsentDialog } from "@/components/data-consent-dialog"
+import {AdSense} from "@/components/AdSense"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,11 +23,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="min-h-screen">
-        <Script 
-          strategy="lazyOnload"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3875072008507470"
-          crossOrigin="anonymous"
-        />
+        <AdSense pId="6983643349322034" />
         
         <div className="flex">
           {/* Sidebar fixo */}

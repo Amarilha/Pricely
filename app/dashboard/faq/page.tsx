@@ -2,16 +2,19 @@ import type { Metadata } from "next"
 import { FAQSection } from "@/components/site/faq-section"
 import { SiteHeader } from "@/components/site/site-header"
 import { SiteFooter } from "@/components/site/site-footer"
+import { AdsBanner } from "@/components/ads-banner"
 
 export const metadata: Metadata = {
   title: "Perguntas Frequentes | Nexprice",
   description: "Encontre respostas para as dúvidas mais comuns sobre a plataforma Nexprice",
 }
+const userPlan = "free"
 
 export default function FAQPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="2794602533"/>}
       <main className="flex-1">
         <div className="container mx-auto py-16 px-4">
           <div className="text-center mb-12">

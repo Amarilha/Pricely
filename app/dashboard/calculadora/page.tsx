@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CalculadoraForm } from "@/components/calculadora-form";
 import { PageHeader } from "@/components/page-header";
 import { AdsBanner } from "@/components/ads-banner";
+import { useEffect } from "react";
 
 // Questionnaire Pop-up Component
 function QuestionnairePopup({ onSubmit, onClose }: { onSubmit: (data: any) => void; onClose: () => void }) {
@@ -13,6 +14,16 @@ function QuestionnairePopup({ onSubmit, onClose }: { onSubmit: (data: any) => vo
   const [cnpjActiveTime, setCnpjActiveTime] = useState<string>("");
   const [employeeCount, setEmployeeCount] = useState<string>("");
   const [activityDescription, setActivityDescription] = useState<string>("");
+
+  // Check if questionnaire was already answered
+
+  useEffect(() => {
+    const questionnaireData = localStorage.getItem('questionnaireData');
+    if (questionnaireData) {
+      onSubmit(JSON.parse(questionnaireData));
+      onClose();
+    }
+  }, [onSubmit, onClose]);
 
   // Format CNPJ input (e.g., 12.345.678/0001-99)
   const formatCNPJ = (value: string) => {
@@ -43,6 +54,8 @@ function QuestionnairePopup({ onSubmit, onClose }: { onSubmit: (data: any) => vo
       employeeCount: hasCNPJ === "yes" ? employeeCount : null,
       activityDescription,
     };
+    // Save questionnaire data to localStorage
+    localStorage.setItem('questionnaireData', JSON.stringify(formData));
     onSubmit(formData);
     onClose();
   };
@@ -51,7 +64,7 @@ function QuestionnairePopup({ onSubmit, onClose }: { onSubmit: (data: any) => vo
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-zinc-900 rounded-lg p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
         <h2 className="text-2xl font-bold mb-4 text-white">Questionário</h2>
-        <p className="mb-4 text-white">Por favor, preencha as informações abaixo antes de acessar a calculadora.</p>
+        <p className="mb-4 text-white">Preencha as informações abaixo antes de acessar a calculadora.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-white">Possui CNPJ?</label>
@@ -181,7 +194,7 @@ function CalculadoraPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {userPlan === "free" && <AdsBanner />}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="7053027303"/>}
       <PageHeader
         title="Calculadora de Precificação"
         description="Calcule o valor ideal para seus projetos com base nos seus custos e tempo estimado."
