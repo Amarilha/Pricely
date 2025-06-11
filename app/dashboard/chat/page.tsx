@@ -21,7 +21,7 @@ export default function ChatPage() {
       */}
       <div className="p-6">
 
-      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="6733847541"/>}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="6733847541" className="my-4"/>}
 
         <PageHeader
           title="Consultor IA"

@@ -95,7 +95,7 @@ export default function EmpresasPage() {
   return (
     
     <div className="container mx-auto p-6">
-      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="1728932878"/>}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="1728932878" className="my-4"/>}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Empresas Cadastradas</h1>
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>

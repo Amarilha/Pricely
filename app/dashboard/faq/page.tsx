@@ -14,7 +14,7 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
-      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="2794602533"/>}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="2794602533" className="my-4"/>}
       <main className="flex-1">
         <div className="container mx-auto py-16 px-4">
           <div className="text-center mb-12">

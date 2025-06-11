@@ -145,7 +145,7 @@ export default function ConfiguracoesPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
 
-      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="4982584506"/>}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="4982584506" className="my-4"/>}
 
       <PageHeader title="Configurações" description="Gerencie as configurações da sua conta e preferências." />
 

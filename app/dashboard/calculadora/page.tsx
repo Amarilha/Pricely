@@ -194,7 +194,7 @@ function CalculadoraPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="7053027303"/>}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="7053027303" className="my-4"/>}
       <PageHeader
         title="Calculadora de Precificação"
         description="Calcule o valor ideal para seus projetos com base nos seus custos e tempo estimado."
