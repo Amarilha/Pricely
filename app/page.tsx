@@ -6,6 +6,15 @@ import { PartnersSection } from "@/components/site/partners-section"
 import { CTASection } from "@/components/site/cta-section"
 import { SiteHeader } from "@/components/site/site-header"
 import { SiteFooter } from "@/components/site/site-footer"
+import type { Metadata } from "next/types"
+
+export const metadata: Metadata = {
+  title: "Nexprice - Gestão de Projetos e Precificação",
+  description: "Plataforma completa para gestão de projetos e precificação para freelancers e agências",
+  icons:{
+    icon:'nexprice.jpeg',
+  },
+}
 
 export default function HomePage() {
   return (
