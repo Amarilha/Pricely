@@ -6,7 +6,8 @@ type ObraCadastroModalProps = {
 };
 
 export function DadosDeCadastro({ onClose }: ObraCadastroModalProps) {
-  const [isObraEnabled, setIsObraEnabled] = useState(true);
+  //const [isObraEnabled, setIsObraEnabled] = useState(true);
+  const [isObraEnabled, setIsObraEnabled] = useState(false); // Alterado para false
   const [formData, setFormData] = useState({
     cliente: "",
     projeto: "",
@@ -97,6 +98,7 @@ export function DadosDeCadastro({ onClose }: ObraCadastroModalProps) {
                 className="sr-only peer" 
                 checked={isObraEnabled}
                 onChange={toggleObraFields}
+
               />
               <div
                 className="w-11 h-6 bg-[#bfb8e6] rounded-full peer peer-checked:bg-[#5635a6] peer-focus:ring-2 peer-focus:ring-[#5635a6] transition-colors"
