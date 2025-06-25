@@ -325,14 +325,14 @@ export  function CalculadoraOrcamentoInterativa() {
                       <Label>Data do Orçamento</Label>
                       <Input
                         type="date"
-                        value={dadosCadastro.dataOrcamento}
+                        //value={dadosCadastro.dataOrcamento}
                         onChange={(e) => setDadosCadastro({ ...dadosCadastro, dataOrcamento: e.target.value })}
                       />
                     </div>
                     <div>
                       <Label>Cliente</Label>
                       <Input
-                        value={dadosCadastro.cliente}
+                        //value={dadosCadastro.cliente}
                         onChange={(e) => setDadosCadastro({ ...dadosCadastro, cliente: e.target.value })}
                         placeholder="Nome do cliente"
                       />
@@ -341,7 +341,7 @@ export  function CalculadoraOrcamentoInterativa() {
                   <div>
                     <Label>{labels.projeto}</Label>
                     <Input
-                      value={dadosCadastro.projeto}
+                      //value={dadosCadastro.projeto}
                       onChange={(e) => setDadosCadastro({ ...dadosCadastro, projeto: e.target.value })}
                       placeholder={modoObra ? "Nome da obra" : "Nome do serviço/projeto"}
                     />
@@ -349,7 +349,7 @@ export  function CalculadoraOrcamentoInterativa() {
                   <div>
                     <Label>{labels.endereco}</Label>
                     <Input
-                      value={dadosCadastro.endereco}
+                      //value={dadosCadastro.endereco}
                       onChange={(e) => setDadosCadastro({ ...dadosCadastro, endereco: e.target.value })}
                       placeholder={modoObra ? "Endereço completo da obra" : "Local onde será executado"}
                     />
@@ -358,7 +358,7 @@ export  function CalculadoraOrcamentoInterativa() {
                     <div>
                       <Label>Responsável</Label>
                       <Input
-                        value={dadosCadastro.responsavel}
+                        //value={dadosCadastro.responsavel}
                         onChange={(e) => setDadosCadastro({ ...dadosCadastro, responsavel: e.target.value })}
                         placeholder="Nome do responsável"
                       />
@@ -367,7 +367,7 @@ export  function CalculadoraOrcamentoInterativa() {
                       <Label>{labels.area}</Label>
                       <Input
                         type="number"
-                        value={areaProjeto}
+                        //value={areaProjeto}
                         onChange={(e) => setAreaProjeto(parseAndFormat(e.target.value))}
                         placeholder="0"
                       />
@@ -376,7 +376,7 @@ export  function CalculadoraOrcamentoInterativa() {
                   <div>
                     <Label>Descrição do {modoObra ? "Projeto" : "Serviço"}</Label>
                     <Textarea
-                      value={descricaoProjeto}
+                      //value={descricaoProjeto}
                       onChange={(e) => setDescricaoProjeto(e.target.value)}
                       placeholder={
                         modoObra
@@ -417,7 +417,7 @@ export  function CalculadoraOrcamentoInterativa() {
                         <div className="mb-3">
                           <Label>Descrição do Serviço</Label>
                           <Input
-                            value={item.descricao}
+                            //value={item.descricao}
                             onChange={(e) => {
                               const newItems = maoObraExecucao.map((mo) =>
                                 mo.id === item.id ? { ...mo, descricao: e.target.value } : mo,
@@ -434,7 +434,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Pessoas</Label>
                             <Input
                               type="number"
-                              value={item.pessoas}
+                              //value={item.pessoas}
                                 onChange={(e) => {
                                 const newItems = maoObraExecucao.map((mo) =>
                                   mo.id === item.id ? { ...mo, pessoas: Number(e.target.value) } : mo,
@@ -448,7 +448,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Dias</Label>
                             <Input
                               type="number"
-                              value={item.dias}
+                              //value={item.dias}
                                 onChange={(e) => {
                                 const newItems = maoObraExecucao.map((mo) =>
                                   mo.id === item.id ? { ...mo, dias: Number(e.target.value) } : mo,
@@ -462,7 +462,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Hrs/Dia</Label>
                             <Input
                               type="number"
-                              value={item.hrsDia}
+                              //value={item.hrsDia}
                                 onChange={(e) => {
                                 const newItems = maoObraExecucao.map((mo) =>
                                   mo.id === item.id ? { ...mo, hrsDia: Number(e.target.value) } : mo,
@@ -477,21 +477,21 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Input
                               type="number"
                               step="0.01"
-                                value={item.precoHr}
+                              //value={item.precoHr}
                               onChange={(e) => {
                                 const newItems = maoObraExecucao.map((mo) =>
                                   mo.id === item.id ? { ...mo, precoHr: Number(e.target.value) } : mo,
                                 )
                                 setMaoObraExecucao(newItems)
                               }}
-                              placeholder="0.00"
+                              placeholder="0"
                             />
                           </div>
                         </div>
                         <div>
                           <Label>Valor Total</Label>
                           <Input
-                              value={`R$ ${(item.pessoas * item.dias * item.hrsDia * item.precoHr).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                            value={`R$ ${(item.pessoas * item.dias * item.hrsDia * item.precoHr).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                             readOnly
                             className="bg-chart-2/5 font-bold"
                           />
@@ -538,7 +538,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Quantidade</Label>
                             <Input
                               type="number"
-                              value={item.qt}
+                              //value={item.qt}
                                 onChange={(e) => {
                                 const newItems = itensServicos.map((ic) =>
                                   ic.id === item.id ? { ...ic, qt: Number(e.target.value) } : ic,
@@ -551,7 +551,7 @@ export  function CalculadoraOrcamentoInterativa() {
                           <div>
                             <Label>Unidade</Label>
                             <Input
-                              value={item.unid}
+                              //value={item.unid}
                               onChange={(e) => {
                                 const newItems = itensServicos.map((ic) =>
                                   ic.id === item.id ? { ...ic, unid: e.target.value } : ic,
@@ -566,21 +566,21 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Input
                               type="number"
                               step="0.01"
-                                value={item.precoUnit}
+                              //value={item.precoUnit}
                               onChange={(e) => {
                                 const newItems = itensServicos.map((ic) =>
                                   ic.id === item.id ? { ...ic, precoUnit: Number(e.target.value) } : ic,
                                 )
                                 setItensServicos(newItems)
                               }}
-                              placeholder="0.00"
+                              placeholder="0"
                             />
                           </div>
                         </div>
                         <div className="mb-3">
                           <Label>Descrição</Label>
                           <Input
-                            value={item.descricao}
+                            //value={item.descricao}
                             onChange={(e) => {
                               const newItems = itensServicos.map((ic) =>
                                 ic.id === item.id ? { ...ic, descricao: e.target.value } : ic,
@@ -642,8 +642,8 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Quantidade</Label>
                             <Input
                               type="number"
-                              value={item.qt}
-                                onChange={(e) => {
+                              //value={item.qt}
+                              onChange={(e) => {
                                 const newItems = consumoDespesas.map((co) =>
                                   co.id === item.id ? { ...co, qt: Number(e.target.value) } : co,
                                 )
@@ -655,7 +655,7 @@ export  function CalculadoraOrcamentoInterativa() {
                           <div>
                             <Label>Unidade</Label>
                             <Input
-                              value={item.unid}
+                              //value={item.unid}
                               onChange={(e) => {
                                 const newItems = consumoDespesas.map((co) =>
                                   co.id === item.id ? { ...co, unid: e.target.value } : co,
@@ -670,21 +670,21 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Input
                               type="number"
                               step="0.01"
-                                value={item.preco}
+                              //value={item.preco}
                               onChange={(e) => {
                                 const newItems = consumoDespesas.map((co) =>
                                   co.id === item.id ? { ...co, preco: Number(e.target.value) } : co,
                                 )
                                 setConsumoDespesas(newItems)
                               }}
-                              placeholder="0.00"
+                              placeholder="0"
                             />
                           </div>
                         </div>
                         <div className="mb-3">
                           <Label>Descrição</Label>
                           <Input
-                            value={item.descricao}
+                            //value={item.descricao}
                             onChange={(e) => {
                               const newItems = consumoDespesas.map((co) =>
                                 co.id === item.id ? { ...co, descricao: e.target.value } : co,
@@ -753,7 +753,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>{modoObra ? "Qt. Barras" : "Quantidade"}</Label>
                             <Input
                               type="number"
-                              value={item.qtBarras}
+                              //value={item.qtBarras}
                                 onChange={(e) => {
                                 const newItems = materiais.map((mp) =>
                                   mp.id === item.id ? { ...mp, qtBarras: Number(e.target.value) } : mp,
@@ -767,7 +767,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>{modoObra ? "Peso (kg)" : "Peso/Volume"}</Label>
                             <Input
                               type="number"
-                              value={item.quantKg}
+                              //value={item.quantKg}
                                 onChange={(e) => {
                                 const newItems = materiais.map((mp) =>
                                   mp.id === item.id ? { ...mp, quantKg: Number(e.target.value) } : mp,
@@ -784,20 +784,20 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Input
                               type="number"
                               step="0.01"
-                              value={item.precoKg}
+                              //value={item.precoKg}
                                 onChange={(e) => {
                                 const newItems = materiais.map((mp) =>
                                   mp.id === item.id ? { ...mp, precoKg: Number(e.target.value) } : mp,
                                 )
                                 setMateriais(newItems)
                               }}
-                              placeholder="0.00"
+                              placeholder="0"
                             />
                           </div>
                           <div>
                             <Label>Valor Total</Label>
                             <Input
-                                value={`R$ ${(item.quantKg * item.precoKg).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                              value={`R$ ${(item.quantKg * item.precoKg).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                               readOnly
                               className="bg-chart-1/5 font-bold"
                             />
@@ -806,7 +806,7 @@ export  function CalculadoraOrcamentoInterativa() {
                         <div>
                           <Label>Descrição</Label>
                           <Input
-                            value={item.descricao}
+                            //value={item.descricao}
                             onChange={(e) => {
                               const newItems = materiais.map((mp) =>
                                 mp.id === item.id ? { ...mp, descricao: e.target.value } : mp,
@@ -859,7 +859,7 @@ export  function CalculadoraOrcamentoInterativa() {
                         <div className="mb-3">
                           <Label>Descrição do Serviço</Label>
                           <Input
-                            value={item.descricao}
+                            //value={item.descricao}
                             onChange={(e) => {
                               const newItems = maoObraInstalacao.map((mo) =>
                                 mo.id === item.id ? { ...mo, descricao: e.target.value } : mo,
@@ -876,7 +876,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Pessoas</Label>
                             <Input
                               type="number"
-                              value={item.pessoas}
+                              //value={item.pessoas}
                                 onChange={(e) => {
                                 const newItems = maoObraInstalacao.map((mo) =>
                                   mo.id === item.id ? { ...mo, pessoas: Number(e.target.value) } : mo,
@@ -890,7 +890,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Dias</Label>
                             <Input
                               type="number"
-                              value={item.dias}
+                              //value={item.dias}
                                 onChange={(e) => {
                                 const newItems = maoObraInstalacao.map((mo) =>
                                   mo.id === item.id ? { ...mo, dias: Number(e.target.value) } : mo,
@@ -904,7 +904,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Hrs/Dia</Label>
                             <Input
                               type="number"
-                              value={item.hrsDia}
+                              //value={item.hrsDia}
                                 onChange={(e) => {
                                 const newItems = maoObraInstalacao.map((mo) =>
                                   mo.id === item.id ? { ...mo, hrsDia: Number(e.target.value) } : mo,
@@ -919,14 +919,14 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Input
                               type="number"
                               step="0.01"
-                                value={item.precoHr}
+                              //value={item.precoHr}
                               onChange={(e) => {
                                 const newItems = maoObraInstalacao.map((mo) =>
                                   mo.id === item.id ? { ...mo, precoHr: Number(e.target.value) } : mo,
                                 )
                                 setMaoObraInstalacao(newItems)
                               }}
-                              placeholder="0.00"
+                              placeholder="0"
                             />
                           </div>
                         </div>
@@ -980,7 +980,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Label>Quantidade</Label>
                             <Input
                               type="number"
-                              value={item.quant}
+                              //value={item.quant}
                                 onChange={(e) => {
                                 const newItems = acabamentoExtras.map((ac) =>
                                   ac.id === item.id ? { ...ac, quant: Number(e.target.value) } : ac,
@@ -993,7 +993,7 @@ export  function CalculadoraOrcamentoInterativa() {
                           <div>
                             <Label>Unidade</Label>
                             <Input
-                              value={item.unid}
+                              //value={item.unid}
                               onChange={(e) => {
                                 const newItems = acabamentoExtras.map((ac) =>
                                   ac.id === item.id ? { ...ac, unid: e.target.value } : ac,
@@ -1008,7 +1008,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             <Input
                               type="number"
                               step="0.01"
-                                value={item.precoKg}
+                              //value={item.precoKg}
                               onChange={(e) => {
                                 const newItems = acabamentoExtras.map((ac) =>
                                   ac.id === item.id ? { ...ac, precoKg: Number(e.target.value) } : ac,
@@ -1022,7 +1022,7 @@ export  function CalculadoraOrcamentoInterativa() {
                         <div className="mb-3">
                           <Label>Descrição</Label>
                           <Input
-                            value={item.descricao}
+                            //value={item.descricao}
                             onChange={(e) => {
                               const newItems = acabamentoExtras.map((ac) =>
                                 ac.id === item.id ? { ...ac, descricao: e.target.value } : ac,
@@ -1037,7 +1037,7 @@ export  function CalculadoraOrcamentoInterativa() {
                         <div>
                           <Label>Valor Total</Label>
                           <Input
-                              value={`R$ ${(item.quant * item.precoKg).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                            value={`R$ ${(item.quant * item.precoKg).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                             readOnly
                             className="bg-chart-4/5 font-bold"
                           />
@@ -1065,70 +1065,70 @@ export  function CalculadoraOrcamentoInterativa() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"> 
                     <div>
-                  <Label>{modoObra ? "Engenharia (%)" : "Planejamento (%)"}</Label>
-                  <Input
-                    type="number"
-                    step="0.01" // Permite porcentagens decimais
-                      value={dadosFinais.engenharia}
-                    onChange={(e) => setDadosFinais({ ...dadosFinais, engenharia: Number(e.target.value) })}
-                    placeholder="0.00"
-                  />
+                      <Label>{modoObra ? "Engenharia" : "Planejamento"}</Label>
+                      <Input
+                        type="number"
+                        step="0.01" // Permite porcentagens decimais
+                        //value={dadosFinais.engenharia}
+                        onChange={(e) => setDadosFinais({ ...dadosFinais, engenharia: Number(e.target.value) })}
+                        placeholder="%"
+                      />
                     </div>
                     <div>
-                  <Label>Comissão (%)</Label>
-                  <Input
-                    type="number"
-                      step="0.01"
-                    value={dadosFinais.comissao}
-                    onChange={(e) => setDadosFinais({ ...dadosFinais, comissao: Number(e.target.value) })}
-                    placeholder="0.00"
-                  />
+                      <Label>Comissão</Label>
+                      <Input
+                        type="number"
+                          step="0.01"
+                        //value={dadosFinais.comissao}
+                        onChange={(e) => setDadosFinais({ ...dadosFinais, comissao: Number(e.target.value) })}
+                        placeholder="%"
+                      />
                     </div>
                     <div>
-                  <Label>Imposto (%)</Label>
-                  <Input
-                    type="number"
-                      step="0.01"
-                    value={dadosFinais.impostoPercentual}
-                    onChange={(e) => setDadosFinais({ ...dadosFinais, impostoPercentual: Number(e.target.value) })}
-                    placeholder="0.00"
-                  />
+                      <Label>Imposto</Label>
+                      <Input
+                        type="number"
+                          step="0.01"
+                        //value={dadosFinais.impostoPercentual}
+                        onChange={(e) => setDadosFinais({ ...dadosFinais, impostoPercentual: Number(e.target.value) })}
+                        placeholder="%"
+                      />
                     </div>
                     <div>
-                  <Label>Margem de Lucro (%)</Label>
-                  <Input
-                    type="number"
-                      step="0.01"
-                    value={dadosFinais.margemLucro}
-                    onChange={(e) => setDadosFinais({ ...dadosFinais, margemLucro: Number(e.target.value) })}
-                    placeholder="0.00"
-                  />
+                      <Label>Margem de Lucro</Label>
+                      <Input
+                        type="number"
+                          step="0.01"
+                        //value={dadosFinais.margemLucro}
+                        onChange={(e) => setDadosFinais({ ...dadosFinais, margemLucro: Number(e.target.value) })}
+                        placeholder="%"
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                  <Label>Consultoria (R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={dadosFinais.consultoria}
-                    onChange={(e) => setDadosFinais({ ...dadosFinais, consultoria: Number(e.target.value) })}
-                    placeholder="0.00"
-                  />
+                      <Label>Consultoria</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        //value={dadosFinais.consultoria}
+                        onChange={(e) => setDadosFinais({ ...dadosFinais, consultoria: Number(e.target.value) })}
+                        placeholder="R$"
+                      />
                     </div>
                     <div>
-                  <Label>{labels.foto}</Label>
-                  <Input
-                    value={fotoObra}
-                    onChange={(e) => setFotoObra(e.target.value)}
-                    placeholder="https://exemplo.com/foto.jpg"
-                  />
+                      <Label>{labels.foto}</Label>
+                      <Input
+                        //value={fotoObra}
+                        onChange={(e) => setFotoObra(e.target.value)}
+                        placeholder="https://exemplo.com/foto.jpg"
+                      />
                     </div>
                   </div>
                   <div className="mt-4">
                     <Label>Observações Gerais</Label>
                     <Textarea
-                      value={observacoes}
+                      //value={observacoes}
                       onChange={(e) => setObservacoes(e.target.value)}
                       placeholder="Observações que serão incluídas na proposta..."
                       rows={3}

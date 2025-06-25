@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   icons:{
     icon:'nexprice.jpeg',
   },
-  themeColor: "#111827",
+  themeColor: "dark",
 }
 
 export default function DashboardLayout({
