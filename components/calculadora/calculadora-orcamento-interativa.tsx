@@ -4,7 +4,7 @@ import { useState } from "react"
 import {
   Calculator,
   FileText,
-  Camera,
+  Save,
   Wrench,
   Package,
   Palette,
@@ -1360,10 +1360,12 @@ export  function CalculadoraOrcamentoInterativa() {
                 <FileText className="w-5 h-5 mr-2" />
                 Gerar Proposta PDF
               </Button>
+              
               <Button size="lg" variant="outline">
-                <Camera className="w-5 h-5 mr-2" />
+                <Save className="w-5 h-5 mr-2" />
                 Salvar Orçamento
               </Button>
+
               <Button
                 size="lg"
                 variant="outline"
