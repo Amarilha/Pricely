@@ -174,28 +174,50 @@ export  function CalculadoraOrcamentoInterativa() {
     return consumoDespesas.reduce((total, item) => total + item.qt * item.preco, 0)
   }
 
-  const pesoTotal = materiais.reduce((total, item) => total + item.quantKg, 0)
-  const valorMateriais = calcularMateriais()
-  const valorMaoObraExec = calcularMaoObraExecucao()
-  const valorMaoObraInst = calcularMaoObraInstalacao()
-  const valorItensServicos = calcularItensServicos()
-  const valorAcabamentoExtras = calcularAcabamentoExtras()
-  const valorConsumoDespesas = calcularConsumoDespesas()
+  const pesoTotal = materiais.reduce((total, item) => total + item.quantKg, 0);
 
+  const valorMateriais = calcularMateriais();
+  const valorMaoObraExec = calcularMaoObraExecucao();
+  const valorMaoObraInst = calcularMaoObraInstalacao();
+  const valorItensServicos = calcularItensServicos();
+  const valorAcabamentoExtras = calcularAcabamentoExtras();
+  const valorConsumoDespesas = calcularConsumoDespesas();
+  
   const custoTotal =
     valorMateriais +
     valorMaoObraExec +
     valorMaoObraInst +
     valorItensServicos +
     valorAcabamentoExtras +
-    valorConsumoDespesas
-  // Engenharia e Comissão agora são percentuais do custoTotal
-  const valorEngenharia = custoTotal * (dadosFinais.engenharia / 100)
-  const valorComissao = custoTotal * (dadosFinais.comissao / 100)
-  const valorImposto = custoTotal * (dadosFinais.impostoPercentual / 100)
-  const custoTotalComTaxas = custoTotal + valorEngenharia + valorComissao + dadosFinais.consultoria + valorImposto
-  const valorLucro = custoTotalComTaxas * (dadosFinais.margemLucro / 100)
-  const precoFinal = custoTotalComTaxas + valorLucro
+    valorConsumoDespesas;
+  
+  // Calculate base cost with consultancy
+  const custoBaseComConsultoria = custoTotal + dadosFinais.consultoria;
+  
+  // Calculate profit margin
+  const valorLucro = custoBaseComConsultoria * (dadosFinais.margemLucro / 100);
+  
+  // Calculate preliminary final price
+  const precoFinalSemImposto = custoBaseComConsultoria + valorLucro;
+  
+  // Calculate tax (assuming tax is applied on the difference specified)
+  const valorImposto = precoFinalSemImposto* (dadosFinais.impostoPercentual / 100);
+  
+  // Final cost including taxes
+  const custoTotalComTaxas = custoBaseComConsultoria + valorImposto;
+  
+  // Calculate commission and engineering based on final price
+  const valorComissao = precoFinalSemImposto * (dadosFinais.comissao / 100);
+  const valorEngenharia = precoFinalSemImposto * (dadosFinais.engenharia / 100);
+  
+  // Final price including commission and engineering
+  const precoFinal = precoFinalSemImposto + valorComissao + valorEngenharia;
+  
+ 
+ 
+  
+  
+  
 
   const precoPorKg = pesoTotal > 0 ? precoFinal / pesoTotal : 0
   const precoPorUnidade = areaProjeto > 0 ? precoFinal / areaProjeto : 0
@@ -1147,175 +1169,264 @@ export  function CalculadoraOrcamentoInterativa() {
       <div className="w-full bg-gradient-to-r from-chart-2/10 via-chart-1/10 to-chart-3/10 border-t border-b py-12 mt-12">
         <div className="max-w-7xl mx-auto px-6">
           <Card className="bg-card/95 backdrop-blur border-2 border-chart-2/20 shadow-2xl">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-3 text-3xl text-chart-2">
-                <Calculator className="w-8 h-8" />
-                17. RESULTADO FINAL DO ORÇAMENTO
-              </CardTitle>
-              <p className="text-muted-foreground text-lg">
-                {modoObra ? "Orçamento completo da obra" : "Orçamento completo do serviço"}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Breakdown de Custos */}
-                <div className="lg:col-span-2">
-                  <h3 className="text-xl font-semibold mb-4">Breakdown de Custos</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="space-y-3">
-                      <div className="flex justify-between p-3 bg-chart-1/5 rounded-lg">
-                        <span>{labels.materiais}:</span>
-                        <span className="font-bold">
-                          R$ {valorMateriais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-chart-2/5 rounded-lg">
-                        <span>{labels.maoObraExec}:</span>
-                        <span className="font-bold">
-                          R$ {valorMaoObraExec.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-chart-2/5 rounded-lg">
-                        <span>{labels.maoObraInst}:</span>
-                        <span className="font-bold">
-                          R$ {valorMaoObraInst.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-chart-3/5 rounded-lg">
-                        <span>{labels.itensServicos}:</span>
-                        <span className="font-bold">
-                          R$ {valorItensServicos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between p-3 bg-chart-4/5 rounded-lg">
-                        <span>{labels.acabamentoExtras}:</span>
-                        <span className="font-bold">
-                          R$ {valorAcabamentoExtras.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-chart-5/5 rounded-lg">
-                        <span>{labels.consumoDespesas}:</span>
-                        <span className="font-bold">
-                          R$ {valorConsumoDespesas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>{modoObra ? "Engenharia" : "Planejamento"} ({dadosFinais.engenharia}%):</span>
-                        <span className="font-bold">
-                          R$ {valorEngenharia.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Comissão ({dadosFinais.comissao}%):</span>
-                        <span className="font-bold">
-                          R$ {valorComissao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Consultoria:</span>                        <span className="font-bold">
- R$ {dadosFinais.consultoria.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-    </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-lg font-bold p-4 bg-chart-2/10 rounded-lg">
-                      <span>CUSTO TOTAL:</span>
-                      <span>R$ {custoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    <div className="flex justify-between text-base p-3 bg-muted/50 rounded-lg">
-                      <span>Imposto ({dadosFinais.impostoPercentual}%):</span>
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-3 text-3xl text-chart-2">
+              <Calculator className="w-8 h-8" />
+              17. RESULTADO FINAL DO ORÇAMENTO
+            </CardTitle>
+            <p className="text-muted-foreground text-lg">
+              {modoObra ? "Orçamento completo da obra" : "Orçamento completo do serviço"}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Breakdown de Custos */}
+              <div className="lg:col-span-2">
+                <h3 className="text-xl font-semibold mb-4">Breakdown de Custos</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-3">
+                    <div className="flex justify-between p-3 bg-chart-1/5 rounded-lg">
+                      <span>{labels.materiais}:</span>
                       <span className="font-bold">
-                        R$ {valorImposto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        R${" "}
+                        {valorMateriais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </span>
                     </div>
-                    <div className="flex justify-between text-base p-3 bg-muted/50 rounded-lg">
-                      <span>Lucro ({dadosFinais.margemLucro}%):</span>
+                    <div className="flex justify-between p-3 bg-chart-2/5 rounded-lg">
+                      <span>{labels.maoObraExec}:</span>
                       <span className="font-bold">
- R$ {valorLucro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        R${" "}
+                        {valorMaoObraExec.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between p-3 bg-chart-2/5 rounded-lg">
+                      <span>{labels.maoObraInst}:</span>
+                      <span className="font-bold">
+                        R${" "}
+                        {valorMaoObraInst.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between p-3 bg-chart-3/5 rounded-lg">
+                      <span>{labels.itensServicos}:</span>
+                      <span className="font-bold">
+                        R${" "}
+                        {valorItensServicos.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between p-3 bg-chart-4/5 rounded-lg">
+                      <span>{labels.acabamentoExtras}:</span>
+                      <span className="font-bold">
+                        R${" "}
+                        {valorAcabamentoExtras.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between p-3 bg-chart-5/5 rounded-lg">
+                      <span>{labels.consumoDespesas}:</span>
+                      <span className="font-bold">
+                        R${" "}
+                        {valorConsumoDespesas.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between p-3 bg-muted rounded-lg">
+                      <span>{modoObra ? "Engenharia" : "Planejamento"} ({dadosFinais.engenharia}%):</span>
+                      <span className="font-bold">
+                        R${" "}
+                        {valorEngenharia.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between p-3 bg-muted rounded-lg">
+                      <span>Comissão ({dadosFinais.comissao}%):</span>
+                      <span className="font-bold">
+                        R${" "}
+                        {valorComissao.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between p-3 bg-muted rounded-lg">
+                      <span>Consultoria:</span>
+                      <span className="font-bold">
+                        R${" "}
+                        {dadosFinais.consultoria.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Resultado Final e Métricas */}
-                <div className="space-y-6">
-                  <div className="text-center p-6 bg-gradient-to-br from-chart-2/20 to-chart-1/20 rounded-xl border-2 border-chart-2/30">
-                    <h3 className="text-2xl font-bold text-chart-2 mb-2">PREÇO FINAL</h3>
-                    <p className="text-4xl font-bold text-foreground">
-                      R$ {precoFinal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
+                <Separator className="my-6" />
 
-                  <div className="grid grid-cols-1 gap-4">
-                    {modoObra && pesoTotal > 0 && (
-                      <div className="text-center p-4 bg-chart-1/10 rounded-lg border border-chart-1/30">
-                        <p className="text-xs text-muted-foreground">Peso Total</p>
-                        <p className="text-xl font-bold text-chart-1">{pesoTotal.toLocaleString()} kg</p>
-                        <p className="text-xs text-muted-foreground mt-1">R$ {precoPorKg.toFixed(2)} por kg</p>
-                      </div>
-                    )}
-                    {areaProjeto > 0 && (
-                      <div className="text-center p-4 bg-chart-3/10 rounded-lg border border-chart-3/30">
-                        <p className="text-xs text-muted-foreground">{modoObra ? "Área Total" : "Quantidade Total"}</p>
-                        <p className="text-xl font-bold text-chart-3">
-                          {areaProjeto.toLocaleString()} {labels.unidadeMedida}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          R$ {precoPorUnidade.toFixed(2)} por {labels.unidadeMedida}
-                        </p>
-                      </div>
-                    )}
-                    <div className="text-center p-4 bg-chart-4/10 rounded-lg border border-chart-4/30">
-                      <p className="text-xs text-muted-foreground">Margem de Lucro</p>
-                      <p className="text-xl font-bold text-chart-4">{dadosFinais.margemLucro.toFixed(1)}%</p>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-lg font-bold p-4 bg-chart-2/10 rounded-lg">
+                    <span>CUSTO TOTAL:</span>
+                    <span>
+                      R${" "}
+                      {custoTotalComTaxas.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-base p-3 bg-muted/50 rounded-lg">
+                    <span>Custo total sem taxa:</span>
+                    <span className="font-bold">
+                      R${" "}
+                      {custoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-base p-3 bg-red-500/50 rounded-lg">
+                    <span>Imposto ({dadosFinais.impostoPercentual}%):</span>
+                    <span className="font-bold">
+                      R${" "}
+                      {valorImposto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-base p-3 bg-green-500/50 rounded-lg">
+                    <span>Lucro ({dadosFinais.margemLucro}%):</span>
+                    <span className="font-bold">
+                      R${" "}
+                      {valorLucro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resultado Final e Métricas */}
+              <div className="space-y-6">
+                <div className="text-center p-6 bg-gradient-to-br from-chart-2/20 to-chart-1/20 rounded-xl border-2 border-chart-2/30">
+                  <h3 className="text-2xl font-bold text-chart-2 mb-2">PREÇO FINAL</h3>
+                  <p className="text-4xl font-bold text-foreground">
+                    R${" "}
+                    {precoFinal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {modoObra && pesoTotal > 0 && (
+                    <div className="text-center p-4 bg-chart-1/10 rounded-lg border border-chart-1/30">
+                      <p className="text-xs text-muted-foreground">Peso Total</p>
+                      <p className="text-xl font-bold text-chart-1">
+                        {pesoTotal.toLocaleString()} kg
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        R$ {valorLucro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        R$ {precoPorKg.toFixed(2)} por kg
                       </p>
                     </div>
+                  )}
+                  {areaProjeto > 0 && (
+                    <div className="text-center p-4 bg-chart-3/10 rounded-lg border border-chart-3/30">
+                      <p className="text-xs text-muted-foreground">
+                        {modoObra ? "Área Total" : "Quantidade Total"}
+                      </p>
+                      <p className="text-xl font-bold text-chart-3">
+                        {areaProjeto.toLocaleString()} {labels.unidadeMedida}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        R$ {precoPorUnidade.toFixed(2)} por {labels.unidadeMedida}
+                      </p>
+                    </div>
+                  )}
+                  <div className="text-center p-4 bg-chart-4/10 rounded-lg border border-chart-4/30">
+                    <p className="text-xs text-muted-foreground">Margem de Lucro</p>
+                    <p className="text-xl font-bold text-chart-4">
+                      {dadosFinais.margemLucro.toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      R${" "}
+                      {valorLucro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Botões de Ação */}
-              <div className="mt-8 flex justify-center gap-4">
-                <Button size="lg" className="bg-chart-2 hover:bg-chart-2/90">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Gerar Proposta PDF
-                </Button>
-                <Button size="lg" variant="outline">
-                  <Camera className="w-5 h-5 mr-2" />
-                  Salvar Orçamento
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => {
-                    // Reset todos os campos
-                    setDadosCadastro({ dataOrcamento: "", cliente: "", projeto: "", endereco: "", responsavel: "" })
-                    setDescricaoProjeto("")
-                    setAreaProjeto(0)
-                    setMateriais([{ id: 1, qtBarras: 0, quantKg: 0, precoKg: 0, descricao: "" }])
-                    setMaoObraExecucao([{ id: 1, descricao: "", pessoas: 0, dias: 0, hrsDia: 0, precoHr: 0 }])
-                    setMaoObraInstalacao([{ id: 1, descricao: "", pessoas: 0, dias: 0, hrsDia: 0, precoHr: 0 }])
-                    setItensServicos([{ id: 1, qt: 0, unid: "", precoUnit: 0, descricao: "" }])
-                    setAcabamentoExtras([{ id: 1, quant: 0, unid: "kg", precoKg: 0, descricao: "" }])
-                    setConsumoDespesas([{ id: 1, qt: 0, unid: "", preco: 0, descricao: "" }])
-                    setDadosFinais({ engenharia: 0, comissao: 0, consultoria: 0, impostoPercentual: 0, margemLucro: 0 })
-                    setObservacoes("")
-                    setFotoObra("")
-                  }}
-                >
-                  <Trash2 className="w-5 h-5 mr-2" />
-                  Limpar Tudo
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Botões de Ação */}
+            <div className="mt-8 flex justify-center gap-4">
+              <Button size="lg" className="bg-chart-2 hover:bg-chart-2/90">
+                <FileText className="w-5 h-5 mr-2" />
+                Gerar Proposta PDF
+              </Button>
+              <Button size="lg" variant="outline">
+                <Camera className="w-5 h-5 mr-2" />
+                Salvar Orçamento
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => {
+                  // Reset todos os campos
+                  setDadosCadastro({
+                    dataOrcamento: "",
+                    cliente: "",
+                    projeto: "",
+                    endereco: "",
+                    responsavel: "",
+                  });
+                  setDescricaoProjeto("");
+                  setAreaProjeto(0);
+                  setMateriais([
+                    { id: 1, qtBarras: 0, quantKg: 0, precoKg: 0, descricao: "" },
+                  ]);
+                  setMaoObraExecucao([
+                    {
+                      id: 1,
+                      descricao: "",
+                      pessoas: 0,
+                      dias: 0,
+                      hrsDia: 0,
+                      precoHr: 0,
+                    },
+                  ]);
+                  setMaoObraInstalacao([
+                    {
+                      id: 1,
+                      descricao: "",
+                      pessoas: 0,
+                      dias: 0,
+                      hrsDia: 0,
+                      precoHr: 0,
+                    },
+                  ]);
+                  setItensServicos([
+                    { id: 1, qt: 0, unid: "", precoUnit: 0, descricao: "" },
+                  ]);
+                  setAcabamentoExtras([
+                    { id: 1, quant: 0, unid: "kg", precoKg: 0, descricao: "" },
+                  ]);
+                  setConsumoDespesas([
+                    { id: 1, qt: 0, unid: "", preco: 0, descricao: "" },
+                  ]);
+                  setDadosFinais({
+                    engenharia: 0,
+                    comissao: 0,
+                    consultoria: 0,
+                    impostoPercentual: 0,
+                    margemLucro: 0,
+                  });
+                  setObservacoes("");
+                  setFotoObra("");
+                }}
+              >
+                <Trash2 className="w-5 h-5 mr-2" />
+                Limpar Tudo
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
         </div>
       </div>
     </div>
