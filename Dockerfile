@@ -1,23 +1,27 @@
-# syntax=docker.io/docker/dockerfile:1
+# syntax=docker/dockerfile:1
 
 # Etapa base
 FROM node:18-alpine AS base
-
-# Etapa de dependências
-FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Etapa de dependências
+FROM base AS deps
 COPY package.json package-lock.json* .npmrc* ./
 RUN npm ci
 
 # Etapa de build
 FROM base AS builder
 WORKDIR /app
+
+# Copia node_modules e código
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Variáveis públicas para uso no build (Next.js)
+# Copia o Prisma schema explicitamente (caso não esteja junto no COPY . .)
+# COPY prisma ./prisma
+
+# Define variáveis públicas para o build do Next.js
 ARG NEXT_PUBLIC_FIREBASE_API_KEY
 ARG NEXT_PUBLIC_GEMINI_API_KEY
 ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
@@ -38,22 +42,30 @@ ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SE
 ENV NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
 ENV NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}
 
-# Build em modo standalone (requer next.config.js com output: 'standalone')
+# Gera o Prisma Client antes do build
+RUN npx prisma generate
+
+# Build da aplicação Next.js
 RUN npm run build
 
-# Etapa final de produção
+# Etapa de produção
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Cria usuário seguro
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
+# Copia os arquivos necessários do builder
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 USER nextjs
 
