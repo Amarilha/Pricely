@@ -82,7 +82,7 @@ export  function CalculadoraOrcamentoInterativa() {
 
   const adicionarMaterial = () => {
     const novoId = Math.max(...materiais.map((item) => item.id)) + 1
-    setMateriais([...materiais, { id: novoId, qtBarras: 0, quantKg: 0, precoKg: 0, descricao: "" }])
+    setMateriais([ { id: novoId, qtBarras: 0, quantKg: 0, precoKg: 0, descricao: "" }, ...materiais])
   }
 
   const removerMaterial = (id: number) => {
@@ -93,7 +93,7 @@ export  function CalculadoraOrcamentoInterativa() {
 
   const adicionarMaoObraExec = () => {
     const novoId = Math.max(...maoObraExecucao.map((item) => item.id)) + 1
-    setMaoObraExecucao([...maoObraExecucao, { id: novoId, descricao: "", pessoas: 0, dias: 0, hrsDia: 0, precoHr: 0 }])
+    setMaoObraExecucao([ { id: novoId, descricao: "", pessoas: 0, dias: 0, hrsDia: 0, precoHr: 0 }, ...maoObraExecucao])
   }
 
   const removerMaoObraExec = (id: number) => {
@@ -105,8 +105,7 @@ export  function CalculadoraOrcamentoInterativa() {
   const adicionarMaoObraInst = () => {
     const novoId = Math.max(...maoObraInstalacao.map((item) => item.id)) + 1
     setMaoObraInstalacao([
-      ...maoObraInstalacao,
-      { id: novoId, descricao: "", pessoas: 0, dias: 0, hrsDia: 0, precoHr: 0 },
+      { id: novoId, descricao: "", pessoas: 0, dias: 0, hrsDia: 0, precoHr: 0 },...maoObraInstalacao
     ])
   }
 
@@ -118,7 +117,7 @@ export  function CalculadoraOrcamentoInterativa() {
 
   const adicionarItemServico = () => {
     const novoId = Math.max(...itensServicos.map((item) => item.id)) + 1
-    setItensServicos([...itensServicos, { id: novoId, qt: 0, unid: "", precoUnit: 0, descricao: "" }])
+    setItensServicos([{ id: novoId, qt: 0, unid: "", precoUnit: 0, descricao: "" },...itensServicos])
   }
 
   const removerItemServico = (id: number) => {
@@ -129,7 +128,7 @@ export  function CalculadoraOrcamentoInterativa() {
 
   const adicionarAcabamentoExtra = () => {
     const novoId = Math.max(...acabamentoExtras.map((item) => item.id)) + 1
-    setAcabamentoExtras([...acabamentoExtras, { id: novoId, quant: 0, unid: "kg", precoKg: 0, descricao: "" }])
+    setAcabamentoExtras([{ id: novoId, quant: 0, unid: "kg", precoKg: 0, descricao: "" }, ...acabamentoExtras])
   }
 
   const removerAcabamentoExtra = (id: number) => {
@@ -140,7 +139,7 @@ export  function CalculadoraOrcamentoInterativa() {
 
   const adicionarConsumoDespesa = () => {
     const novoId = Math.max(...consumoDespesas.map((item) => item.id)) + 1
-    setConsumoDespesas([...consumoDespesas, { id: novoId, qt: 0, unid: "", preco: 0, descricao: "" }])
+ setConsumoDespesas([{ id: novoId, qt: 0, unid: "", preco: 0, descricao: "" }, ...consumoDespesas]);
   }
 
   const removerConsumoDespesa = (id: number) => {
