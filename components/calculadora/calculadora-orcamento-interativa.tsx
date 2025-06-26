@@ -15,6 +15,8 @@ import {
   Briefcase,
 } from "lucide-react"
 
+import { gerarPDF } from "@/utils/gerarPDF";
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,9 +25,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 
+
+
 export  function CalculadoraOrcamentoInterativa() {
   // Estado para modo da calculadora
   const [modoObra, setModoObra] = useState(true) // true = Obra, false = Serviço
+
+  const [cardExpandido, setCardExpandido] = useState(true); // controle global do card
 
   // Estados para dados de cadastro
   const [dadosCadastro, setDadosCadastro] = useState({
@@ -748,108 +754,108 @@ export  function CalculadoraOrcamentoInterativa() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-5 h-5" />
+                  <div className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
                       3-6. {labels.materiais}
-                    </div>
-                    <Button onClick={adicionarMaterial} size="sm" variant="outline">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </CardTitle>
+                  </div>
+                      <Button onClick={adicionarMaterial} size="sm" variant="outline">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {materiais.map((item, index) => (
-                      <div key={item.id} className="p-4 border rounded-lg bg-muted/50">
-                        <div className="flex justify-between items-center mb-3">
+      <div key={item.id} className="p-4 border rounded-lg bg-muted/50">
+        <div className="flex justify-between items-center mb-3">
                           <h4 className="font-medium">{modoObra ? `Material ${index + 1}` : `Insumo ${index + 1}`}</h4>
-                          {materiais.length > 1 && (
-                            <Button onClick={() => removerMaterial(item.id)} size="sm" variant="destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          <div>
-                            <Label>{modoObra ? "Qt. Barras" : "Quantidade"}</Label>
-                            <Input
-                              type="number"
+          {materiais.length > 1 && (
+            <Button onClick={() => removerMaterial(item.id)} size="sm" variant="destructive">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <Label>{modoObra ? "Qt. Barras" : "Quantidade"}</Label>
+            <Input
+              type="number"
                               //value={item.qtBarras}
-                                onChange={(e) => {
-                                const newItems = materiais.map((mp) =>
+              onChange={(e) => {
+                const newItems = materiais.map((mp) =>
                                   mp.id === item.id ? { ...mp, qtBarras: Number(e.target.value) } : mp,
                                 )
                                 setMateriais(newItems)
-                              }}
-                              placeholder="0"
-                            />
-                          </div>
-                          <div>
-                            <Label>{modoObra ? "Peso (kg)" : "Peso/Volume"}</Label>
-                            <Input
-                              type="number"
+              }}
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <Label>{modoObra ? "Peso (kg)" : "Peso/Volume"}</Label>
+            <Input
+              type="number"
                               //value={item.quantKg}
-                                onChange={(e) => {
-                                const newItems = materiais.map((mp) =>
+              onChange={(e) => {
+                const newItems = materiais.map((mp) =>
                                   mp.id === item.id ? { ...mp, quantKg: Number(e.target.value) } : mp,
                                 )
                                 setMateriais(newItems)
-                              }}
-                              placeholder="0"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          <div>
-                            <Label>Preço/unid (R$)</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
+              }}
+              placeholder="0"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <Label>Preço/unid (R$)</Label>
+            <Input
+              type="number"
+              step="0.01"
                               //value={item.precoKg}
-                                onChange={(e) => {
-                                const newItems = materiais.map((mp) =>
+              onChange={(e) => {
+                const newItems = materiais.map((mp) =>
                                   mp.id === item.id ? { ...mp, precoKg: Number(e.target.value) } : mp,
                                 )
                                 setMateriais(newItems)
-                              }}
-                              placeholder="0"
-                            />
-                          </div>
-                          <div>
-                            <Label>Valor Total</Label>
-                            <Input
+              }}
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <Label>Valor Total</Label>
+            <Input
                               value={`R$ ${(item.quantKg * item.precoKg).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
-                              readOnly
-                              className="bg-chart-1/5 font-bold"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Descrição</Label>
-                          <Input
+              readOnly
+              className="bg-chart-1/5 font-bold"
+            />
+          </div>
+        </div>
+        <div>
+          <Label>Descrição</Label>
+          <Input
                             //value={item.descricao}
-                            onChange={(e) => {
-                              const newItems = materiais.map((mp) =>
+            onChange={(e) => {
+              const newItems = materiais.map((mp) =>
                                 mp.id === item.id ? { ...mp, descricao: e.target.value } : mp,
                               )
                               setMateriais(newItems)
-                            }}
-                            placeholder={
+            }}
+            placeholder={
                               modoObra ? "Ex: Perfil U 200x50x2,25mm" : "Ex: Material específico, ferramenta, etc."
-                            }
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <div className="p-3 bg-chart-1/10 border-l-4 border-chart-1 rounded-lg">
-                      <p className="font-bold text-chart-1">
-                        Total {labels.materiais}: R${" "}
-                        {valorMateriais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </p>
+            }
+          />
+        </div>
+      </div>
+    ))}
+    <div className="p-3 bg-chart-1/10 border-l-4 border-chart-1 rounded-lg">
+      <p className="font-bold text-chart-1">
+        Total {labels.materiais}: R${" "}
+        {valorMateriais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+      </p>
                       {modoObra && <p className="text-sm text-chart-1">Peso Total: {pesoTotal.toLocaleString()} kg</p>}
-                    </div>
-                  </div>
-                </CardContent>
+    </div>
+  </div>
+</CardContent>
               </Card>
 
               {/*9 Mão de Obra Instalação/Suporte */}
@@ -1355,16 +1361,52 @@ export  function CalculadoraOrcamentoInterativa() {
 
             {/* Botões de Ação */}
             <div className="mt-8 flex justify-center gap-4">
-              <Button size="lg" className="bg-chart-2 hover:bg-chart-2/90">
-                <FileText className="w-5 h-5 mr-2" />
-                Gerar Proposta PDF
-              </Button>
               
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() =>
+                gerarPDF(
+                  modoObra,
+                  labels,
+                  dadosCadastro,
+                  areaProjeto,
+                  descricaoProjeto,
+                  materiais,
+                  maoObraExecucao,
+                  maoObraInstalacao,
+                  itensServicos,
+                  acabamentoExtras,
+                  consumoDespesas,
+                  dadosFinais,
+                  observacoes,
+                  valorMateriais,
+                  valorMaoObraExec,
+                  valorMaoObraInst,
+                  valorItensServicos,
+                  valorAcabamentoExtras,
+                  valorConsumoDespesas,
+                  custoTotal,
+                  valorImposto,
+                  valorLucro,
+                  precoFinal,
+                  pesoTotal,
+                  precoPorKg,
+                  precoPorUnidade
+                )
+              }
+            >
+              <FileText className="w-5 h-5 mr-2" />
+              Gerar Proposta PDF
+            </Button>
+              
+                  {/* Salvar Orçamento */}
               <Button size="lg" variant="outline">
                 <Save className="w-5 h-5 mr-2" />
                 Salvar Orçamento
               </Button>
 
+                  {/* Limpar */}
               <Button
                 size="lg"
                 variant="outline"
@@ -1425,6 +1467,7 @@ export  function CalculadoraOrcamentoInterativa() {
                 <Trash2 className="w-5 h-5 mr-2" />
                 Limpar Tudo
               </Button>
+
             </div>
           </CardContent>
         </Card>
