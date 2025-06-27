@@ -1,5 +1,7 @@
 "use client"
-
+import * as React from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { desktopOS, valueFormatter } from '@/components/calculadora/webUsageStats';
 import { useState } from "react"
 import {
   Calculator,
@@ -1357,6 +1359,26 @@ export  function CalculadoraOrcamentoInterativa() {
                   </div>
                 </div>
               </div>
+
+              {/* grafico 
+              
+              <div className="space-y-6">
+                
+              <PieChart
+                series={[
+                  {
+                    data: desktopOS,
+                    highlightScope: { fade: 'global', highlight: 'item' },
+                    faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                    valueFormatter,
+                  },
+                ]}
+                height={200}
+                width={200}
+              />
+
+              </div>
+                */}
             </div>
 
             {/* Botões de Ação */}
@@ -1383,6 +1405,7 @@ export  function CalculadoraOrcamentoInterativa() {
                   valorMateriais,
                   valorMaoObraExec,
                   valorMaoObraInst,
+                  valorEngenharia,
                   valorItensServicos,
                   valorAcabamentoExtras,
                   valorConsumoDespesas,
