@@ -25,6 +25,7 @@ const COLORS = {
   markupAtual: "#8b5cf6",
   markupIdeal: "#10b981",
   gao: "#f59e0b",
+  gaoThreshold: "#ef4444",
   receita: "#8b5cf6",
   breakeven: "#ef4444",
   margemSeguranca: "#10b981",
@@ -82,31 +83,42 @@ export function FinancialCharts({
     { name: "Markup Ideal", value: 2.5, color: COLORS.markupIdeal },
   ]
 
-  const gaoData: ChartData[] = [
-    {
-      name: "GAO Atual",
-      value: gao,
-      color: gao > 2 ? COLORS.custosFixos : gao > 1.5 ? COLORS.gao : COLORS.margemSeguranca,
-    },
-  ]
+  // Generate range data for GAO line chart
+  const generateGAOData = () => {
+    const maxRevenue = receitaLiquida * 1.5
+    const steps = 5
+    const data = []
+    for (let i = 0; i <= steps; i++) {
+      const revenue = (maxRevenue / steps) * i
+      const margemContribuicao = revenue - custosVariaveis
+      const lucroOperacional = revenue - (custosVariaveis + custosFixos)
+      data.push({
+        revenueLevel: i,
+        gaoAtual: lucroOperacional > 0 && margemContribuicao > 0 ? margemContribuicao / lucroOperacional : 0,
+        gaoThreshold: 1.5, // Threshold for moderate risk
+      })
+    }
+    return data
+  }
 
-  // Generate range data for line chart with dynamic margin
+  // Generate range data for Break-even line chart with dynamic margin
   const generateBreakevenData = () => {
-    const maxRevenue = receitaLiquida * 1.5 // Extend to 1.5x current revenue for trend
+    const maxRevenue = receitaLiquida * 1.5
     const steps = 5
     const data = []
     for (let i = 0; i <= steps; i++) {
       const revenue = (maxRevenue / steps) * i
       data.push({
         revenueLevel: i,
-        receitaAtual: revenue <= receitaLiquida ? revenue : receitaLiquida, // Cap at current revenue
-        pontoEquilibrio: breakeven, // Constant break-even point
-        margemSeguranca: Math.max(0, revenue - breakeven), // Dynamic safety margin based on revenue
+        receitaAtual: revenue <= receitaLiquida ? revenue : receitaLiquida,
+        pontoEquilibrio: breakeven,
+        margemSeguranca: Math.max(0, revenue - breakeven),
       })
     }
     return data
   }
 
+  const gaoData = generateGAOData()
   const breakevenData = generateBreakevenData()
 
   const composicaoCustos: ChartData[] = [
@@ -176,6 +188,20 @@ export function FinancialCharts({
           <CardTitle className="flex items-center gap-2">
             <gaoStatus.icon className="h-5 w-5" />
             Grau de Alavancagem Operacional (GAO)
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>
+                    <strong>Grau de Alavancagem Operacional:</strong><br />
+                    - <span style={{ color: COLORS.gao }}>■</span> <strong>GAO Atual:</strong> Sensibilidade do lucro às variações de receita.<br />
+                    - <span style={{ color: COLORS.gaoThreshold }}>■</span> <strong>Limite de Risco:</strong> Threshold de 1.5 indicando risco moderado.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardTitle>
           <CardDescription>Sensibilidade do lucro às variações de receita</CardDescription>
         </CardHeader>
@@ -185,22 +211,57 @@ export function FinancialCharts({
           ) : (
             <ChartContainer
               config={{
-                gao: { label: "GAO", color: gaoData[0].color },
+                gao: { label: "GAO", color: COLORS.gao },
+                gaoThreshold: { label: "Limite de Risco", color: COLORS.gaoThreshold },
               }}
-              className="min-h-[250px]"
+              className="min-h-[300px]"
             >
-              <ResponsiveContainer width="100%" height="100%" aspect={2}>
-                <BarChart data={gaoData} aria-label="Gráfico de GAO">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+              <ResponsiveContainer width="100%" height="100%" aspect={1.5}>
+                <LineChart data={gaoData} aria-label="Gráfico de GAO">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <XAxis
+                    dataKey="revenueLevel"
+                    type="number"
+                    domain={[0, 5]}
+                    tickFormatter={(value) => `${(receitaLiquida * value * 0.3).toFixed(0)}`}
+                    stroke="#666"
+                    fontSize={12}
+                  />
+                  <YAxis stroke="#666" fontSize={12} />
                   <ChartTooltip content={<ChartTooltipContent formatter={(value) => value.toFixed(2)} />} />
-                  <Bar dataKey="value" fill={gaoData[0].color} />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="gaoAtual"
+                    name="GAO Atual"
+                    stroke={COLORS.gao}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="gaoThreshold"
+                    name="Limite de Risco"
+                    stroke={COLORS.gaoThreshold}
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={false}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </ChartContainer>
           )}
           <div className="mt-4 space-y-2">
+            <div className="flex justify-around text-sm">
+              <span>
+                <span className="inline-block w-3 h-3 mr-1" style={{ backgroundColor: COLORS.gao }}></span>
+                GAO Atual
+              </span>
+              <span>
+                <span className="inline-block w-3 h-3 mr-1" style={{ backgroundColor: COLORS.gaoThreshold }}></span>
+                Limite de Risco
+              </span>
+            </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">GAO Atual:</span>
               <Badge variant={gaoStatus.variant}>{`${gao.toFixed(2)} - ${gaoStatus.status}`}</Badge>
@@ -297,7 +358,6 @@ export function FinancialCharts({
             </ChartContainer>
           )}
           <div className="mt-4 space-y-2">
-            {/* Legend */}
             <div className="flex justify-around text-sm">
               <span>
                 <span className="inline-block w-3 h-3 mr-1" style={{ backgroundColor: COLORS.receita }}></span>
@@ -354,6 +414,7 @@ export function FinancialCharts({
                     nameKey="name"
                     cx="50%"
                     cy="50%"
+                    innerRadius={40} // Creates donut effect
                     outerRadius={100}
                     label={({ name, value }) => `${name}: ${formatarMoeda(value)}`}
                     labelLine={true}
