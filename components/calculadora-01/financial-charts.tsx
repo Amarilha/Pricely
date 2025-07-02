@@ -2,9 +2,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
-import { TrendingUp, AlertTriangle, Target } from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts"
+import { TrendingUp, AlertTriangle, Target, HelpCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface FinancialChartsProps {
   custosFixos: number
@@ -89,11 +90,24 @@ export function FinancialCharts({
     },
   ]
 
-  const breakevenData: ChartData[] = [
-    { name: "Receita Atual", value: receitaLiquida, color: COLORS.receita },
-    { name: "Ponto de Equilíbrio", value: breakeven, color: COLORS.breakeven },
-    { name: "Margem de Segurança", value: Math.max(0, receitaLiquida - breakeven), color: COLORS.margemSeguranca },
-  ]
+  // Generate range data for line chart with dynamic margin
+  const generateBreakevenData = () => {
+    const maxRevenue = receitaLiquida * 1.5 // Extend to 1.5x current revenue for trend
+    const steps = 5
+    const data = []
+    for (let i = 0; i <= steps; i++) {
+      const revenue = (maxRevenue / steps) * i
+      data.push({
+        revenueLevel: i,
+        receitaAtual: revenue <= receitaLiquida ? revenue : receitaLiquida, // Cap at current revenue
+        pontoEquilibrio: breakeven, // Constant break-even point
+        margemSeguranca: Math.max(0, revenue - breakeven), // Dynamic safety margin based on revenue
+      })
+    }
+    return data
+  }
+
+  const breakevenData = generateBreakevenData()
 
   const composicaoCustos: ChartData[] = [
     { name: "Custos Fixos", value: custosFixos, color: COLORS.custosFixos },
@@ -208,6 +222,21 @@ export function FinancialCharts({
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
             Análise de Break-even
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>
+                    <strong>Análise de Break-even:</strong><br />
+                    - <span style={{ color: COLORS.receita }}>■</span> <strong>Receita Atual:</strong> O valor total de receita gerada.<br />
+                    - <span style={{ color: COLORS.breakeven }}>■</span> <strong>Ponto de Equilíbrio:</strong> O valor mínimo de receita necessário para cobrir todos os custos (fixos + variáveis).<br />
+                    - <span style={{ color: COLORS.margemSeguranca }}>■</span> <strong>Margem de Segurança:</strong> A diferença entre a receita atual e o ponto de equilíbrio, indicando a margem de segurança financeira.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardTitle>
           <CardDescription>Ponto de equilíbrio e margem de segurança</CardDescription>
         </CardHeader>
@@ -221,28 +250,68 @@ export function FinancialCharts({
                 breakeven: { label: "Break-even", color: COLORS.breakeven },
                 margem: { label: "Margem de Segurança", color: COLORS.margemSeguranca },
               }}
-              className="min-h-[250px]"
+              className="min-h-[300px]"
             >
-              <ResponsiveContainer width="100%" height="100%" aspect={2}>
-                <BarChart data={breakevenData} aria-label="Gráfico de Break-even">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis tickFormatter={formatarMoeda} />
+              <ResponsiveContainer width="100%" height="100%" aspect={1.5}>
+                <LineChart data={breakevenData} aria-label="Gráfico de Break-even">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <XAxis
+                    dataKey="revenueLevel"
+                    type="number"
+                    domain={[0, 5]}
+                    tickFormatter={(value) => `${(receitaLiquida * value * 0.3).toFixed(0)}`}
+                    stroke="#666"
+                    fontSize={12}
+                  />
+                  <YAxis tickFormatter={formatarMoeda} stroke="#666" fontSize={12} />
                   <ChartTooltip content={<ChartTooltipContent formatter={formatarMoeda} />} />
-                  {breakevenData.map((entry, index) => (
-                    <Bar
-                      key={entry.name}
-                      dataKey="value"
-                      name={entry.name}
-                      fill={entry.color}
-                      barSize={80}
-                    />
-                  ))}
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="receitaAtual"
+                    name="Receita Atual"
+                    stroke={COLORS.receita}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="pontoEquilibrio"
+                    name="Ponto de Equilíbrio"
+                    stroke={COLORS.breakeven}
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="margemSeguranca"
+                    name="Margem de Segurança"
+                    stroke={COLORS.margemSeguranca}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </ChartContainer>
           )}
           <div className="mt-4 space-y-2">
+            {/* Legend */}
+            <div className="flex justify-around text-sm">
+              <span>
+                <span className="inline-block w-3 h-3 mr-1" style={{ backgroundColor: COLORS.receita }}></span>
+                Receita Atual
+              </span>
+              <span>
+                <span className="inline-block w-3 h-3 mr-1" style={{ backgroundColor: COLORS.breakeven }}></span>
+                Ponto de Equilíbrio
+              </span>
+              <span>
+                <span className="inline-block w-3 h-3 mr-1" style={{ backgroundColor: COLORS.margemSeguranca }}></span>
+                Margem de Segurança
+              </span>
+            </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Break-even:</span>
               <span className="text-sm font-medium">{formatarMoeda(breakeven)}</span>
