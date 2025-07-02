@@ -1450,7 +1450,7 @@ export default function ServiceQuoteGenerator() {
                             type="number"
                             step="0.01"
                             placeholder="R$ 0,00"
-                            //value={custo.valor}
+                            value={custo.valor}
                             onChange={(e) => atualizarCustoFixo(custo.id, "valor", Number(e.target.value))}
                             disabled={isExcluded}
                           />
@@ -1540,7 +1540,7 @@ export default function ServiceQuoteGenerator() {
                             type="number"
                             step="0.01"
                             placeholder="0,00"
-                            //value={custo.valor}
+                            value={custo.valor}
                             onChange={(e) => atualizarCustoVariavel(custo.id, "valor", Number(e.target.value))}
                           />
                         </div>
@@ -1682,8 +1682,8 @@ export default function ServiceQuoteGenerator() {
                       id="tempo-execucao"
                       type="number"
                       step="0.5"
-                      value={dados.horasTrabalhadasMes}
-                      //value={dados.tempoExecucao}
+                      //value={dados.horasTrabalhadasMes}
+                      value={dados.tempoExecucao}
                       onChange={(e) => setDados((prev) => ({ ...prev, tempoExecucao: Number(e.target.value) }))}
                     />
                   </div>
@@ -1746,7 +1746,7 @@ export default function ServiceQuoteGenerator() {
                         <Input
                           type="number"
                           step="0.01"
-                          //value={item.precoUnitario}
+                          value={item.precoUnitario}
                           onChange={(e) => atualizarItem(item.id, "precoUnitario", Number(e.target.value))}
                         />
                       </div>
@@ -2022,10 +2022,6 @@ export default function ServiceQuoteGenerator() {
                       <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
                         <span className="font-semibold text-gray-600">Subtotal</span>
                         <span className="text-gray-800 font-semibold">{formatarMoeda(calcularSubtotalGeral)}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-2">
-                        <span className="font-semibold text-gray-600">Lucro ({dados.margemLucro}%)</span>
-                        <span className="text-green-600">+{formatarMoeda(calcularLucro)}</span>
                       </div>
                       <div className="flex justify-between items-center p-2">
                         <span className="font-semibold text-gray-600">Impostos ({dados.impostos}%)</span>

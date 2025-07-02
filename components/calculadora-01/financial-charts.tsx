@@ -1,37 +1,36 @@
 "use client"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { TrendingUp, AlertTriangle, Target } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface FinancialChartsProps {
   custosFixos: number
   custosVariaveis: number
-  margemLucro: number // em %
+  margemLucro: number
   receitaLiquida: number
   impostos: number
+}
+
+interface ChartData {
+  name: string
+  value: number
+  color: string
+}
+
+const COLORS = {
+  markupAtual: "#8b5cf6",
+  markupIdeal: "#10b981",
+  gao: "#f59e0b",
+  receita: "#8b5cf6",
+  breakeven: "#ef4444",
+  margemSeguranca: "#10b981",
+  custosFixos: "#ef4444",
+  custosVariaveis: "#f59e0b",
+  margemLucro: "#10b981",
+  impostos: "#6b7280",
 }
 
 export function FinancialCharts({
@@ -41,170 +40,156 @@ export function FinancialCharts({
   receitaLiquida,
   impostos,
 }: FinancialChartsProps) {
-  const custoTotal = custosFixos + custosVariaveis
+  // Define formatarMoeda locally
+  const formatarMoeda = (valor: number) => {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      minimumFractionDigits: 2,
+    })
+  }
 
+  // Cálculo do Markup
   const calcularMarkup = () => {
-    if (custoTotal === 0) return 0
+    const custoTotal = custosFixos + custosVariaveis
+    if (custoTotal <= 0 || receitaLiquida <= 0) return 0
     return receitaLiquida / custoTotal
   }
 
+  // Cálculo do GAO (Grau de Alavancagem Operacional)
   const calcularGAO = () => {
     const margemContribuicao = receitaLiquida - custosVariaveis
-    const lucroOperacional = receitaLiquida - custoTotal
-    if (lucroOperacional === 0) return 0
+    const lucroOperacional = receitaLiquida - (custosVariaveis + custosFixos)
+    if (lucroOperacional <= 0 || margemContribuicao <= 0) return 0
     return margemContribuicao / lucroOperacional
   }
 
+  // Cálculo do Break-even
   const calcularBreakeven = () => {
-    if (receitaLiquida === 0) return 0
-    const margemContribuicaoPercentual =
-      (receitaLiquida - custosVariaveis) / receitaLiquida
-    if (margemContribuicaoPercentual === 0) return 0
-    return custosFixos / margemContribuicaoPercentual
+    const margemContribuicaoUnitaria = receitaLiquida > 0 ? (receitaLiquida - custosVariaveis) / receitaLiquida : 0
+    if (margemContribuicaoUnitaria <= 0) return 0
+    return custosFixos / margemContribuicaoUnitaria
   }
 
   const markup = calcularMarkup()
   const gao = calcularGAO()
   const breakeven = calcularBreakeven()
 
-  const markupData = [
-    { name: "Markup Atual", value: markup, color: "#8b5cf6" },
-    { name: "Markup Ideal", value: 2.5, color: "#10b981" },
+  // Dados para os gráficos
+  const markupData: ChartData[] = [
+    { name: "Markup Atual", value: markup, color: COLORS.markupAtual },
+    { name: "Markup Ideal", value: 2.5, color: COLORS.markupIdeal },
   ]
 
-  const gaoData = [
+  const gaoData: ChartData[] = [
     {
       name: "GAO Atual",
       value: gao,
-      color: gao > 2 ? "#ef4444" : gao > 1.5 ? "#f59e0b" : "#10b981",
+      color: gao > 2 ? COLORS.custosFixos : gao > 1.5 ? COLORS.gao : COLORS.margemSeguranca,
     },
   ]
 
-  const breakevenData = [
-    { name: "Receita Atual", value: receitaLiquida, fill: "#8b5cf6" },
-    { name: "Ponto de Equilíbrio", value: breakeven, fill: "#ef4444" },
-    {
-      name: "Margem Segurança",
-      value: Math.max(0, receitaLiquida - breakeven),
-      fill: "#10b981",
-    },
+  const breakevenData: ChartData[] = [
+    { name: "Receita Atual", value: receitaLiquida, color: COLORS.receita },
+    { name: "Ponto de Equilíbrio", value: breakeven, color: COLORS.breakeven },
+    { name: "Margem de Segurança", value: Math.max(0, receitaLiquida - breakeven), color: COLORS.margemSeguranca },
   ]
 
-  const composicaoCustos = [
-    { name: "Custos Fixos", value: custosFixos, fill: "#ef4444" },
-    { name: "Custos Variáveis", value: custosVariaveis, fill: "#f59e0b" },
-    {
-      name: "Margem Lucro",
-      value: (receitaLiquida * margemLucro) / 100,
-      fill: "#10b981",
-    },
-    { name: "Impostos", value: impostos, fill: "#6b7280" },
+  const composicaoCustos: ChartData[] = [
+    { name: "Custos Fixos", value: custosFixos, color: COLORS.custosFixos },
+    { name: "Custos Variáveis", value: custosVariaveis, color: COLORS.custosVariaveis },
+    { name: "Margem de Lucro", value: (receitaLiquida * margemLucro) / 100, color: COLORS.margemLucro },
+    { name: "Impostos", value: impostos, color: COLORS.impostos },
   ]
-
-  const formatarMoeda = (valor: number) =>
-    valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      minimumFractionDigits: 2,
-    })
 
   const getGaoStatus = (gao: number) => {
-    if (gao > 2)
-      return { status: "Alto Risco", color: "destructive", icon: AlertTriangle }
-    if (gao > 1.5)
-      return { status: "Moderado", color: "secondary", icon: TrendingUp }
-    return { status: "Baixo Risco", color: "default", icon: Target }
+    if (gao > 2) return { status: "Alto Risco", variant: "destructive", icon: AlertTriangle }
+    if (gao > 1.5) return { status: "Moderado", variant: "secondary", icon: TrendingUp }
+    return { status: "Baixo Risco", variant: "default", icon: Target }
   }
 
   const gaoStatus = getGaoStatus(gao)
-  const GaoIcon = gaoStatus.icon
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Markup */}
+      {/* Markup Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
             Análise de Markup
           </CardTitle>
-          <CardDescription>
-            Markup atual vs. ideal para sustentabilidade do negócio
-          </CardDescription>
+          <CardDescription>Markup atual vs. ideal para sustentabilidade do negócio</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer
-            config={{
-              markup: { label: "Markup", color: "hsl(var(--chart-1))" },
-            }}
-            className="h-[200px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={markupData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="value" barSize={40}>
-                  {markupData.map((entry, index) => (
-                    <Cell key={index} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {markup === 0 ? (
+            <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
+          ) : (
+            <ChartContainer
+              config={{
+                markupAtual: { label: "Markup Atual", color: COLORS.markupAtual },
+                markupIdeal: { label: "Markup Ideal", color: COLORS.markupIdeal },
+              }}
+              className="min-h-[250px]"
+            >
+              <ResponsiveContainer width="100%" height="100%" aspect={2}>
+                <BarChart data={markupData} aria-label="Gráfico de Markup">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent formatter={formatarMoeda} />} />
+                  <Bar dataKey="value" name="Markup Atual" fill={COLORS.markupAtual} barSize={100} />
+                  <Bar dataKey="value" name="Markup Ideal" fill={COLORS.markupIdeal} barSize={100} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          )}
           <div className="mt-4 space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Markup Atual:</span>
-              <Badge variant={markup > 2 ? "default" : "destructive"}>
-                {markup.toFixed(2)}x
-              </Badge>
+              <Badge variant={markup > 2 ? "default" : "destructive"}>{markup.toFixed(2)}x</Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              {markup < 2
-                ? "⚠️ Markup baixo - considere aumentar preços"
-                : "✅ Markup adequado"}
+              {markup < 2 ? "⚠️ Markup baixo - considere aumentar preços" : "✅ Markup adequado"}
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* GAO */}
+      {/* GAO Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <GaoIcon className="h-5 w-5" />
+            <gaoStatus.icon className="h-5 w-5" />
             Grau de Alavancagem Operacional (GAO)
           </CardTitle>
-          <CardDescription>
-            Sensibilidade do lucro às variações de receita
-          </CardDescription>
+          <CardDescription>Sensibilidade do lucro às variações de receita</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer
-            config={{
-              gao: { label: "GAO", color: "hsl(var(--chart-2))" },
-            }}
-            className="h-[200px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={gaoData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, Math.max(3, gao + 1)]} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="value" barSize={40}>
-                  <Cell fill={gaoData[0].color} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {gao === 0 ? (
+            <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
+          ) : (
+            <ChartContainer
+              config={{
+                gao: { label: "GAO", color: gaoData[0].color },
+              }}
+              className="min-h-[250px]"
+            >
+              <ResponsiveContainer width="100%" height="100%" aspect={2}>
+                <BarChart data={gaoData} aria-label="Gráfico de GAO">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent formatter={(value) => value.toFixed(2)} />} />
+                  <Bar dataKey="value" fill={gaoData[0].color} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          )}
           <div className="mt-4 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">GAO Atual:</span>
-              <Badge variant={gaoStatus.color as any}>
-                {gao.toFixed(2)} - {gaoStatus.status}
-              </Badge>
+              <Badge variant={gaoStatus.variant}>{`${gao.toFixed(2)} - ${gaoStatus.status}`}</Badge>
             </div>
             <p className="text-xs text-muted-foreground">
               {gao > 2
@@ -217,7 +202,7 @@ export function FinancialCharts({
         </CardContent>
       </Card>
 
-      {/* Break-even */}
+      {/* Break-even Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -227,45 +212,43 @@ export function FinancialCharts({
           <CardDescription>Ponto de equilíbrio e margem de segurança</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer
-            config={{
-              receita: { label: "Receita", color: "hsl(var(--chart-1))" },
-              breakeven: { label: "Break-even", color: "hsl(var(--chart-3))" },
-              margem: { label: "Margem", color: "hsl(var(--chart-2))" },
-            }}
-            className="h-[200px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={breakevenData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => formatarMoeda(Number(value))} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value) => formatarMoeda(Number(value))}
-                    />
-                  }
-                />
-                <Bar dataKey="value" barSize={40}>
+          {breakeven === 0 && receitaLiquida === 0 ? (
+            <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
+          ) : (
+            <ChartContainer
+              config={{
+                receita: { label: "Receita", color: COLORS.receita },
+                breakeven: { label: "Break-even", color: COLORS.breakeven },
+                margem: { label: "Margem de Segurança", color: COLORS.margemSeguranca },
+              }}
+              className="min-h-[250px]"
+            >
+              <ResponsiveContainer width="100%" height="100%" aspect={2}>
+                <BarChart data={breakevenData} aria-label="Gráfico de Break-even">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis tickFormatter={formatarMoeda} />
+                  <ChartTooltip content={<ChartTooltipContent formatter={formatarMoeda} />} />
                   {breakevenData.map((entry, index) => (
-                    <Cell key={index} fill={entry.fill} />
+                    <Bar
+                      key={entry.name}
+                      dataKey="value"
+                      name={entry.name}
+                      fill={entry.color}
+                      barSize={80}
+                    />
                   ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          )}
           <div className="mt-4 space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Break-even:</span>
-              <span className="text-sm font-medium">
-                {formatarMoeda(breakeven)}
-              </span>
+              <span className="text-sm font-medium">{formatarMoeda(breakeven)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">
-                Margem Segurança:
-              </span>
+              <span className="text-sm text-muted-foreground">Margem de Segurança:</span>
               <Badge variant={receitaLiquida > breakeven ? "default" : "destructive"}>
                 {formatarMoeda(Math.max(0, receitaLiquida - breakeven))}
               </Badge>
@@ -278,44 +261,43 @@ export function FinancialCharts({
       <Card>
         <CardHeader>
           <CardTitle>Composição de Custos</CardTitle>
-          <CardDescription>
-            Distribuição dos custos e margem de lucro
-          </CardDescription>
+          <CardDescription>Distribuição dos custos e margem de lucro</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer
-            config={{
-              custos: { label: "Custos", color: "hsl(var(--chart-4))" },
-            }}
-            className="h-[200px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={composicaoCustos}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  labelLine={false}
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {composicaoCustos.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value) => formatarMoeda(Number(value))}
-                    />
-                  }
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {composicaoCustos.every((item) => item.value === 0) ? (
+            <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
+          ) : (
+            <ChartContainer
+              config={composicaoCustos.reduce(
+                (acc, item) => ({
+                  ...acc,
+                  [item.name]: { label: item.name, color: item.color },
+                }),
+                {},
+              )}
+              className="min-h-[250px]"
+            >
+              <ResponsiveContainer width="100%" height="100%" aspect={1}>
+                <PieChart aria-label="Gráfico de Composição de Custos">
+                  <Pie
+                    data={composicaoCustos}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label={({ name, value }) => `${name}: ${formatarMoeda(value)}`}
+                    labelLine={true}
+                  >
+                    {composicaoCustos.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent formatter={formatarMoeda} />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
     </div>
