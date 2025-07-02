@@ -1,233 +1,365 @@
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-
-// Função auxiliar para garantir texto seguro
-const safeText = (text) => {
-  if (text === undefined || text === null) return "";
-  if (typeof text === 'number') return text.toLocaleString('pt-BR');
-  if (typeof text !== 'string') return JSON.stringify(text);
-  return text;
-};
-
-// Função para formatar moeda com tratamento de erros
-const formatCurrency = (value) => {
-  const num = Number(value) || 0;
-  return num.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-};
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export const gerarPDF = (
   modoObra,
-  labels = {},
-  dadosCadastro = {},
-  areaProjeto = "",
-  descricaoProjeto = "",
-  materiais = [],
-  maoObraExecucao = [],
-  maoObraInstalacao = [],
-  itensServicos = [],
-  acabamentoExtras = [],
-  consumoDespesas = [],
-  dadosFinais = {},
-  observacoes = "",
-  valorMateriais = 0,
-  valorMaoObraExec = 0,
-  valorMaoObraInst = 0,
-  valorEngenharia = 0,
-  valorItensServicos = 0,
-  valorAcabamentoExtras = 0,
-  valorConsumoDespesas = 0,
-  custoTotal = 0,
-  valorImposto = 0,
-  valorLucro = 0,
-  precoFinal = 0,
-  pesoTotal = 0,
-  precoPorKg = 0,
-  precoPorUnidade = 0
+  labels,
+  dadosCadastro,
+  areaProjeto,
+  descricaoProjeto,
+  materiais,
+  maoObraExecucao,
+  maoObraInstalacao,
+  itensServicos,
+  acabamentoExtras,
+  consumoDespesas,
+  dadosFinais,
+  observacoes,
+  valorMateriais,
+  valorMaoObraExec,
+  valorMaoObraInst,
+  valorItensServicos,
+  valorAcabamentoExtras,
+  valorConsumoDespesas,
+  custoTotal,
+  valorImposto,
+  valorLucro,
+  valorEngenharia, 
+  precoFinal,
+  pesoTotal,
+  precoPorKg,
+  precoPorUnidade,
+  valorComissao
 ) => {
-  try {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const margin = 10;
-    let yPosition = margin;
+  // Inicializa o documento PDF
+  const doc = new jsPDF();
+  
+  // Configurações de página
+  const pageWidth = doc.internal.pageSize.width;
+  const margin = 20;
+  let yPosition = 20;
 
-    // Função protegida para adicionar texto
-    const addText = (text, x, y, options = {}) => {
-      try {
-        const textToAdd = safeText(text);
-        const fontSize = Number(options.fontSize) || 10;
-        const bold = Boolean(options.bold);
-        const textColor = Array.isArray(options.textColor) ? options.textColor : [0, 0, 0];
-        const align = ['left', 'center', 'right'].includes(options.align) ? options.align : 'left';
-        const maxWidth = Number(options.maxWidth) || pageWidth - 2 * margin;
-        const lineHeight = Number(options.lineHeight) || fontSize * 0.4;
+  // Função auxiliar para adicionar texto
+  const addText = (text, x, y, options = {}) => {
+    doc.setFontSize(options.fontSize || 12);
+    if (options.bold) doc.setFont("helvetica", "bold");
+    else doc.setFont("helvetica", "normal");
+    doc.text(text, x, y, options);
+    return y + (options.lineHeight || (options.fontSize || 12) * 0.5) + 5;
+  };
 
-        doc.setFontSize(fontSize);
-        doc.setFont("helvetica", bold ? "bold" : "normal");
-        doc.setTextColor(...textColor);
+  // Função para verificar quebra de página
+  const checkPageBreak = (currentY, requiredSpace = 20) => {
+    if (currentY + requiredSpace > doc.internal.pageSize.height - margin) {
+      doc.addPage();
+      return margin;
+    }
+    return currentY;
+  };
 
-        if (options.bgColor && Array.isArray(options.bgColor)) {
-          doc.setFillColor(...options.bgColor);
-          doc.rect(x - 2, y - 3, maxWidth, lineHeight, "F");
-        }
+  // Formata valores monetários
+  const formatCurrency = (value) => {
+    return value.toLocaleString("pt-BR", { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
 
-        const textLines = doc.splitTextToSize(textToAdd, maxWidth);
-        let currentY = y;
-        
-        textLines.forEach(line => {
-          doc.text(line, x, currentY, { align });
-          currentY += lineHeight;
-        });
+  // Dados da empresa
+  const empresa = {
+    nome: "Sua Empresa",
+    cnpj: "12.345.678/0001-99",
+    endereco: {
+      rua: "Rua Exemplo",
+      numero: "123",
+      cidade: "São Paulo",
+      estado: "SP",
+    },
+    telefone: "(11) 1234-5678",
+    logoChar: "LOGO",
+  };
 
-        return currentY + (Number(options.extraSpacing) || 1);
-      } catch (error) {
-        console.error("Erro em addText:", error);
-        return y + 10;
-      }
-    };
+  // Dados gerais do orçamento
+  const dadosGerais = {
+    numeroOrdem: "001/2025",
+    data: dadosCadastro.dataOrcamento || new Date().toLocaleDateString("pt-BR"),
+    dataEntrega: new Date().toLocaleDateString("pt-BR"),
+  };
 
-    // Função para desenhar caixas
-    const drawBox = (x, y, width, height, headerText) => {
-      try {
-        // Cabeçalho da caixa
-        doc.setFillColor(147, 51, 234);
-        doc.rect(x, y, width, 6, "F");
-        addText(headerText, x + 2, y + 4, { 
-          fontSize: 10, 
-          bold: true, 
-          textColor: [255, 255, 255] 
-        });
-        
-        // Borda da caixa
-        doc.setDrawColor(209, 213, 219);
-        doc.rect(x, y, width, height);
-        
-        return y + 6;
-      } catch (error) {
-        console.error("Erro em drawBox:", error);
-        return y;
-      }
-    };
+  // Dados do cliente
+  const cliente = {
+    nome: dadosCadastro.cliente || "Nome do Cliente",
+    cpf: dadosCadastro.cpf || "123.456.789-00",
+    endereco: {
+      rua: dadosCadastro.endereco?.split(",")[0] || "Rua do Cliente",
+      numero: dadosCadastro.endereco?.split(",")[1] || "S/N",
+      cidade: dadosCadastro.endereco?.split(",")[2] || "Cidade",
+      estado: dadosCadastro.endereco?.split(",")[3] || "Estado",
+    },
+  };
 
-    // Verificar quebra de página
-    const checkPageBreak = (currentY, requiredSpace = 20) => {
-      if (currentY + requiredSpace > doc.internal.pageSize.height - margin) {
-        doc.addPage();
-        return margin;
-      }
-      return currentY;
-    };
+  // Local de prestação de serviço
+  const localPrestacao = {
+    nome: dadosCadastro.responsavel || cliente.nome,
+    tipoDocumento: "CPF",
+    documento: cliente.cpf,
+    endereco: cliente.endereco,
+  };
 
-    // Dados da empresa (com fallbacks)
-    const empresa = {
-      nome: safeText(dadosCadastro.empresaNome || "Sua Empresa"),
-      cnpj: safeText(dadosCadastro.empresaCnpj || "00.000.000/0000-00"),
-      endereco: {
-        rua: safeText(dadosCadastro.empresaEnderecoRua || "Rua Exemplo"),
-        numero: safeText(dadosCadastro.empresaEnderecoNumero || "123"),
-        cidade: safeText(dadosCadastro.empresaEnderecoCidade || "São Paulo"),
-        estado: safeText(dadosCadastro.empresaEnderecoEstado || "SP"),
-      },
-      telefone: safeText(dadosCadastro.empresaTelefone || "(11) 1234-5678"),
-      logoChar: safeText(dadosCadastro.empresaLogoChar || "LOGO"),
-    };
+  // Endereço de cobrança
+  const cobranca = {
+    endereco: dadosCadastro.endereco || "Endereço de Cobrança",
+  };
 
-    // Dados gerais do documento
-    const dadosGerais = {
-      numeroOrdem: safeText(dadosCadastro.numeroOrdem || `001/${new Date().getFullYear()}`),
-      data: safeText(dadosCadastro.dataOrcamento || new Date().toLocaleDateString('pt-BR')),
-      dataEntrega: safeText(dadosCadastro.dataEntrega || new Date().toLocaleDateString('pt-BR')),
-    };
+  // Forma de pagamento
+  const formaPagamento = dadosCadastro.formaPagamento || "A combinar";
 
-    // Dados do cliente
-    const enderecoCliente = (dadosCadastro.endereco || "Rua do Cliente,S/N,Cidade,Estado").split(',');
-    const cliente = {
-      nome: safeText(dadosCadastro.cliente || "Nome do Cliente"),
-      cpf: safeText(dadosCadastro.cpf || "000.000.000-00"),
-      endereco: {
-        rua: safeText(enderecoCliente[0]?.trim() || "Rua do Cliente"),
-        numero: safeText(enderecoCliente[1]?.trim() || "S/N"),
-        cidade: safeText(enderecoCliente[2]?.trim() || "Cidade"),
-        estado: safeText(enderecoCliente[3]?.trim() || "Estado"),
-      },
-    };
+  // Combina todos os itens em um único array
+  const itens = [
+    ...materiais.map((item) => ({
+      quantidade: modoObra ? item.qtBarras : item.quantKg,
+      descricao: `${item.descricao} (${modoObra ? "Peso: " + item.quantKg + " kg" : "Insumo"})`,
+      precoUnitario: item.precoKg,
+      totalItem: item.quantKg * item.precoKg,
+    })),
+    ...maoObraExecucao.map((item) => ({
+      quantidade: item.pessoas * item.dias * item.hrsDia,
+      descricao: `${item.descricao} (Mão de Obra - ${labels.maoObraExec})`,
+      precoUnitario: item.precoHr,
+      totalItem: item.pessoas * item.dias * item.hrsDia * item.precoHr,
+    })),
+    ...maoObraInstalacao.map((item) => ({
+      quantidade: item.pessoas * item.dias * item.hrsDia,
+      descricao: `${item.descricao} (Mão de Obra - ${labels.maoObraInst})`,
+      precoUnitario: item.precoHr,
+      totalItem: item.pessoas * item.dias * item.hrsDia * item.precoHr,
+    })),
+    ...itensServicos.map((item) => ({
+      quantidade: item.qt,
+      descricao: `${item.descricao} (${item.unid})`,
+      precoUnitario: item.precoUnit,
+      totalItem: item.qt * item.precoUnit,
+    })),
+    ...acabamentoExtras.map((item) => ({
+      quantidade: item.quant,
+      descricao: `${item.descricao} (${item.unid})`,
+      precoUnitario: item.precoKg,
+      totalItem: item.quant * item.precoKg,
+    })),
+    ...consumoDespesas.map((item) => ({
+      quantidade: item.qt,
+      descricao: `${item.descricao} (${item.unid})`,
+      precoUnitario: item.preco,
+      totalItem: item.qt * item.preco,
+    })),
+  ];
 
-    // Construção dos itens do orçamento
-    const buildItens = () => {
-      const itens = [];
-      
-      // Materiais
-      (materiais || []).forEach(item => {
-        itens.push({
-          quantidade: modoObra ? item.qtBarras : item.quantKg,
-          descricao: `${safeText(item.descricao)} (${modoObra ? "Peso: " + (item.quantKg || 0) + " kg" : "Insumo"})`,
-          precoUnitario: item.precoKg || 0,
-          totalItem: (item.quantKg || 0) * (item.precoKg || 0),
-        });
-      });
+  // Totais do orçamento
+  const totais = {
+    subtotal: custoTotal,
+    desconto: dadosFinais.desconto || 0,
+    acrescimos: valorEngenharia + valorComissao + (dadosFinais.consultoria || 0) + valorImposto,
+    totalFinal: precoFinal,
+  };
 
-      // Mão de obra - execução
-      (maoObraExecucao || []).forEach(item => {
-        itens.push({
-          quantidade: (item.pessoas || 0) * (item.dias || 0) * (item.hrsDia || 0),
-          descricao: `${safeText(item.descricao)} (Mão de Obra - ${safeText(labels.maoObraExec) || "Execução"})`,
-          precoUnitario: item.precoHr || 0,
-          totalItem: (item.pessoas || 0) * (item.dias || 0) * (item.hrsDia || 0) * (item.precoHr || 0),
-        });
-      });
+  // ========== CONSTRUÇÃO DO PDF ========== //
 
-      // Adicione os outros tipos de itens (maoObraInstalacao, itensServicos, etc.) seguindo o mesmo padrão
+  // Cabeçalho com informações da empresa
+  yPosition = addText(empresa.logoChar, margin, yPosition, { fontSize: 16, bold: true });
+  yPosition = addText(empresa.nome, margin, yPosition, { fontSize: 14, bold: true });
+  yPosition = addText(`CNPJ ${empresa.cnpj}`, margin, yPosition);
+  yPosition = addText(
+    `${empresa.endereco.rua}, ${empresa.endereco.numero}`,
+    margin,
+    yPosition
+  );
+  yPosition = addText(
+    `${empresa.endereco.cidade}, ${empresa.endereco.estado}`,
+    margin,
+    yPosition
+  );
+  yPosition = addText(`Telefone ${empresa.telefone}`, margin, yPosition);
+  yPosition = checkPageBreak(yPosition);
 
-      // Garante pelo menos 4 linhas
-      while (itens.length < 4) {
-        itens.push({
-          quantidade: "",
-          descricao: "",
-          precoUnitario: 0,
-          totalItem: 0
-        });
-      }
+  // Título do documento
+  yPosition = addText(
+    "ORDEM DE SERVIÇO",
+    pageWidth / 2,
+    yPosition,
+    { align: "center", fontSize: 16, bold: true }
+  );
+  yPosition = addText(
+    `Ordem nº: ${dadosGerais.numeroOrdem}`,
+    margin,
+    yPosition
+  );
+  yPosition = addText(`Data: ${dadosGerais.data}`, margin, yPosition);
+  yPosition = checkPageBreak(yPosition);
 
-      return itens;
-    };
+  // Seção do Cliente
+  yPosition = addText("Cliente", margin, yPosition, { fontSize: 14, bold: true });
+  yPosition = addText(`Nome: ${cliente.nome}`, margin, yPosition);
+  yPosition = addText(`CPF: ${cliente.cpf}`, margin, yPosition);
+  yPosition = addText(
+    `Endereço: ${cliente.endereco.rua}, ${cliente.endereco.numero} - ${cliente.endereco.cidade}, ${cliente.endereco.estado}`,
+    margin,
+    yPosition
+  );
+  yPosition = checkPageBreak(yPosition);
 
-    const itens = buildItens();
+  // Endereço de cobrança
+  yPosition = addText(
+    "Endereço de cobrança",
+    margin,
+    yPosition,
+    { fontSize: 14, bold: true }
+  );
+  yPosition = addText(cobranca.endereco, margin, yPosition);
+  yPosition = checkPageBreak(yPosition);
 
-    // Cabeçalho do documento
-    yPosition = checkPageBreak(yPosition, 40);
-    
-    // Logo e informações da empresa
-    doc.setFillColor(147, 51, 234);
-    doc.rect(margin, yPosition, 20, 10, "F");
-    addText(empresa.logoChar, margin + 5, yPosition + 7, {
-      fontSize: 12,
+  // Descrição do serviço
+  yPosition = addText(
+    "Descrição do serviço",
+    margin,
+    yPosition,
+    { fontSize: 14, bold: true }
+  );
+  const descLines = doc.splitTextToSize(descricaoProjeto || "Sem descrição", pageWidth - 2 * margin);
+  descLines.forEach((line) => {
+    yPosition = addText(line, margin, yPosition, { fontSize: 12 });
+    yPosition = checkPageBreak(yPosition);
+  });
+
+  // Local de prestação
+  yPosition = addText(
+    "Local de prestação",
+    margin,
+    yPosition,
+    { fontSize: 14, bold: true }
+  );
+  yPosition = addText(`Nome: ${localPrestacao.nome}`, margin, yPosition);
+  yPosition = addText(
+    `${localPrestacao.tipoDocumento}: ${localPrestacao.documento}`,
+    margin,
+    yPosition
+  );
+  yPosition = addText(
+    `Endereço: ${localPrestacao.endereco.rua}, ${localPrestacao.endereco.numero} - ${localPrestacao.endereco.cidade}, ${localPrestacao.endereco.estado}`,
+    margin,
+    yPosition
+  );
+  yPosition = checkPageBreak(yPosition);
+
+  // Tabela de itens (USANDO AUTOTABLE CORRETAMENTE)
+  yPosition = checkPageBreak(yPosition, 50);
+  
+  autoTable(doc, {
+    startY: yPosition,
+    head: [["Quantidade", "Produto/Serviço", "Preço Unitário", "Total"]],
+    body: itens.map((item) => [
+      item.quantidade,
+      item.descricao,
+      `R$ ${formatCurrency(item.precoUnitario)}`,
+      `R$ ${formatCurrency(item.totalItem)}`,
+    ]),
+    theme: "grid",
+    headStyles: { 
+      fillColor: [61, 101, 155], 
       textColor: [255, 255, 255],
-      bold: true
-    });
+      fontStyle: 'bold'
+    },
+    bodyStyles: { 
+      textColor: [0, 0, 0],
+      cellPadding: 3
+    },
+    margin: { left: margin, right: margin },
+    columnStyles: {
+      0: { cellWidth: 25, halign: 'center' },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 30, halign: 'right' },
+      3: { cellWidth: 30, halign: 'right' },
+    },
+    styles: {
+      fontSize: 9,
+      cellPadding: 3,
+      overflow: 'linebreak'
+    },
+    didDrawPage: (data) => {
+      // Atualiza a posição Y após desenhar a tabela
+      yPosition = data.cursor.y + 10;
+    }
+  });
 
-    let companyX = margin + 25;
-    yPosition = addText(empresa.nome, companyX, yPosition, {
-      fontSize: 12,
-      bold: true,
-      textColor: [31, 41, 55]
-    });
+  // Forma de pagamento
+  yPosition = addText(
+    "Forma de pagamento",
+    margin,
+    yPosition,
+    { fontSize: 14, bold: true }
+  );
+  yPosition = addText(formaPagamento, margin, yPosition);
+  yPosition = checkPageBreak(yPosition);
 
-    // Adicione aqui o restante do conteúdo do PDF seguindo o mesmo padrão de validação
+  // Totais
+  yPosition = addText("Subtotal", margin, yPosition);
+  yPosition = addText(
+    `R$ ${formatCurrency(totais.subtotal)}`,
+    pageWidth - margin,
+    yPosition - 10,
+    { align: "right" }
+  );
+  yPosition = addText("Desconto", margin, yPosition);
+  yPosition = addText(
+    `R$ ${formatCurrency(totais.desconto)}`,
+    pageWidth - margin,
+    yPosition - 10,
+    { align: "right" }
+  );
+  yPosition = addText("Acréscimos", margin, yPosition);
+  yPosition = addText(
+    `R$ ${formatCurrency(totais.acrescimos)}`,
+    pageWidth - margin,
+    yPosition - 10,
+    { align: "right" }
+  );
+  yPosition = addText("TOTAL", margin, yPosition, { fontSize: 14, bold: true });
+  yPosition = addText(
+    `R$ ${formatCurrency(totais.totalFinal)}`,
+    pageWidth - margin,
+    yPosition - 10,
+    { align: "right", fontSize: 14, bold: true }
+  );
+  yPosition = checkPageBreak(yPosition);
 
-    // Finalização do documento
-    doc.save(`${modoObra ? "Orçamento_Obra" : "Orçamento_Serviço"}_${dadosGerais.numeroOrdem.replace(/\//g, '-')}.pdf`);
+  // Confirmação
+  yPosition = addText(
+    "Confirmo que o serviço foi prestado de acordo com o combinado.",
+    margin,
+    yPosition,
+    { fontSize: 12, bold: true }
+  );
+  yPosition = checkPageBreak(yPosition);
 
-  } catch (error) {
-    console.error("Erro crítico ao gerar PDF:", error);
-    
-    // Fallback: cria um PDF simples com mensagem de erro
-    const errorDoc = new jsPDF();
-    errorDoc.text("Erro ao gerar o PDF completo", 10, 10);
-    errorDoc.text("Detalhes: " + error.message, 10, 20);
-    errorDoc.save("Orcamento_Erro.pdf");
-    
-    throw new Error("Falha ao gerar PDF: " + error.message);
-  }
+  // Assinaturas
+  yPosition = addText("Assinatura do Cliente", margin, yPosition);
+  yPosition = addText("_____________________________", margin, yPosition);
+  yPosition = addText(
+    `Data de entrega: ${dadosGerais.dataEntrega}`,
+    margin,
+    yPosition
+  );
+  yPosition = addText("Assinatura do Técnico", margin, yPosition);
+  yPosition = addText("_____________________________", margin, yPosition);
+  yPosition = checkPageBreak(yPosition);
+
+  // Rodapé
+  yPosition = addText(
+    "QuantoSobra.com.br",
+    pageWidth / 2,
+    yPosition,
+    { align: "center" }
+  );
+
+  // Salva o PDF
+  doc.save(`${modoObra ? "Orçamento_Obra" : "Orçamento_Serviço"}_${dadosGerais.numeroOrdem}.pdf`);
 };
