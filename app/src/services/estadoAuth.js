@@ -2,7 +2,7 @@
 
 import { onAuthStateChanged, getAuth } from "firebase/auth";
 import { collection, query, where, getDoc, doc, getFirestore } from "firebase/firestore";
-import { auth, db, signOut } from "@/app/src/config/firebaseConfig.js"
+import { auth, db } from "@/app/src/config/firebaseConfig.js"
 
 export function stateAuth() {
     return new Promise((resolve) => {
