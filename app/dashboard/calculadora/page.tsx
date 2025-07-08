@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import {stateAuth} from "@/app/src/services/estadoAuth"
 import { useState, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -1157,7 +1157,7 @@ export default function ServiceQuoteGenerator() {
                     <Building className="h-5 w-5" />
                     Informações da Empresa
                   </div>
-                  <Dialog open={showNewCompanyDialog} onOpenChange={setShowNewCompanyDialog}>
+                  <Dialog open={showNewCompanyDialog} onOpenChange={setShowNewCompanyDialog} onClick={stateAuth()}>
                     <DialogTrigger asChild>
                       <Button size="sm" variant="outline">
                         <Plus className="h-4 w-4 mr-2" />

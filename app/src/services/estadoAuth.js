@@ -9,7 +9,7 @@ export function stateAuth() {
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 resolve(user.uid);
-                //console.log('User is authenticated:', user.uid);
+                console.log('User is authenticated:', user.uid);
             } else {
                 resolve(null);
             }
