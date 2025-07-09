@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
+import {getEmpresas} from "@/app/src/services/routes"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,6 +24,7 @@ import {
   Building,
   Users,
   Package,
+  
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -62,17 +64,19 @@ interface Company {
   id: string
   nome: string
   cnpj: string
-  endereco: {
-    rua: string
-    numero: string
-    cidade: string
-    estado: string
-    cep: string
-  }
+  endereco_rua: string // Ajustado
+  endereco_numero: string // Ajustado
+  endereco_cidade: string // Ajustado
+  endereco_estado: string // Ajustado
+  endereco_cep: string // Ajustado
   telefone: string
   email: string
-  logoChar: string
+  logoChar: string // Ou logo_url se você estiver usando a URL completa
+  // Você pode querer adicionar created_at e updated_at também se forem relevantes no frontend
+  created_at?: string;
+  updated_at?: string;
 }
+
 
 interface Client {
   id: string
@@ -131,7 +135,7 @@ const TooltipHelper = ({ content, children }: { content: string; children: React
       <TooltipTrigger asChild>
         <div className="flex items-center gap-1 cursor-help">
           {children}
-          <HelpCircle className="h-4 w-4 text-gray-400" />
+          <HelpCircle className="h-4 w-4 mb-4 text-gray-400" />
         </div>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
@@ -143,28 +147,9 @@ const TooltipHelper = ({ content, children }: { content: string; children: React
 
 export default function ServiceQuoteGenerator() {
   // Mock data for companies and clients
-  const [empresasCadastradas] = useState<Company[]>([
-    {
-      id: "1",
-      nome: "TechSolutions Ltda",
-      cnpj: "12.345.678/0001-90",
-      endereco: { rua: "Av. Paulista", numero: "1000", cidade: "São Paulo", estado: "SP", cep: "01310-100" },
-      telefone: "(11) 99999-1111",
-      email: "contato@techsolutions.com",
-      logoChar: "TS",
-    },
-    {
-      id: "2",
-      nome: "Consultoria Digital ME",
-      cnpj: "98.765.432/0001-10",
-      endereco: { rua: "Rua das Flores", numero: "500", cidade: "Rio de Janeiro", estado: "RJ", cep: "20000-000" },
-      telefone: "(21) 88888-2222",
-      email: "info@consultoriadigital.com",
-      logoChar: "CD",
-    },
-  ])
 
-  const [clientesCadastrados] = useState<Client[]>([
+  const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([]);
+  const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([
     {
       id: "1",
       nome: "João Silva Santos",
@@ -244,6 +229,7 @@ export default function ServiceQuoteGenerator() {
     acrescimos: 0,
     condicoesPersonalizadas: "",
   })
+  
 
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
   const [showNewClientDialog, setShowNewClientDialog] = useState(false)
@@ -263,7 +249,40 @@ export default function ServiceQuoteGenerator() {
     },
   })
 
+  const [loading, setLoading] = useState(true); // <--- Esta linha deve estar presente
+  const [error, setError] = useState<string | null>(null);
+
+
+  // --- useEffect para buscar empresas (Mantido da nossa discussão anterior) ---
+  useEffect(() => {
+    const fetchEmpresas = async () => {
+      try {
+        setLoading(true);
+        // Chame sua rota de API aqui.
+        // Ajuste a URL e como passar o userId conforme sua implementação da API.
+        const response = await fetch('/api/empresas'); // Exemplo de chamada API
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data: Company[] = await response.json();
+        setEmpresasCadastradas(data);
+      } catch (err) {
+        console.error('Erro ao buscar empresas:', err);
+        setError('Falha ao carregar empresas.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmpresas();
+    // Você pode adicionar um useEffect similar para buscar clientes
+  }, []); // O array vazio garante que isso só rode uma vez ao montar
+
+
   // Company selection
+  // --- Funções para manipulação de estado (Exemplo para seleção de empresa) ---
   const selecionarEmpresa = useCallback(
     (empresaId: string) => {
       const empresa = empresasCadastradas.find((e) => e.id === empresaId)
@@ -275,7 +294,7 @@ export default function ServiceQuoteGenerator() {
         }))
       }
     },
-    [empresasCadastradas],
+    [empresasCadastradas], // Dependência: recalcula se a lista de empresas mudar
   )
 
   // Client selection
@@ -1157,7 +1176,7 @@ export default function ServiceQuoteGenerator() {
                     <Building className="h-5 w-5" />
                     Informações da Empresa
                   </div>
-                  <Dialog open={showNewCompanyDialog} onOpenChange={setShowNewCompanyDialog} onClick={stateAuth()}>
+                  <Dialog open={showNewCompanyDialog} onOpenChange={setShowNewCompanyDialog}>
                     <DialogTrigger asChild>
                       <Button size="sm" variant="outline">
                         <Plus className="h-4 w-4 mr-2" />
@@ -1177,6 +1196,7 @@ export default function ServiceQuoteGenerator() {
                   </Dialog>
                 </CardTitle>
               </CardHeader>
+
               <CardContent className="space-y-4">
                 <div>
                   <TooltipHelper content="Selecione uma empresa cadastrada ou adicione uma nova">
@@ -1227,18 +1247,20 @@ export default function ServiceQuoteGenerator() {
                           <strong>Endereço:</strong>
                         </p>
                         <p>
-                          {dados.empresa.endereco.rua}, {dados.empresa.endereco.numero}
+                          {dados.empresa.endereco_rua}, {dados.empresa.endereco_numero}
                         </p>
                         <p>
-                          {dados.empresa.endereco.cidade}, {dados.empresa.endereco.estado}
+                          {dados.empresa.endereco_cidade}, {dados.empresa.endereco_estado}
                         </p>
-                        <p>CEP: {dados.empresa.endereco.cep}</p>
+                        <p>CEP: {dados.empresa.endereco_cep}</p>
                       </div>
                     </div>
                   </div>
                 )}
               </CardContent>
             </Card>
+
+
 
             {/* Client Selection */}
             <Card>
@@ -1862,14 +1884,18 @@ export default function ServiceQuoteGenerator() {
                       </div>
                       <div>
                         <h2 className="text-xl font-bold text-gray-800">{dados.empresa.nome || "Company Name"}</h2>
-                        <p className="text-sm text-gray-600">CNPJ {dados.empresa.cnpj || "00.000.000/0000-00"}</p>
-                        <p className="text-sm text-gray-600">
-                          {dados.empresa.endereco.rua || "Street"}, {dados.empresa.endereco.numero || "Number"}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {dados.empresa.endereco.cidade || "City"}, {dados.empresa.endereco.estado || "State"}
-                        </p>
-                        <p className="text-sm text-gray-600">Telefone {dados.empresa.telefone || "(00) 0000-0000"}</p>
+                        {dados.empresa && ( // Condicional para mostrar detalhes da empresa
+                          <>
+                            <p className="text-sm text-gray-600">CNPJ {dados.empresa.cnpj || "00.000.000/0000-00"}</p>
+                            <p className="text-sm text-gray-600">
+                              {dados.empresa.endereco_rua || "Street"}, {dados.empresa.endereco_numero || "Number"} {/* Usando propriedades planas */}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {dados.empresa.endereco_cidade || "City"}, {dados.empresa.endereco_estado || "State"} {/* Usando propriedades planas */}
+                            </p>
+                            <p className="text-sm text-gray-600">Telefone {dados.empresa.telefone || "(00) 0000-0000"}</p>
+                          </>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
