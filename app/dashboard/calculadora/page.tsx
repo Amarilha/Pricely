@@ -154,10 +154,14 @@ export default function ServiceQuoteGenerator() {
   const [dados, setDados] = useState<QuoteData>({
     empresaSelecionada: "",
     empresa: {
-      id: "",
+      id_company: "",
       nome: "",
       cnpj: "",
-      endereco: { rua: "", numero: "", cidade: "", estado: "", cep: "" },
+      endereco_rua: "" ,
+      endereco_numero: "" ,
+      endereco_cidade: "" ,
+      endereco_estado: "" ,
+      endereco_cep: "" ,
       telefone: "",
       email: "",
       logoChar: "",
