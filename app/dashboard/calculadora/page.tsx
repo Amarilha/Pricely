@@ -61,7 +61,7 @@ interface VariableCost {
 }
 
 interface Company {
-  id: string
+  id_company: string
   nome: string
   cnpj: string
   endereco_rua: string // Ajustado
@@ -149,35 +149,7 @@ export default function ServiceQuoteGenerator() {
   // Mock data for companies and clients
 
   const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([]);
-  const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([
-    {
-      id: "1",
-      nome: "João Silva Santos",
-      cpf: "123.456.789-00",
-      telefone: "(11) 97777-3333",
-      email: "joao.silva@email.com",
-      endereco: { rua: "Rua A", numero: "123", cidade: "São Paulo", estado: "SP", cep: "01000-000" },
-      observacoes: "Cliente preferencial - pagamento à vista",
-    },
-    {
-      id: "2",
-      nome: "Maria Oliveira Costa",
-      cpf: "987.654.321-00",
-      telefone: "(21) 96666-4444",
-      email: "maria.costa@email.com",
-      endereco: { rua: "Rua B", numero: "456", cidade: "Rio de Janeiro", estado: "RJ", cep: "20000-000" },
-      observacoes: "Empresa parceira - desconto 5%",
-    },
-    {
-      id: "3",
-      nome: "Pedro Ferreira Lima",
-      cpf: "456.789.123-00",
-      telefone: "(11) 95555-5555",
-      email: "pedro.lima@email.com",
-      endereco: { rua: "Rua C", numero: "789", cidade: "São Paulo", estado: "SP", cep: "02000-000" },
-      observacoes: "Novo cliente - primeira contratação",
-    },
-  ])
+  const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([])
 
   const [dados, setDados] = useState<QuoteData>({
     empresaSelecionada: "",
@@ -285,7 +257,7 @@ export default function ServiceQuoteGenerator() {
   // --- Funções para manipulação de estado (Exemplo para seleção de empresa) ---
   const selecionarEmpresa = useCallback(
     (empresaId: string) => {
-      const empresa = empresasCadastradas.find((e) => e.id === empresaId)
+      const empresa = empresasCadastradas.find((e) => e.id_company === empresaId)
       if (empresa) {
         setDados((prev) => ({
           ...prev,
@@ -820,8 +792,8 @@ export default function ServiceQuoteGenerator() {
             <div class="company-details">
               <h2>${dados.empresa.nome || "Company Name"}</h2>
               <p>CNPJ ${dados.empresa.cnpj || "00.000.000/0000-00"}</p>
-              <p>${dados.empresa.endereco.rua || "Street"}, ${dados.empresa.endereco.numero || "Number"}</p>
-              <p>${dados.empresa.endereco.cidade || "City"}, ${dados.empresa.endereco.estado || "State"}</p>
+              <p>${dados.empresa.endereco_rua || "Street"}, ${dados.empresa.endereco_numero || "Number"}</p>
+              <p>${dados.empresa.endereco_cidade || "City"}, ${dados.empresa.endereco_estado || "State"}</p>
               <p>Telefone ${dados.empresa.telefone || "(00) 0000-0000"}</p>
             </div>
           </div>
@@ -1208,7 +1180,7 @@ export default function ServiceQuoteGenerator() {
                     </SelectTrigger>
                     <SelectContent>
                       {empresasCadastradas.map((empresa) => (
-                        <SelectItem key={empresa.id} value={empresa.id}>
+                        <SelectItem key={empresa.id_company} value={empresa.id_company}>
                           <div className="flex items-center gap-2">
                             <div className="bg-purple-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded">
                               {empresa.logoChar}

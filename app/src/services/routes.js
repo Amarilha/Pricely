@@ -4,7 +4,7 @@ import pool from '../config/db.js'; // Caminho corrigido com .js
 export async function getEmpresas(userId) {
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM empresas WHERE user_id = ?",
+      "SELECT * FROM Company WHERE id_user = ?",
       [userId]
     );
     return rows; // Retorna os dados para quem chamar a função
