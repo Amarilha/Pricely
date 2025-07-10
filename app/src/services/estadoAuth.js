@@ -58,7 +58,7 @@ export async function stateSignOut() {
 };
 
 // Make stateSignOut available globally
-window.stateSignOut = stateSignOut;
+//window.stateSignOut = stateSignOut;
 
 export function perfil(uid) {
     if (!uid) {

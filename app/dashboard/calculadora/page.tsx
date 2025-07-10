@@ -1,8 +1,6 @@
 "use client"
 
 import type React from "react"
-import {getEmpresas} from "@/app/src/services/routes"
-import {stateAuth} from "@/app/src/services/estadoAuth"
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -24,7 +22,6 @@ import {
   Building,
   Users,
   Package,
-  
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -64,19 +61,17 @@ interface Company {
   id_company: string
   nome: string
   cnpj: string
-  endereco_rua: string // Ajustado
-  endereco_numero: string // Ajustado
-  endereco_cidade: string // Ajustado
-  endereco_estado: string // Ajustado
-  endereco_cep: string // Ajustado
+  endereco_rua: string
+  endereco_numero: string
+  endereco_cidade: string
+  endereco_estado: string
+  endereco_cep: string
   telefone: string
   email: string
-  logoChar: string // Ou logo_url se você estiver usando a URL completa
-  // Você pode querer adicionar created_at e updated_at também se forem relevantes no frontend
-  created_at?: string;
-  updated_at?: string;
+  logoChar: string
+  created_at?: string
+  updated_at?: string
 }
-
 
 interface Client {
   id: string
@@ -84,13 +79,11 @@ interface Client {
   cpf: string
   telefone: string
   email: string
-  endereco: {
-    rua: string
-    numero: string
-    cidade: string
-    estado: string
-    cep: string
-  }
+  endereco_rua: string
+  endereco_numero: string
+  endereco_cidade: string
+  endereco_estado: string
+  endereco_cep: string
   observacoes: string
 }
 
@@ -146,10 +139,25 @@ const TooltipHelper = ({ content, children }: { content: string; children: React
 )
 
 export default function ServiceQuoteGenerator() {
-  // Mock data for companies and clients
-
-  const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([]);
+  const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([])
   const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([])
+  const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
+  const [showNewClientDialog, setShowNewClientDialog] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [formData, setFormData] = useState({
+    name: '',
+    cnpj: '',
+    email: '',
+    phone: '',
+    street: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    state: '',
+    cep: ''
+  })
 
   const [dados, setDados] = useState<QuoteData>({
     empresaSelecionada: "",
@@ -157,11 +165,11 @@ export default function ServiceQuoteGenerator() {
       id_company: "",
       nome: "",
       cnpj: "",
-      endereco_rua: "" ,
-      endereco_numero: "" ,
-      endereco_cidade: "" ,
-      endereco_estado: "" ,
-      endereco_cep: "" ,
+      endereco_rua: "",
+      endereco_numero: "",
+      endereco_cidade: "",
+      endereco_estado: "",
+      endereco_cep: "",
       telefone: "",
       email: "",
       logoChar: "",
@@ -173,7 +181,11 @@ export default function ServiceQuoteGenerator() {
       cpf: "",
       telefone: "",
       email: "",
-      endereco: { rua: "", numero: "", cidade: "", estado: "", cep: "" },
+      endereco_rua: "",
+      endereco_numero: "",
+      endereco_cidade: "",
+      endereco_estado: "",
+      endereco_cep: "",
       observacoes: "",
     },
     numeroOrdem: `OS-${Date.now().toString().slice(-6)}`,
@@ -205,12 +217,7 @@ export default function ServiceQuoteGenerator() {
     acrescimos: 0,
     condicoesPersonalizadas: "",
   })
-  
 
-  const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
-  const [showNewClientDialog, setShowNewClientDialog] = useState(false)
-
-  // Estado para impostos detalhados com valores iniciais seguros
   const [impostosDetalhados, setImpostosDetalhados] = useState({
     total: 0,
     breakdown: {
@@ -225,36 +232,120 @@ export default function ServiceQuoteGenerator() {
     },
   })
 
-  const [loading, setLoading] = useState(true); // <--- Esta linha deve estar presente
-  const [error, setError] = useState<string | null>(null);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [id.replace('company-', '')]: value
+    }))
+  }
 
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/empresas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome: formData.name,
+          cnpj: formData.cnpj,
+          email: formData.email,
+          telefone: formData.phone,
+          endereco_rua: formData.street,
+          endereco_numero: formData.number,
+          endereco_bairro: formData.neighborhood,
+          endereco_cidade: formData.city,
+          endereco_estado: formData.state,
+          endereco_cep: formData.cep,
+          logoChar: '' // Add default or dynamic logoChar if needed
+        }),
+      })
 
-  // --- useEffect para buscar empresas (Mantido da nossa discussão anterior) ---
+      if (!response.ok) {
+        throw new Error('Falha ao salvar empresa')
+      }
+
+      const newCompany: Company = await response.json()
+      setEmpresasCadastradas(prev => [...prev, newCompany])
+      setFormData({
+        name: '',
+        cnpj: '',
+        email: '',
+        phone: '',
+        street: '',
+        number: '',
+        neighborhood: '',
+        city: '',
+        state: '',
+        cep: ''
+      })
+      setShowNewCompanyDialog(false)
+    } catch (err) {
+      console.error('Erro ao salvar empresa:', err)
+      setError('Falha ao salvar empresa.')
+    }
+  }
+
+  const handleCancel = () => {
+    setFormData({
+      name: '',
+      cnpj: '',
+      email: '',
+      phone: '',
+      street: '',
+      number: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      cep: ''
+    })
+    setShowNewCompanyDialog(false)
+  }
+
   useEffect(() => {
     const fetchEmpresas = async () => {
       try {
-        setLoading(true);
-        // Chame sua rota de API aqui.
-        // Ajuste a URL e como passar o userId conforme sua implementação da API.
-        const response = await fetch('/api/empresas'); // Exemplo de chamada API
-
+        setLoading(true)
+        const response = await fetch('/api/empresas')
         if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
+          throw new Error(`Erro na API: ${response.statusText}`)
         }
-
-        const data: Company[] = await response.json();
-        setEmpresasCadastradas(data);
+        const data: Company[] = await response.json()
+        setEmpresasCadastradas(data)
       } catch (err) {
-        console.error('Erro ao buscar empresas:', err);
-        setError('Falha ao carregar empresas.');
+        console.error('Erro ao buscar empresas:', err)
+        setError('Falha ao carregar empresas.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchEmpresas();
-    // Você pode adicionar um useEffect similar para buscar clientes
-  }, []); // O array vazio garante que isso só rode uma vez ao montar
+    fetchEmpresas()
+  }, [])
+
+  useEffect(() => {
+    const fetchClient = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/client')
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`)
+        }
+        const data: Client[] = await response.json()
+        setClientesCadastrados(data)
+      } catch (err) {
+        console.error('Erro ao buscar clientes:', err)
+        setError('Falha ao carregar clientes.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchClient()
+  }, [])
+
+
 
 
   // Company selection
@@ -817,9 +908,9 @@ export default function ServiceQuoteGenerator() {
             <div class="info-card-content">
               <p><strong>Nome:</strong> ${dados.cliente.nome || "Client Name"}</p>
               <p><strong>CPF:</strong> ${dados.cliente.cpf || "000.000.000-00"}</p>
-              <p><strong>Endereço:</strong> ${dados.cliente.endereco.rua || "Street"}, ${
-                dados.cliente.endereco.numero || "Number"
-              } - ${dados.cliente.endereco.cidade || "City"}, ${dados.cliente.endereco.estado || "State"}</p>
+              <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Street"}, ${
+                dados.cliente.endereco_numero || "Number"
+              } - ${dados.cliente.endereco_cidade || "City"}, ${dados.cliente.endereco_estado || "State"}</p>
               <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
             </div>
           </div>
@@ -1159,14 +1250,137 @@ export default function ServiceQuoteGenerator() {
                         Nova Empresa
                       </Button>
                     </DialogTrigger>
+                    {/* cadastro do empresa */}
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>Adicionar Nova Empresa</DialogTitle>
                       </DialogHeader>
-                      <div className="text-center py-8 text-gray-500">
-                        <Building className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Formulário de cadastro de empresa seria implementado aqui</p>
-                        <p className="text-sm">Isso permitiria adicionar novas empresas ao banco de dados</p>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-name" className="text-right">
+                            Nome da Empresa
+                          </Label>
+                          <Input
+                            id="company-name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-cnpj" className="text-right">
+                            CNPJ
+                          </Label>
+                          <Input
+                            id="company-cnpj"
+                            value={formData.cnpj}
+                            onChange={(e) => {
+                              handleChange(e);
+                              // Apply CNPJ mask as the user types
+                              let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                              value = value.replace(/^(\d{2})(\d)/, '$1.$2'); // Add dot after 2 digits
+                              value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3'); // Add dot after 5 digits
+                              value = value.replace(/\.(\d{3})(\d)/, '.$1/$2'); // Add slash after 8 digits
+                              value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 12 digits
+                              setFormData(prev => ({ ...prev, cnpj: value }));
+                            }}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-email" className="text-right">Email</Label>
+                          <Input
+                            id="company-email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-phone" className="text-right">
+                            Telefone
+                          </Label>
+                          <Input
+                            id="company-phone"
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) => {
+                              handleChange(e);
+                              // Apply phone mask as the user types
+                              let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                              value = value.replace(/^(\d{2})(\d)/, '($1) $2'); // Add parentheses and space
+                              value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 4 digits
+                              // For 9 digit numbers (mobile), move dash
+                              value = value.replace(/(\d{5})-(\d)/, '$1-$2');
+                              setFormData(prev => ({ ...prev, phone: value }));
+                            }}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-street" className="text-right">
+                            Rua
+                          </Label>
+                          <Input
+                            id="company-street"
+                            value={formData.street}
+                            onChange={handleChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-number" className="text-right">
+                            Número
+                          </Label>
+                          <Input
+                            id="company-number"
+                            value={formData.number}
+                            onChange={handleChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-neighborhood" className="text-right">
+                            Bairro
+                          </Label>
+                          <Input
+                            id="company-neighborhood"
+                            value={formData.neighborhood}
+                            onChange={handleChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-city" className="text-right">
+                            Cidade
+                          </Label>
+                          <Input
+                            id="company-city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="company-state" className="text-right">
+                            Estado
+                          </Label>
+                          <Input
+                            id="company-state"
+                            value={formData.state}
+                            onChange={handleChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-4">
+                        <Button variant="outline" onClick={handleCancel}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleSave}>
+                          Salvar Empresa
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -1314,12 +1528,12 @@ export default function ServiceQuoteGenerator() {
                           <strong>Endereço:</strong>
                         </p>
                         <p>
-                          {dados.cliente.endereco.rua}, {dados.cliente.endereco.numero}
+                          {dados.cliente.endereco_rua}, {dados.cliente.endereco_numero}
                         </p>
                         <p>
-                          {dados.cliente.endereco.cidade}, {dados.cliente.endereco.estado}
+                          {dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
                         </p>
-                        <p>CEP: {dados.cliente.endereco.cep}</p>
+                        <p>CEP: {dados.cliente.endereco_cep}</p>
                         {dados.cliente.observacoes && (
                           <div className="mt-2 p-2 bg-blue-50 rounded text-blue-700">
                             <strong>Observações:</strong> {dados.cliente.observacoes}
@@ -1838,7 +2052,7 @@ export default function ServiceQuoteGenerator() {
               valorTotal={calcularTotalFinal}
               clienteNome={dados.cliente.nome}
               clienteCpf={dados.cliente.cpf}
-              clienteEndereco={`${dados.cliente.endereco.rua}, ${dados.cliente.endereco.numero} - ${dados.cliente.endereco.cidade}, ${dados.cliente.endereco.estado}`}
+              clienteEndereco={`${dados.cliente.endereco_rua}, ${dados.cliente.endereco_numero} - ${dados.cliente.endereco_cidade}, ${dados.cliente.endereco_estado}`}
               empresaNome={dados.empresa.nome}
               empresaCnpj={dados.empresa.cnpj}
               numeroOrdem={dados.numeroOrdem}
@@ -1899,9 +2113,9 @@ export default function ServiceQuoteGenerator() {
                           <strong>CPF:</strong> {dados.cliente.cpf || "000.000.000-00"}
                         </p>
                         <p>
-                          <strong>Endereço:</strong> {dados.cliente.endereco.rua || "Street"},{" "}
-                          {dados.cliente.endereco.numero || "Number"} - {dados.cliente.endereco.cidade || "City"},{" "}
-                          {dados.cliente.endereco.estado || "State"}
+                          <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Street"},{" "}
+                          {dados.cliente.endereco_numero || "Number"} - {dados.cliente.endereco_cidade || "City"},{" "}
+                          {dados.cliente.endereco_estado || "State"}
                         </p>
                         <p>
                           <strong>Telefone:</strong> {dados.cliente.telefone || "(00) 0000-0000"}

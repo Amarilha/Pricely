@@ -17,8 +17,7 @@ import {
   getDoc
 } from "firebase/firestore";
 
-// Hooks do React devem vir separados
-import { useEffect, useState } from 'react';
+
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -52,5 +51,3 @@ export {
   onAuthStateChanged
 };
 
-// Exporte hooks do React separadamente se necessário
-export { useEffect, useState };
