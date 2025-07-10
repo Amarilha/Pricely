@@ -24,7 +24,10 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : undefined 
+  // WARNING: Setting rejectUnauthorized to false is insecure for production environments.
+  // This should be changed to a more secure configuration, such as providing the CA certificate,
+  // before deploying to production.
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
 });
 
 // 4. Teste de Conexão Inicial
