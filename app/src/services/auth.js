@@ -5,12 +5,12 @@ import { doc, setDoc } from "firebase/firestore";
 
 export async function authGoogle() {
   try {
-    // Check if popups are blocked
-    if (window.innerWidth === 0 && window.innerHeight === 0) {
-      throw new Error("Popup blocked or browser is in headless mode");
-    }
-
-    const result = await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider)
+    
+    // Cria o cookie de sessão
+    const idToken = await result.user.getIdToken()
+    document.cookie = `session=${idToken}; path=/; max-age=3600; secure; samesite=strict`
+    
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const user = result.user;
 

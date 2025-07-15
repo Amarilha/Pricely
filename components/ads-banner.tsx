@@ -1,52 +1,89 @@
-"use client"
+'use client'
+import React from "react";
 
-import { useEffect, useState } from "react"
+type AdBannerTypes = {
+  dataAdSlot: string;
+  dataAdFormat?: string;
+  dataFullWidthResponsive?: boolean;
+  className?: string;
+};
 
-export function AdsBanner() {
-  const [isClient, setIsClient] = useState(false)
+const AdsBanner = ({
+  dataAdSlot,
+  dataAdFormat = "auto",
+  dataFullWidthResponsive = true,
+  className = "",
+}: AdBannerTypes) => {
+  const [isMounted, setIsMounted] = React.useState(false);
+  const adContainerRef = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  React.useEffect(() => {
+    setIsMounted(true);
 
-  const isLocalhost = () => {
-    if (!isClient) return false
-    return window.location.hostname === "localhost" || 
-           window.location.hostname === "127.0.0.1"
-  }
+    // Carrega o script do AdSense se não estiver presente
+    if (!(window as any).adsbygoogle) {
+      const script = document.createElement('script');
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6983643349322034';
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      document.head.appendChild(script);
+    }
 
-  if (!isClient) {
-    // Return a placeholder during server-side rendering
-    return (
-      <div className="mt-4 w-full min-h-[90px]">
-        <div className="h-[90px] w-full bg-gray-200"></div>
-      </div>
-    )
+    return () => {
+      // Limpa os anúncios ao desmontar
+      if (adContainerRef.current) {
+        adContainerRef.current.innerHTML = '';
+      }
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!isMounted || !adContainerRef.current) return;
+
+    // Função para carregar o anúncio
+    const loadAd = () => {
+      try {
+        // Limpa o container antes de adicionar novo anúncio
+        adContainerRef.current!.innerHTML = '';
+
+        // Cria novo elemento ins
+        const ins = document.createElement('ins');
+        ins.className = 'adsbygoogle';
+        ins.style.display = 'block';
+        ins.dataset.adClient = 'ca-pub-6983643349322034';
+        ins.dataset.adSlot = dataAdSlot;
+        ins.dataset.adFormat = dataAdFormat;
+        ins.dataset.fullWidthResponsive = dataFullWidthResponsive.toString();
+
+        adContainerRef.current!.appendChild(ins);
+
+        // Carrega o anúncio
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+      } catch (error) {
+        console.error("AdSense error:", error);
+      }
+    };
+
+    loadAd();
+
+    // Se o script ainda não estiver carregado, tenta novamente após um delay
+    if (!(window as any).adsbygoogle) {
+      const timer = setTimeout(loadAd, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isMounted, dataAdSlot, dataAdFormat, dataFullWidthResponsive]);
+
+  if (!isMounted) {
+    return <div className={`ads-placeholder ${className}`} style={{ minHeight: '90px' }} />;
   }
 
   return (
-    <div className="relative bg-background">
-      <div className="flex flex-col items-center justify-center">
-        {isLocalhost() ? (
-          <div className="bg-yellow-100 border border-yellow-400 p-4 mb-4 w-full">
-            <p className="text-yellow-700 text-sm">[Modo Desenvolvimento]</p>
-            <div className="h-[90px] w-full bg-gray-200 flex items-center justify-center">
-              Mock de Anúncio (300x250)
-            </div>
-          </div>
-        ) : (
-          <div className="mt-4 w-full min-h-[90px]">
-            <ins
-              className="adsbygoogle"
-              style={{ display: "block" }}
-              data-ad-client="ca-pub-6983643349322034"
-              data-ad-slot="1469366432"
-              data-ad-format="auto"
-              data-full-width-responsive="true"
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
+    <div 
+      className={`ads-container ${className}`} 
+      ref={adContainerRef}
+      key={`ad-${dataAdSlot}-${Date.now()}`}
+    />
+  );
+};
+
+export { AdsBanner };

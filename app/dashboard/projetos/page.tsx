@@ -15,7 +15,7 @@ export default function ProjetosPage() {
         </div>
       </div>
 
-      {userPlan === "free" && <AdsBanner />}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="9052054975" className="my-4"/>}
 
       <PageHeader title="Projetos" description="Visualize e gerencie todos os seus projetos." />
       <ProjectsList />

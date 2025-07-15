@@ -15,7 +15,7 @@ export default function RelatoriosPage() {
         </div>
       </div>
 
-      {userPlan === "free" && <AdsBanner />}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="8323063714" className="my-4"/>}
 
       <PageHeader title="Relatórios" description="Relatórios detalhados sobre faturamento e desempenho dos projetos." />
       <ReportsView />

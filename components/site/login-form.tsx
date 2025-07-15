@@ -34,7 +34,12 @@ export function LoginForm() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      
+      // Cria o cookie de sessão
+      const idToken = await userCredential.user.getIdToken()
+      document.cookie = `session=${idToken}; path=/; max-age=3600; secure; samesite=strict`
+      
       window.location.href = "/dashboard"
     } catch (error: any) { // Usando any temporariamente para acessar a propriedade code
       let errorMessage = "Falha no login"

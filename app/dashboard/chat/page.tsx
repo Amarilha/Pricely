@@ -1,3 +1,6 @@
+'use client'
+import React from "react"
+
 import { ChatInterface } from "@/components/chat-interface"
 import { PageHeader } from "@/components/page-header"
 import { AdsBanner } from "@/components/ads-banner"
@@ -18,7 +21,7 @@ export default function ChatPage() {
       */}
       <div className="p-6">
 
-      {userPlan === "free" && <AdsBanner />}
+      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={ true } dataAdSlot="6733847541" className="my-4"/>}
 
         <PageHeader
           title="Consultor IA"
