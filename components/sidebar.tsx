@@ -44,7 +44,7 @@ const menuItems = [
     href: "/dashboard/calculadora",
     icon: Calculator,
   },
-  {
+  /*{
     name: "Consultor IA",
     href: "/dashboard/chat",
     icon: MessageSquare,
@@ -73,8 +73,10 @@ const menuItems = [
     name: "Configurações",
     href: "/dashboard/configuracoes",
     icon: Settings,
-  },
+  }, */
 ]
+
+
 
 export function Sidebar() {
   const pathname = usePathname()

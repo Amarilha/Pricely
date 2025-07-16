@@ -54,6 +54,7 @@ interface VariableCost {
   descricao: string
   valor: number
   unidade: string
+  quandidade:number
   observacoes: string
 }
 
@@ -414,6 +415,7 @@ export default function ServiceQuoteGenerator() {
           categoria: "Material",
           descricao: "",
           valor: 0,
+          quandidade: 0,
           unidade: "unidade",
           observacoes: "",
         },
@@ -481,7 +483,7 @@ export default function ServiceQuoteGenerator() {
   }, [dados.custosFixos, dados.incluirSalarios])
 
   const calcularTotalCustosVariaveis = useMemo(() => {
-    return dados.custosVariaveis.reduce((total, custo) => total + (custo.valor || 0), 0)
+    return dados.custosVariaveis.reduce((total, custo) => total + ((custo.valor || 0)*(custo.quandidade || 0)), 0)
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
@@ -1197,629 +1199,35 @@ export default function ServiceQuoteGenerator() {
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 text-center">
-          <h1 className="text-4xl font-bold text-foreground flex items-center justify-center gap-3">
-            <Calculator className="h-10 w-10 text-purple-600" />
-            Gerador Profissional de Orçamentos
-          </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
-            Crie orçamentos precisos com cálculo inteligente de custos e exportação profissional em PDF
-          </p>
-          <div className="flex justify-center gap-4 mt-4">
-            <Badge variant="outline" className="text-sm">
-              <TrendingUp className="h-4 w-4 mr-1" />
-              Smart Pricing
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              <DollarSign className="h-4 w-4 mr-1" />
-              Profit Optimization
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              <FileText className="h-4 w-4 mr-1" />
-              Professional PDF
-            </Badge>
-            <ThemeToggle />
-          </div>
+      <div className=" mb-6 text-center">
+        {/* titulo */}
+        <h1 className="text-4xl font-bold text-foreground flex items-center justify-center gap-3">
+              <Calculator className="h-10 w-10 text-purple-600" />
+              Gerador Profissional de Orçamentos
+        </h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+              Crie orçamentos precisos com cálculo inteligente de custos e exportação profissional em PDF
+        </p>
+        <div className="flex justify-center gap-4 mt-4">
+              <Badge variant="outline" className="text-sm">
+                <TrendingUp className="h-4 w-4 mr-1" />
+                Smart Pricing
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                <DollarSign className="h-4 w-4 mr-1" />
+                Profit Optimization
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                <FileText className="h-4 w-4 mr-1" />
+                Professional PDF
+              </Badge>
+              <ThemeToggle />
         </div>
 
-        <Tabs defaultValue="setup" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="setup">🏢 Configuração</TabsTrigger>
-            <TabsTrigger value="costs">💰 Custos</TabsTrigger>
-            <TabsTrigger value="service">🔧 Serviço</TabsTrigger>
-            <TabsTrigger value="taxes">📊 Impostos</TabsTrigger>
-            <TabsTrigger value="analytics">📈 Análises</TabsTrigger>
-            <TabsTrigger value="boletos">💳 Boletos</TabsTrigger>
-            <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="setup" className="space-y-6">
-            {/* Company Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
-                    Informações da Empresa
-                  </div>
-                  <Dialog open={showNewCompanyDialog} onOpenChange={setShowNewCompanyDialog}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nova Empresa
-                      </Button>
-                    </DialogTrigger>
-                    {/* cadastro do empresa */}
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Adicionar Nova Empresa</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-name" className="text-right">
-                            Nome da Empresa
-                          </Label>
-                          <Input
-                            id="company-name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-cnpj" className="text-right">
-                            CNPJ
-                          </Label>
-                          <Input
-                            id="company-cnpj"
-                            value={formData.cnpj}
-                            onChange={(e) => {
-                              handleChange(e);
-                              // Apply CNPJ mask as the user types
-                              let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-                              value = value.replace(/^(\d{2})(\d)/, '$1.$2'); // Add dot after 2 digits
-                              value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3'); // Add dot after 5 digits
-                              value = value.replace(/\.(\d{3})(\d)/, '.$1/$2'); // Add slash after 8 digits
-                              value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 12 digits
-                              setFormData(prev => ({ ...prev, cnpj: value }));
-                            }}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-email" className="text-right">Email</Label>
-                          <Input
-                            id="company-email"
-                            type="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-phone" className="text-right">
-                            Telefone
-                          </Label>
-                          <Input
-                            id="company-phone"
-                            type="tel"
-                            value={formData.phone}
-                            onChange={(e) => {
-                              handleChange(e);
-                              // Apply phone mask as the user types
-                              let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-                              value = value.replace(/^(\d{2})(\d)/, '($1) $2'); // Add parentheses and space
-                              value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 4 digits
-                              // For 9 digit numbers (mobile), move dash
-                              value = value.replace(/(\d{5})-(\d)/, '$1-$2');
-                              setFormData(prev => ({ ...prev, phone: value }));
-                            }}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-street" className="text-right">
-                            Rua
-                          </Label>
-                          <Input
-                            id="company-street"
-                            value={formData.street}
-                            onChange={handleChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-number" className="text-right">
-                            Número
-                          </Label>
-                          <Input
-                            id="company-number"
-                            value={formData.number}
-                            onChange={handleChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-neighborhood" className="text-right">
-                            Bairro
-                          </Label>
-                          <Input
-                            id="company-neighborhood"
-                            value={formData.neighborhood}
-                            onChange={handleChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-city" className="text-right">
-                            Cidade
-                          </Label>
-                          <Input
-                            id="company-city"
-                            value={formData.city}
-                            onChange={handleChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="company-state" className="text-right">
-                            Estado
-                          </Label>
-                          <Input
-                            id="company-state"
-                            value={formData.state}
-                            onChange={handleChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-4">
-                        <Button variant="outline" onClick={handleCancel}>
-                          Cancelar
-                        </Button>
-                        <Button onClick={handleSave}>
-                          Salvar Empresa
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <div>
-                  <TooltipHelper content="Selecione uma empresa cadastrada ou adicione uma nova">
-                    <Label>Selecionar Empresa</Label>
-                  </TooltipHelper>
-                  <Select value={dados.empresaSelecionada} onValueChange={selecionarEmpresa}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Escolha uma empresa cadastrada..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {empresasCadastradas.map((empresa) => (
-                        <SelectItem key={empresa.id_company} value={empresa.id_company}>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-purple-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded">
-                              {empresa.logoChar}
-                            </div>
-                            <div>
-                              <div className="font-medium">{empresa.nome}</div>
-                              <div className="text-xs text-gray-500">{empresa.cnpj}</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {dados.empresaSelecionada && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">Detalhes da Empresa Selecionada:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p>
-                          <strong>Nome:</strong> {dados.empresa.nome}
-                        </p>
-                        <p>
-                          <strong>CNPJ:</strong> {dados.empresa.cnpj}
-                        </p>
-                        <p>
-                          <strong>Telefone:</strong> {dados.empresa.telefone}
-                        </p>
-                        <p>
-                          <strong>Email:</strong> {dados.empresa.email}
-                        </p>
-                      </div>
-                      <div>
-                        <p>
-                          <strong>Endereço:</strong>
-                        </p>
-                        <p>
-                          {dados.empresa.endereco_rua}, {dados.empresa.endereco_numero}
-                        </p>
-                        <p>
-                          {dados.empresa.endereco_cidade}, {dados.empresa.endereco_estado}
-                        </p>
-                        <p>CEP: {dados.empresa.endereco_cep}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-
-
-            {/* Client Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Informações do Cliente
-                  </div>
-                  <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Novo Cliente
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Adicionar Novo Cliente</DialogTitle>
-                      </DialogHeader>
-                      <div className="text-center py-8 text-gray-500">
-                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Formulário de cadastro de cliente seria implementado aqui</p>
-                        <p className="text-sm">Isso permitiria adicionar novos clientes ao banco de dados</p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <TooltipHelper content="Selecione um cliente cadastrado ou adicione um novo">
-                    <Label>Selecionar Cliente</Label>
-                  </TooltipHelper>
-                  <Select value={dados.clienteSelecionado} onValueChange={selecionarCliente}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Escolha um cliente cadastrado..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clientesCadastrados.map((cliente) => (
-                        <SelectItem key={cliente.id} value={cliente.id}>
-                          <div>
-                            <div className="font-medium">{cliente.nome}</div>
-                            <div className="text-xs text-gray-500">
-                              {cliente.cpf} • {cliente.telefone}
-                            </div>
-                            {cliente.observacoes && <div className="text-xs text-blue-600">{cliente.observacoes}</div>}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {dados.clienteSelecionado && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">Detalhes do Cliente Selecionado:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p>
-                          <strong>Nome:</strong> {dados.cliente.nome}
-                        </p>
-                        <p>
-                          <strong>CPF:</strong> {dados.cliente.cpf}
-                        </p>
-                        <p>
-                          <strong>Telefone:</strong> {dados.cliente.telefone}
-                        </p>
-                        <p>
-                          <strong>Email:</strong> {dados.cliente.email}
-                        </p>
-                      </div>
-                      <div>
-                        <p>
-                          <strong>Endereço:</strong>
-                        </p>
-                        <p>
-                          {dados.cliente.endereco_rua}, {dados.cliente.endereco_numero}
-                        </p>
-                        <p>
-                          {dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
-                        </p>
-                        <p>CEP: {dados.cliente.endereco_cep}</p>
-                        {dados.cliente.observacoes && (
-                          <div className="mt-2 p-2 bg-blue-50 rounded text-blue-700">
-                            <strong>Observações:</strong> {dados.cliente.observacoes}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Business Configuration */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuração do Negócio</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <TooltipHelper content="Total de horas que você trabalha por mês. Usado para calcular o custo por hora dos gastos fixos">
-                      <Label htmlFor="horas-mes">Horas Trabalhadas/Mês</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="horas-mes"
-                      type="number"
-                      value={dados.horasTrabalhadasMes}
-                      onChange={(e) => setDados((prev) => ({ ...prev, horasTrabalhadasMes: Number(e.target.value) }))}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">ex: 8h/dia × 20 dias = 160h</p>
-                  </div>
-                  <div>
-                    <TooltipHelper content="Percentual de lucro que você deseja obter sobre os custos. Recomendado: 25% ou mais">
-                      <Label htmlFor="margem-lucro">Margem de Lucro (%)</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="margem-lucro"
-                      type="number"
-                      value={dados.margemLucro}
-                      onChange={(e) => setDados((prev) => ({ ...prev, margemLucro: Number(e.target.value) }))}
-                    />
-                  </div>
-                  <div>
-                    <TooltipHelper content="Percentual de impostos que incidem sobre o serviço (Simples Nacional, ISS, etc.)">
-                      <Label htmlFor="impostos">Impostos (%)</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="impostos"
-                      type="number"
-                      step="0.1"
-                      value={dados.impostos}
-                      onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="costs" className="space-y-6">
-            {/* Salary Inclusion Option */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Configuração de Custos</span>
-                  <div className="flex items-center space-x-2">
-                    <TooltipHelper content="Ative esta opção se você quer incluir salários e pró-labore no cálculo dos custos. Desative para serviços que não envolvem custos de pessoal.">
-                      <Label htmlFor="incluir-salarios" className="text-sm font-normal">
-                        Incluir Salários/Pró-labore
-                      </Label>
-                    </TooltipHelper>
-                    <Switch
-                      id="incluir-salarios"
-                      checked={dados.incluirSalarios}
-                      onCheckedChange={(checked) => setDados((prev) => ({ ...prev, incluirSalarios: checked }))}
-                    />
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              {!dados.incluirSalarios && (
-                <CardContent>
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      Salários e pró-labore foram <strong>excluídos</strong> do cálculo de custos. Ideal para serviços
-                      que não envolvem custos de pessoal.
-                    </AlertDescription>
-                  </Alert>
-                </CardContent>
-              )}
-            </Card>
-
-            {/* Fixed Costs */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <TooltipHelper content="Gastos que você tem todo mês, independente de quantos serviços fizer (aluguel, energia, internet, etc.)">
-                    <span>Custos Fixos Mensais</span>
-                  </TooltipHelper>
-                  <Button onClick={adicionarCustoFixo} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Custo
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {dados.custosFixos.map((custo) => {
-                    const isSalario =
-                      custo.descricao.toLowerCase().includes("salário") ||
-                      custo.descricao.toLowerCase().includes("pró-labore")
-                    const isExcluded = !dados.incluirSalarios && isSalario
-
-                    return (
-                      <div key={custo.id} className={`flex gap-3 items-center ${isExcluded ? "opacity-50" : ""}`}>
-                        <div className="flex-1">
-                          <Input
-                            placeholder="Descrição do custo"
-                            value={custo.descricao}
-                            onChange={(e) => atualizarCustoFixo(custo.id, "descricao", e.target.value)}
-                            disabled={isExcluded}
-                          />
-                        </div>
-                        <div className="w-32">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="R$ 0,00"
-                            value={custo.valor}
-                            onChange={(e) => atualizarCustoFixo(custo.id, "valor", Number(e.target.value))}
-                            disabled={isExcluded}
-                          />
-                        </div>
-                        <Button variant="destructive" size="sm" onClick={() => removerCustoFixo(custo.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        {isExcluded && (
-                          <Badge variant="secondary" className="text-xs">
-                            Excluído
-                          </Badge>
-                        )}
-                      </div>
-                    )
-                  })}
-                  <div className="flex justify-between items-center pt-3 border-t">
-                    <span className="font-semibold">Total Custos Fixos:</span>
-                    <span className="font-bold text-lg text-red-600">{formatarMoeda(calcularTotalCustosFixos)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Custo por Hora:</span>
-                    <span className="text-sm font-semibold text-blue-600">{formatarMoeda(calcularCustoHora)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Enhanced Variable Costs */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <TooltipHelper content="Gastos que variam conforme cada serviço (materiais, combustível, peças, etc.)">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      <span>Custos Variáveis por Serviço</span>
-                    </div>
-                  </TooltipHelper>
-                  <Button onClick={adicionarCustoVariavel} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Custo
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {dados.custosVariaveis.map((custo) => (
-                    <div key={custo.id} className="p-4 border rounded-lg bg-muted">
-                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                        <div>
-                          <TooltipHelper content="Tipo de custo variável">
-                            <Label className="text-xs">Categoria</Label>
-                          </TooltipHelper>
-                          <Select
-                            value={custo.categoria}
-                            onValueChange={(value) => atualizarCustoVariavel(custo.id, "categoria", value)}
-                          >
-                            <SelectTrigger className="h-8">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Material">📦 Material</SelectItem>
-                              <SelectItem value="Transporte">🚗 Transporte</SelectItem>
-                              <SelectItem value="Ferramenta">🔧 Ferramentas</SelectItem>
-                              <SelectItem value="Terceirizado">👥 Terceirizado</SelectItem>
-                              <SelectItem value="Equipamento">⚙️ Equipamento</SelectItem>
-                              <SelectItem value="Outros">📋 Outros</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="md:col-span-2">
-                          <TooltipHelper content="Descrição detalhada do custo">
-                            <Label className="text-xs">Descrição</Label>
-                          </TooltipHelper>
-                          <Input
-                            className="h-8"
-                            placeholder="ex: Parafusos M6, Gasolina, etc."
-                            value={custo.descricao}
-                            onChange={(e) => atualizarCustoVariavel(custo.id, "descricao", e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <TooltipHelper content="Valor unitário ou total do custo">
-                            <Label className="text-xs">Valor (R$)</Label>
-                          </TooltipHelper>
-                          <Input
-                            className="h-8"
-                            type="number"
-                            step="0.01"
-                            placeholder="0,00"
-                            value={custo.valor}
-                            onChange={(e) => atualizarCustoVariavel(custo.id, "valor", Number(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
-                            <Label className="text-xs">Unidade</Label>
-                          </TooltipHelper>
-                          <Select
-                            value={custo.unidade}
-                            onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
-                          >
-                            <SelectTrigger className="h-8">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="unidade">un</SelectItem>
-                              <SelectItem value="kg">kg</SelectItem>
-                              <SelectItem value="litros">L</SelectItem>
-                              <SelectItem value="metros">m</SelectItem>
-                              <SelectItem value="horas">h</SelectItem>
-                              <SelectItem value="dias">dias</SelectItem>
-                              <SelectItem value="pacote">pacote</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex items-end">
-                          <Button variant="destructive" size="sm" onClick={() => removerCustoVariavel(custo.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <TooltipHelper content="Observações adicionais sobre este custo">
-                          <Label className="text-xs">Observações</Label>
-                        </TooltipHelper>
-                        <Input
-                          className="h-8 text-xs"
-                          placeholder="Observações adicionais sobre este custo..."
-                          value={custo.observacoes}
-                          onChange={(e) => atualizarCustoVariavel(custo.id, "observacoes", e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-
-                  {dados.custosVariaveis.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Nenhum custo variável adicionado ainda</p>
-                      <p className="text-sm">
-                        Clique em "Adicionar Custo" para incluir materiais, transporte, ferramentas, etc.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center pt-3 border-t">
-                    <span className="font-semibold">Total Custos Variáveis:</span>
-                    <span className="font-bold text-lg text-orange-600">
-                      {formatarMoeda(calcularTotalCustosVariaveis)}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
+        {/* bory */}
+        <Tabs defaultValue="setup" className="grid grid-cols-3 gap-2 space-y-6" style={{ gridTemplateColumns: "20% 60% 20%"}}>
             {/* Cost Analysis */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-rows-1 mt-6 md:grid-rows-4 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
                   <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
@@ -1827,515 +1235,1157 @@ export default function ServiceQuoteGenerator() {
                   </TooltipHelper>
                   <p className="text-xl font-bold text-blue-600">{formatarMoeda(calcularCustoOperacional)}</p>
                 </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <TooltipHelper content="Valor do lucro baseado na margem definida">
-                    <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
-                  </TooltipHelper>
-                  <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
-                </CardContent>
-              </Card>
-              <Card>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <TooltipHelper content="Valor do lucro baseado na margem definida">
+                      <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
+                    </TooltipHelper>
+                    <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
+                  </CardContent>
+                </Card>
+                <Card>
                 <CardContent className="p-4 text-center">
                   <TooltipHelper content="Valor dos impostos sobre o serviço">
-                    <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
+                      <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
                   </TooltipHelper>
-                  <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
+                    <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4 text-center">
-                  <TooltipHelper content="Preço base antes de descontos e acréscimos">
-                    <p className="text-sm text-gray-600">Preço Base</p>
-                  </TooltipHelper>
-                  <p className="text-xl font-bold text-purple-600">
-                    {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
-                  </p>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Preço base antes de descontos e acréscimos">
+                              <p className="text-sm text-gray-600">Preço Base</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-purple-600">
+                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
+                            </p>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+            
+            {/* tudo */}
+            <Tabs defaultValue="setup" className="col-start-2 grid-2 mt-2 space-y-6">
+                  <TabsList className="grid w-90% grid-cols-6">
+                    <TabsTrigger value="setup">🏢 Informações</TabsTrigger>
+                    <TabsTrigger value="costs">💰 Custos</TabsTrigger>
+                    <TabsTrigger value="service">🔧 Serviço</TabsTrigger>
+                    <TabsTrigger value="taxes">📊 Impostos</TabsTrigger>
+                    <TabsTrigger value="analytics">📈 Análises</TabsTrigger>
+                    {/*<TabsTrigger value="boletos">💳 Boletos</TabsTrigger>*/}
+                    <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
+                  </TabsList>
 
-          <TabsContent value="service" className="space-y-6">
-            {/* Service Configuration */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Configuração do Serviço</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <TooltipHelper content="Número único para identificar este orçamento">
-                      <Label htmlFor="numero-ordem">Número da Orçamento</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="numero-ordem"
-                      value={dados.numeroOrdem}
-                      onChange={(e) => setDados((prev) => ({ ...prev, numeroOrdem: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <TooltipHelper content="Data de criação do orçamento">
-                      <Label htmlFor="data">Data</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="data"
-                      type="date"
-                      value={dados.data}
-                      onChange={(e) => setDados((prev) => ({ ...prev, data: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <TooltipHelper content="Quantas horas você vai levar para executar este serviço">
-                      <Label htmlFor="tempo-execucao">Tempo de Execução (horas)</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="tempo-execucao"
-                      type="number"
-                      step="0.5"
-                      //value={dados.horasTrabalhadasMes}
-                      value={dados.tempoExecucao}
-                      onChange={(e) => setDados((prev) => ({ ...prev, tempoExecucao: Number(e.target.value) }))}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <TooltipHelper content="Descrição detalhada do que será feito no serviço">
-                    <Label htmlFor="descricao-servico">Descrição do Serviço</Label>
-                  </TooltipHelper>
-                  <Textarea
-                    id="descricao-servico"
-                    value={dados.descricaoServico}
-                    onChange={(e) => setDados((prev) => ({ ...prev, descricaoServico: e.target.value }))}
-                    placeholder="Descrição detalhada do serviço a ser prestado..."
-                    rows={4}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                  <TabsContent value="setup" className="space-y-6">
+                    {/* Company Selection */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-5 w-5" />
+                            Informações da Empresa
+                          </div>
+                          <Dialog open={showNewCompanyDialog} onOpenChange={setShowNewCompanyDialog}>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Nova Empresa
+                              </Button>
+                            </DialogTrigger>
+                            {/* cadastro do empresa */}
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Adicionar Nova Empresa</DialogTitle>
+                              </DialogHeader>
+                              <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-name" className="text-right">
+                                    Nome da Empresa
+                                  </Label>
+                                  <Input
+                                    id="company-name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-cnpj" className="text-right">
+                                    CNPJ
+                                  </Label>
+                                  <Input
+                                    id="company-cnpj"
+                                    value={formData.cnpj}
+                                    onChange={(e) => {
+                                      handleChange(e);
+                                      // Apply CNPJ mask as the user types
+                                      let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                                      value = value.replace(/^(\d{2})(\d)/, '$1.$2'); // Add dot after 2 digits
+                                      value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3'); // Add dot after 5 digits
+                                      value = value.replace(/\.(\d{3})(\d)/, '.$1/$2'); // Add slash after 8 digits
+                                      value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 12 digits
+                                      setFormData(prev => ({ ...prev, cnpj: value }));
+                                    }}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-email" className="text-right">Email</Label>
+                                  <Input
+                                    id="company-email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-phone" className="text-right">
+                                    Telefone
+                                  </Label>
+                                  <Input
+                                    id="company-phone"
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => {
+                                      handleChange(e);
+                                      // Apply phone mask as the user types
+                                      let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                                      value = value.replace(/^(\d{2})(\d)/, '($1) $2'); // Add parentheses and space
+                                      value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 4 digits
+                                      // For 9 digit numbers (mobile), move dash
+                                      value = value.replace(/(\d{5})-(\d)/, '$1-$2');
+                                      setFormData(prev => ({ ...prev, phone: value }));
+                                    }}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-street" className="text-right">
+                                    Rua
+                                  </Label>
+                                  <Input
+                                    id="company-street"
+                                    value={formData.street}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-number" className="text-right">
+                                    Número
+                                  </Label>
+                                  <Input
+                                    id="company-number"
+                                    value={formData.number}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-neighborhood" className="text-right">
+                                    Bairro
+                                  </Label>
+                                  <Input
+                                    id="company-neighborhood"
+                                    value={formData.neighborhood}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-city" className="text-right">
+                                    Cidade
+                                  </Label>
+                                  <Input
+                                    id="company-city"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-state" className="text-right">
+                                    Estado
+                                  </Label>
+                                  <Input
+                                    id="company-state"
+                                    value={formData.state}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-4">
+                                <Button variant="outline" onClick={handleCancel}>
+                                  Cancelar
+                                </Button>
+                                <Button onClick={handleSave}>
+                                  Salvar Empresa
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </CardTitle>
+                      </CardHeader>
 
-            {/* Service Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <TooltipHelper content="Produtos ou serviços específicos que serão cobrados separadamente">
-                    <span>Itens do Serviço</span>
-                  </TooltipHelper>
-                  <Button onClick={adicionarItem} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Item
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {dados.itens.map((item) => (
-                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg">
-                      <div>
-                        <TooltipHelper content="Quantidade deste item/serviço">
-                          <Label>Quantidade</Label>
-                        </TooltipHelper>
-                        <Input
-                          type="number"
-                          value={item.quantidade}
-                          onChange={(e) => atualizarItem(item.id, "quantidade", Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <TooltipHelper content="Descrição do produto ou serviço">
-                          <Label>Descrição</Label>
-                        </TooltipHelper>
-                        <Input
-                          value={item.descricao}
-                          onChange={(e) => atualizarItem(item.id, "descricao", e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <TooltipHelper content="Preço unitário de cada item">
-                          <Label>Preço Unitário</Label>
-                        </TooltipHelper>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={item.precoUnitario}
-                          onChange={(e) => atualizarItem(item.id, "precoUnitario", Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="flex items-end gap-2">
-                        <div className="flex-1">
-                          <TooltipHelper content="Total calculado automaticamente (quantidade × preço unitário)">
-                            <Label>Total</Label>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <TooltipHelper content="Selecione uma empresa cadastrada ou adicione uma nova">
+                            <Label>Selecionar Empresa</Label>
                           </TooltipHelper>
-                          <Input value={formatarMoeda(item.totalItem)} readOnly className="bg-muted" />
+                          <Select value={dados.empresaSelecionada} onValueChange={selecionarEmpresa}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Escolha uma empresa cadastrada..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {empresasCadastradas.map((empresa) => (
+                                <SelectItem key={empresa.id_company} value={empresa.id_company}>
+                                  <div className="flex items-center gap-2">
+                                    <div className="bg-purple-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded">
+                                      {empresa.logoChar}
+                                    </div>
+                                    <div>
+                                      <div className="font-medium">{empresa.nome}</div>
+                                      <div className="text-xs text-gray-500">{empresa.cnpj}</div>
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <Button variant="destructive" size="sm" onClick={() => removerItem(item.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Payment and Adjustments */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    <TooltipHelper content="Como o cliente vai pagar pelo serviço (à vista, parcelado, etc.)">
-                      Forma de Pagamento
-                    </TooltipHelper>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PaymentMethodSelector
-                    value={dados.formaPagamento}
-                    onChange={(value) => setDados((prev) => ({ ...prev, formaPagamento: value }))}
-                    customTerms={dados.condicoesPersonalizadas || ""}
-                    onCustomTermsChange={(value) => setDados((prev) => ({ ...prev, condicoesPersonalizadas: value }))}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ajustes</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <TooltipHelper content="Valor de desconto a ser aplicado no total final">
-                      <Label htmlFor="desconto">Desconto</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="desconto"
-                      type="number"
-                      step="0.01"
-                      value={dados.desconto}
-                      onChange={(e) => setDados((prev) => ({ ...prev, desconto: Number(e.target.value) }))}
-                    />
-                  </div>
-                  <div>
-                    <TooltipHelper content="Valores extras a serem adicionados (urgência, complexidade, etc.)">
-                      <Label htmlFor="acrescimos">Acréscimos</Label>
-                    </TooltipHelper>
-                    <Input
-                      id="acrescimos"
-                      type="number"
-                      step="0.01"
-                      value={dados.acrescimos}
-                      onChange={(e) => setDados((prev) => ({ ...prev, acrescimos: Number(e.target.value) }))}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="taxes" className="space-y-6">
-            <TaxCalculator receitaBruta={calcularTotalFinal} onTaxChange={handleTaxChange} />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6">
-            <FinancialCharts
-              custosFixos={calcularTotalCustosFixos}
-              custosVariaveis={calcularTotalCustosVariaveis}
-              margemLucro={dados.margemLucro}
-              receitaLiquida={calcularTotalFinal}
-              impostos={impostosDetalhados.total}
-            />
-          </TabsContent>
-
-          <TabsContent value="boletos" className="space-y-6">
-            <BoletoGenerator
-              valorTotal={calcularTotalFinal}
-              clienteNome={dados.cliente.nome}
-              clienteCpf={dados.cliente.cpf}
-              clienteEndereco={`${dados.cliente.endereco_rua}, ${dados.cliente.endereco_numero} - ${dados.cliente.endereco_cidade}, ${dados.cliente.endereco_estado}`}
-              empresaNome={dados.empresa.nome}
-              empresaCnpj={dados.empresa.cnpj}
-              numeroOrdem={dados.numeroOrdem}
-            />
-          </TabsContent>
-
-          <TabsContent value="quote">
-            {/* Professional Quote Document */}
-            <div id="service-quote-pdf" className="bg-white">
-              <div className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg print:shadow-none">
-                <div className="page-content">
-                  {/* Header */}
-                  <header className="flex justify-between items-start pb-4 border-b">
-                    <div className="flex items-center">
-                      <div className="mr-4">
-                        <div className="bg-purple-600 text-white font-bold text-2xl w-20 h-10 flex items-center justify-center rounded">
-                          {dados.empresa.logoChar || "XX"}
-                        </div>
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-800">{dados.empresa.nome || "Company Name"}</h2>
-                        {dados.empresa && ( // Condicional para mostrar detalhes da empresa
-                          <>
-                            <p className="text-sm text-gray-600">CNPJ {dados.empresa.cnpj || "00.000.000/0000-00"}</p>
-                            <p className="text-sm text-gray-600">
-                              {dados.empresa.endereco_rua || "Street"}, {dados.empresa.endereco_numero || "Number"} {/* Usando propriedades planas */}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {dados.empresa.endereco_cidade || "City"}, {dados.empresa.endereco_estado || "State"} {/* Usando propriedades planas */}
-                            </p>
-                            <p className="text-sm text-gray-600">Telefone {dados.empresa.telefone || "(00) 0000-0000"}</p>
-                          </>
+                        {dados.empresaSelecionada && (
+                          <div className="bg-muted p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Detalhes da Empresa Selecionada:</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p>
+                                  <strong>Nome:</strong> {dados.empresa.nome}
+                                </p>
+                                <p>
+                                  <strong>CNPJ:</strong> {dados.empresa.cnpj}
+                                </p>
+                                <p>
+                                  <strong>Telefone:</strong> {dados.empresa.telefone}
+                                </p>
+                                <p>
+                                  <strong>Email:</strong> {dados.empresa.email}
+                                </p>
+                              </div>
+                              <div>
+                                <p>
+                                  <strong>Endereço:</strong>
+                                </p>
+                                <p>
+                                  {dados.empresa.endereco_rua}, {dados.empresa.endereco_numero}
+                                </p>
+                                <p>
+                                  {dados.empresa.endereco_cidade}, {dados.empresa.endereco_estado}
+                                </p>
+                                <p>CEP: {dados.empresa.endereco_cep}</p>
+                              </div>
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <h1 className="text-3xl font-bold text-gray-800">ORÇAMENTO</h1>
-                      <div className="mt-2 border border-gray-300 rounded-md p-2 text-left">
-                        <p className="text-sm">
-                          <span className="font-semibold">Ordem nº:</span> {dados.numeroOrdem}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-semibold">Data:</span> {formatarData(dados.data)}
-                        </p>
-                      </div>
-                    </div>
-                  </header>
+                      </CardContent>
+                    </Card>
 
-                  {/* Client and Billing Information */}
-                  <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div className="border border-gray-300 rounded-md">
-                      <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Cliente</div>
-                      <div className="p-3 text-sm text-gray-700">
-                        <p>
-                          <strong>Nome:</strong> {dados.cliente.nome || "Client Name"}
-                        </p>
-                        <p>
-                          <strong>CPF:</strong> {dados.cliente.cpf || "000.000.000-00"}
-                        </p>
-                        <p>
-                          <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Street"},{" "}
-                          {dados.cliente.endereco_numero || "Number"} - {dados.cliente.endereco_cidade || "City"},{" "}
-                          {dados.cliente.endereco_estado || "State"}
-                        </p>
-                        <p>
-                          <strong>Telefone:</strong> {dados.cliente.telefone || "(00) 0000-0000"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="border border-gray-300 rounded-md">
-                      <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
-                        Endereço de cobrança
-                      </div>
-                      <div className="p-3 text-sm text-gray-700">
-                        <p>{dados.enderecoCobranca || "Billing address"}</p>
-                      </div>
-                    </div>
-                  </section>
 
-                  {/* Service Description and Location */}
-                  <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div className="border border-gray-300 rounded-md">
-                      <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
-                        Descrição do serviço
-                      </div>
-                      <div className="p-3 text-sm text-gray-700">
-                        <p>{dados.descricaoServico || "Service description"}</p>
-                      </div>
-                    </div>
-                    <div className="border border-gray-300 rounded-md">
-                      <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Local de prestação</div>
-                      <div className="p-3 text-sm text-gray-700">
-                        <p>
-                          <strong>Nome:</strong> {dados.localPrestacao.nome || "Service Location"}
-                        </p>
-                        <p>
-                          <strong>{dados.localPrestacao.tipoDocumento}:</strong>{" "}
-                          {dados.localPrestacao.documento || "000.000.000-00"}
-                        </p>
-                        <p>
-                          <strong>Endereço:</strong> {dados.localPrestacao.endereco.rua || "Street"},{" "}
-                          {dados.localPrestacao.endereco.numero || "Number"} -{" "}
-                          {dados.localPrestacao.endereco.cidade || "City"},{" "}
-                          {dados.localPrestacao.endereco.estado || "State"}
-                        </p>
-                      </div>
-                    </div>
-                  </section>
 
-                  {/* Items Table */}
-                  <section className="mt-6">
-                    <table className="w-full text-left border-collapse border border-gray-300">
-                      <thead>
-                        <tr className="bg-purple-600 text-white">
-                          <th className="p-2 border border-gray-300">Quantidade</th>
-                          <th className="p-2 border border-gray-300">Produto utilizado ou Serviço Prestado</th>
-                          <th className="p-2 text-right border border-gray-300">Preço Unitário</th>
-                          <th className="p-2 text-right border border-gray-300">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-gray-700">
-                        {dados.itens.map((item, index) => (
-                          <tr key={index}>
-                            <td className="p-2 border border-gray-300">{item.quantidade}</td>
-                            <td className="p-2 border border-gray-300">{item.descricao}</td>
-                            <td className="p-2 text-right border border-gray-300">
-                              {formatarMoeda(item.precoUnitario)}
-                            </td>
-                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(item.totalItem)}</td>
-                          </tr>
-                        ))}
-                        {/* Add operational costs as items */}
-                        {calcularCustoOperacional > 0 && (
-                          <tr>
-                            <td className="p-2 border border-gray-300">1</td>
-                            <td className="p-2 border border-gray-300">
-                              Custo Operacional ({dados.tempoExecucao}h)
-                              {!dados.incluirSalarios && (
-                                <span className="text-xs text-gray-500 block">*Salários não incluídos</span>
-                              )}
-                              {dados.custosVariaveis.length > 0 && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  Inclui:{" "}
-                                  {dados.custosVariaveis
-                                    .map((c) => `${c.categoria} (${formatarMoeda(c.valor)})`)
-                                    .join(", ")}
+                    {/* Client Selection */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Informações do Cliente
+                          </div>
+                          <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Novo Cliente
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Adicionar Novo Cliente</DialogTitle>
+                              </DialogHeader>
+                              <div className="text-center py-8 text-gray-500">
+                                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                <p>Formulário de cadastro de cliente seria implementado aqui</p>
+                                <p className="text-sm">Isso permitiria adicionar novos clientes ao banco de dados</p>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <TooltipHelper content="Selecione um cliente cadastrado ou adicione um novo">
+                            <Label>Selecionar Cliente</Label>
+                          </TooltipHelper>
+                          <Select value={dados.clienteSelecionado} onValueChange={selecionarCliente}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Escolha um cliente cadastrado..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {clientesCadastrados.map((cliente) => (
+                                <SelectItem key={cliente.id} value={cliente.id}>
+                                  <div>
+                                    <div className="font-medium">{cliente.nome}</div>
+                                    <div className="text-xs text-gray-500">
+                                      {cliente.cpf} • {cliente.telefone}
+                                    </div>
+                                    {cliente.observacoes && <div className="text-xs text-blue-600">{cliente.observacoes}</div>}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {dados.clienteSelecionado && (
+                          <div className="bg-muted p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Detalhes do Cliente Selecionado:</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p>
+                                  <strong>Nome:</strong> {dados.cliente.nome}
+                                </p>
+                                <p>
+                                  <strong>CPF:</strong> {dados.cliente.cpf}
+                                </p>
+                                <p>
+                                  <strong>Telefone:</strong> {dados.cliente.telefone}
+                                </p>
+                                <p>
+                                  <strong>Email:</strong> {dados.cliente.email}
+                                </p>
+                              </div>
+                              <div>
+                                <p>
+                                  <strong>Endereço:</strong>
+                                </p>
+                                <p>
+                                  {dados.cliente.endereco_rua}, {dados.cliente.endereco_numero}
+                                </p>
+                                <p>
+                                  {dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
+                                </p>
+                                <p>CEP: {dados.cliente.endereco_cep}</p>
+                                {dados.cliente.observacoes && (
+                                  <div className="mt-2 p-2 bg-blue-50 rounded text-blue-700">
+                                    <strong>Observações:</strong> {dados.cliente.observacoes}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Business Configuration */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Configuração do Negócio</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <TooltipHelper content="Total de horas que você trabalha por mês. Usado para calcular o custo por hora dos gastos fixos">
+                              <Label htmlFor="horas-mes">Horas Trabalhadas/Mês</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="horas-mes"
+                              type="number"
+                              value={dados.horasTrabalhadasMes}
+                              onChange={(e) => setDados((prev) => ({ ...prev, horasTrabalhadasMes: Number(e.target.value) }))}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">ex: 8h/dia × 20 dias = 160h</p>
+                          </div>
+                          <div>
+                            <TooltipHelper content="Percentual de lucro que você deseja obter sobre os custos. Recomendado: 25% ou mais">
+                              <Label htmlFor="margem-lucro">Margem de Lucro (%)</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="margem-lucro"
+                              type="number"
+                              value={dados.margemLucro}
+                              onChange={(e) => setDados((prev) => ({ ...prev, margemLucro: Number(e.target.value) }))}
+                            />
+                          </div>
+                          <div>
+                            <TooltipHelper content="Percentual de impostos que incidem sobre o serviço (Simples Nacional, ISS, etc.)">
+                              <Label htmlFor="impostos">Impostos (%)</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="impostos"
+                              type="number"
+                              step="0.1"
+                              value={dados.impostos}
+                              onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  {/* custo */}
+                    
+                  <TabsContent value="costs" className="space-y-6">
+                      {/* Salary Inclusion Option */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            <span>Configuração de Custos</span>
+                            <div className="flex items-center space-x-2">
+                              <TooltipHelper content="Ative esta opção se você quer incluir salários e pró-labore no cálculo dos custos. Desative para serviços que não envolvem custos de pessoal.">
+                                <Label htmlFor="incluir-salarios" className="text-sm font-normal">
+                                  Incluir Salários/Pró-labore
+                                </Label>
+                              </TooltipHelper>
+                              <Switch
+                                id="incluir-salarios"
+                                checked={dados.incluirSalarios}
+                                onCheckedChange={(checked) => setDados((prev) => ({ ...prev, incluirSalarios: checked }))}
+                              />
+                            </div>
+                          </CardTitle>
+                        </CardHeader>
+                        {!dados.incluirSalarios && (
+                          <CardContent>
+                            <Alert>
+                              <Info className="h-4 w-4" />
+                              <AlertDescription>
+                                Salários e pró-labore foram <strong>excluídos</strong> do cálculo de custos. Ideal para serviços
+                                que não envolvem custos de pessoal.
+                              </AlertDescription>
+                            </Alert>
+                          </CardContent>
+                        )}
+                      </Card>
+
+                      {/* Fixed Costs */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            <TooltipHelper content="Gastos que você tem todo mês, independente de quantos serviços fizer (aluguel, energia, internet, etc.)">
+                              <span>Custos Fixos Mensais</span>
+                            </TooltipHelper>
+                            <Button onClick={adicionarCustoFixo} size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Adicionar Custo
+                            </Button>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {dados.custosFixos.map((custo) => {
+                              const isSalario =
+                                custo.descricao.toLowerCase().includes("salário") ||
+                                custo.descricao.toLowerCase().includes("pró-labore")
+                              const isExcluded = !dados.incluirSalarios && isSalario
+
+                              return (
+                                <div key={custo.id} className={`flex gap-3 items-center ${isExcluded ? "opacity-50" : ""}`}>
+                                  <div className="flex-1">
+                                    <Input
+                                      placeholder="Descrição do custo"
+                                      value={custo.descricao}
+                                      onChange={(e) => atualizarCustoFixo(custo.id, "descricao", e.target.value)}
+                                      disabled={isExcluded}
+                                    />
+                                  </div>
+                                  <div className="w-32">
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      placeholder="R$ 0,00"
+                                      value={custo.valor}
+                                      onChange={(e) => atualizarCustoFixo(custo.id, "valor", Number(e.target.value))}
+                                      disabled={isExcluded}
+                                    />
+                                  </div>
+                                  <Button variant="destructive" size="sm" onClick={() => removerCustoFixo(custo.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                  {isExcluded && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      Excluído
+                                    </Badge>
+                                  )}
+                                </div>
+                              )
+                            })}
+                            <div className="flex justify-between items-center pt-3 border-t">
+                              <span className="font-semibold">Total Custos Fixos:</span>
+                              <span className="font-bold text-lg text-red-600">{formatarMoeda(calcularTotalCustosFixos)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Custo por Hora:</span>
+                              <span className="text-sm font-semibold text-blue-600">{formatarMoeda(calcularCustoHora)}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Enhanced Variable Costs */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            <TooltipHelper content="Gastos que variam conforme cada serviço (materiais, combustível, peças, etc.)">
+                              <div className="flex items-center gap-2">
+                                <Package className="h-5 w-5" />
+                                <span>Custos Variáveis por Serviço</span>
+                              </div>
+                            </TooltipHelper>
+                            <Button onClick={adicionarCustoVariavel} size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Adicionar Custo
+                            </Button>
+                          </CardTitle>
+                        </CardHeader>
+
+                        {/*Carda de custo */}
+                        <CardContent>
+                          <div className="space-y-4">
+                            {dados.custosVariaveis.map((custo) => (
+                              <div key={custo.id} className="p-4 border rounded-lg bg-muted">
+                                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-cols-[10%_45%_auto_auto_5%] gap-4">
+                                  
+                                  {/* lista de cadegoria */}
+                                  <div>
+                                    <TooltipHelper content="Tipo de custo variável">
+                                      <Label className="text-xs">Categoria</Label>
+                                    </TooltipHelper>
+                                    <Select
+                                      value={custo.categoria}
+                                      onValueChange={(value) => atualizarCustoVariavel(custo.id, "categoria", value)}
+                                    >
+                                      <SelectTrigger className="h-8">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="Material">📦 Material</SelectItem>
+                                        <SelectItem value="Transporte">🚗 Transporte</SelectItem>
+                                        <SelectItem value="Ferramenta">🔧 Ferramentas</SelectItem>
+                                        <SelectItem value="Terceirizado">👥 Terceirizado</SelectItem>
+                                        <SelectItem value="Equipamento">⚙️ Equipamento</SelectItem>
+                                        <SelectItem value="Outros">📋 Outros</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {/* descriçao */}
+                                  <div className="md:col-span-2">
+                                    <TooltipHelper content="Descrição detalhada do custo">
+                                      <Label className="text-xs">Descrição</Label>
+                                    </TooltipHelper>
+                                    <Input
+                                      className="h-8"
+                                      placeholder="ex: Parafusos M6, Gasolina, etc."
+                                      value={custo.descricao}
+                                      onChange={(e) => atualizarCustoVariavel(custo.id, "descricao", e.target.value)}
+                                    />
+                                  </div>
+                                  
+                                  {/* valores QT e unidade */}
+                                  <div className="grid grid-cols-1 md:grid-cols-[auto_auto_25%] gap-2" >
+                                    <div>
+                                    <TooltipHelper content="Valor unitário ou total do custo">
+                                      <Label className="text-xs">Valor (R$)</Label>
+                                    </TooltipHelper>
+                                    <Input
+                                      className="h-8"
+                                      type="number"
+                                      step="0.01"
+                                      placeholder="0,00"
+                                      value={custo.valor}
+                                      onChange={(e) => atualizarCustoVariavel(custo.id, "valor", Number(e.target.value))}
+                                    />
+                                    </div>
+                                    <div>
+                                    <TooltipHelper content="Quantidade total ">
+                                      <Label className="text-xs">QT</Label>
+                                    </TooltipHelper>
+                                    <Input
+                                      className="h-8"
+                                      type="number"
+                                      step="1"
+                                      placeholder="0,00"
+                                      value={custo.quandidade}
+                                      onChange={(e) => atualizarCustoVariavel(custo.id, "quandidade", Number(e.target.value))}
+                                    />
+                                    </div>
+                                    <div>
+                                    <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
+                                      <Label className="text-xs">Unidade</Label>
+                                    </TooltipHelper>
+                                    <Select
+                                      value={custo.unidade}
+                                      onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
+                                    >
+                                      <SelectTrigger className="h-8">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="unidade">un</SelectItem>
+                                        <SelectItem value="kg">kg</SelectItem>
+                                        <SelectItem value="litros">L</SelectItem>
+                                        <SelectItem value="metros">m</SelectItem>
+                                        <SelectItem value="horas">h</SelectItem>
+                                        <SelectItem value="dias">dias</SelectItem>
+                                        <SelectItem value="pacote">pacote</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    </div>
+                                  </div>
+
+
+                                  {/* botão de lixo */}
+                                  <div className="flex items-end w-10">
+                                    <Button variant="destructive" size="sm" onClick={() => removerCustoVariavel(custo.id)}>
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+
+                                </div>
+
+                                 {/* observaçâo */}
+                                <div className="mt-2">
+                                  <TooltipHelper content="Observações adicionais sobre este custo">
+                                    <Label className="text-xs">Observações</Label>
+                                  </TooltipHelper>
+                                  <Input
+                                    className="h-8 text-xs"
+                                    placeholder="Observações adicionais sobre este custo..."
+                                    value={custo.observacoes}
+                                    onChange={(e) => atualizarCustoVariavel(custo.id, "observacoes", e.target.value)}
+                                  />
+                                </div>
+
+                              </div>
+                            ))}
+
+                            {dados.custosVariaveis.length === 0 && (
+                              <div className="text-center py-8 text-gray-500">
+                                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                <p>Nenhum custo variável adicionado ainda</p>
+                                <p className="text-sm">
+                                  Clique em "Adicionar Custo" para incluir materiais, transporte, ferramentas, etc.
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="flex justify-between items-center pt-3 border-t">
+                              <span className="font-semibold">Total Custos Variáveis:</span>
+                              <span className="font-bold text-lg text-orange-600">
+                                {formatarMoeda(calcularTotalCustosVariaveis)}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                  </TabsContent>
+                    
+                  <TabsContent value="service" className="space-y-6">
+                    {/* Service Configuration */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Configuração do Serviço</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <TooltipHelper content="Número único para identificar este orçamento">
+                              <Label htmlFor="numero-ordem">Número da Orçamento</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="numero-ordem"
+                              value={dados.numeroOrdem}
+                              onChange={(e) => setDados((prev) => ({ ...prev, numeroOrdem: e.target.value }))}
+                            />
+                          </div>
+                          <div>
+                            <TooltipHelper content="Data de criação do orçamento">
+                              <Label htmlFor="data">Data</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="data"
+                              type="date"
+                              value={dados.data}
+                              onChange={(e) => setDados((prev) => ({ ...prev, data: e.target.value }))}
+                            />
+                          </div>
+                          <div>
+                            <TooltipHelper content="Quantas horas você vai levar para executar este serviço">
+                              <Label htmlFor="tempo-execucao">Tempo de Execução (horas)</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="tempo-execucao"
+                              type="number"
+                              step="0.5"
+                              //value={dados.horasTrabalhadasMes}
+                              value={dados.tempoExecucao}
+                              onChange={(e) => setDados((prev) => ({ ...prev, tempoExecucao: Number(e.target.value) }))}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <TooltipHelper content="Descrição detalhada do que será feito no serviço">
+                            <Label htmlFor="descricao-servico">Descrição do Serviço</Label>
+                          </TooltipHelper>
+                          <Textarea
+                            id="descricao-servico"
+                            value={dados.descricaoServico}
+                            onChange={(e) => setDados((prev) => ({ ...prev, descricaoServico: e.target.value }))}
+                            placeholder="Descrição detalhada do serviço a ser prestado..."
+                            rows={4}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Payment and Adjustments */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>
+                            <TooltipHelper content="Como o cliente vai pagar pelo serviço (à vista, parcelado, etc.)">
+                              Forma de Pagamento
+                            </TooltipHelper>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <PaymentMethodSelector
+                            value={dados.formaPagamento}
+                            onChange={(value) => setDados((prev) => ({ ...prev, formaPagamento: value }))}
+                            customTerms={dados.condicoesPersonalizadas || ""}
+                            onCustomTermsChange={(value) => setDados((prev) => ({ ...prev, condicoesPersonalizadas: value }))}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Ajustes</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div>
+                            <TooltipHelper content="Valor de desconto a ser aplicado no total final">
+                              <Label htmlFor="desconto">Desconto</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="desconto"
+                              type="number"
+                              step="0.01"
+                              value={dados.desconto}
+                              onChange={(e) => setDados((prev) => ({ ...prev, desconto: Number(e.target.value) }))}
+                            />
+                          </div>
+                          <div>
+                            <TooltipHelper content="Valores extras a serem adicionados (urgência, complexidade, etc.)">
+                              <Label htmlFor="acrescimos">Acréscimos</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="acrescimos"
+                              type="number"
+                              step="0.01"
+                              value={dados.acrescimos}
+                              onChange={(e) => setDados((prev) => ({ ...prev, acrescimos: Number(e.target.value) }))}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="taxes" className="space-y-6">
+                    <TaxCalculator receitaBruta={calcularTotalFinal} onTaxChange={handleTaxChange} />
+                  </TabsContent>
+
+                  <TabsContent value="analytics" className="space-y-6">
+                    <FinancialCharts
+                      custosFixos={calcularTotalCustosFixos}
+                      custosVariaveis={calcularTotalCustosVariaveis}
+                      margemLucro={dados.margemLucro}
+                      receitaLiquida={calcularTotalFinal}
+                      impostos={impostosDetalhados.total}
+                    />
+                  </TabsContent>
+{/* boletos 
+                  <TabsContent value="boletos" className="space-y-6">
+                    <BoletoGenerator
+                      valorTotal={calcularTotalFinal}
+                      clienteNome={dados.cliente.nome}
+                      clienteCpf={dados.cliente.cpf}
+                      clienteEndereco={`${dados.cliente.endereco_rua}, ${dados.cliente.endereco_numero} - ${dados.cliente.endereco_cidade}, ${dados.cliente.endereco_estado}`}
+                      empresaNome={dados.empresa.nome}
+                      empresaCnpj={dados.empresa.cnpj}
+                      numeroOrdem={dados.numeroOrdem}
+                    />
+                  </TabsContent>
+*/}
+                  <TabsContent value="quote">
+                    {/* Professional Quote Document */}
+                    <div id="service-quote-pdf" className="bg-white">
+                      <div className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg print:shadow-none">
+                        <div className="page-content">
+                          {/* Header */}
+                          <header className="flex justify-between items-start pb-4 border-b">
+                            <div className="flex items-center">
+                              <div className="mr-4">
+                                <div className="bg-purple-600 text-white font-bold text-2xl w-20 h-10 flex items-center justify-center rounded">
+                                  {dados.empresa.logoChar || "XX"}
+                                </div>
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-gray-800">{dados.empresa.nome || "Company Name"}</h2>
+                                {dados.empresa && ( // Condicional para mostrar detalhes da empresa
+                                  <>
+                                    <p className="text-sm text-gray-600">CNPJ {dados.empresa.cnpj || "00.000.000/0000-00"}</p>
+                                    <p className="text-sm text-gray-600">
+                                      {dados.empresa.endereco_rua || "Street"}, {dados.empresa.endereco_numero || "Number"} {/* Usando propriedades planas */}
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      {dados.empresa.endereco_cidade || "City"}, {dados.empresa.endereco_estado || "State"} {/* Usando propriedades planas */}
+                                    </p>
+                                    <p className="text-sm text-gray-600">Telefone {dados.empresa.telefone || "(00) 0000-0000"}</p>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <h1 className="text-3xl font-bold text-gray-800">ORÇAMENTO</h1>
+                              <div className="mt-2 border border-gray-300 rounded-md p-2 text-left">
+                                <p className="text-sm">
+                                  <span className="font-semibold">Ordem nº:</span> {dados.numeroOrdem}
+                                </p>
+                                <p className="text-sm">
+                                  <span className="font-semibold">Data:</span> {formatarData(dados.data)}
+                                </p>
+                              </div>
+                            </div>
+                          </header>
+
+                          {/* Client and Billing Information */}
+                          <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div className="border border-gray-300 rounded-md">
+                              <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Cliente</div>
+                              <div className="p-3 text-sm text-gray-700">
+                                <p>
+                                  <strong>Nome:</strong> {dados.cliente.nome || "Client Name"}
+                                </p>
+                                <p>
+                                  <strong>CPF:</strong> {dados.cliente.cpf || "000.000.000-00"}
+                                </p>
+                                <p>
+                                  <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Street"},{" "}
+                                  {dados.cliente.endereco_numero || "Number"} - {dados.cliente.endereco_cidade || "City"},{" "}
+                                  {dados.cliente.endereco_estado || "State"}
+                                </p>
+                                <p>
+                                  <strong>Telefone:</strong> {dados.cliente.telefone || "(00) 0000-0000"}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="border border-gray-300 rounded-md">
+                              <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
+                                Endereço de cobrança
+                              </div>
+                              <div className="p-3 text-sm text-gray-700">
+                                <p>{dados.enderecoCobranca || "Billing address"}</p>
+                              </div>
+                            </div>
+                          </section>
+
+                          {/* Service Description and Location */}
+                          <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div className="border border-gray-300 rounded-md">
+                              <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
+                                Descrição do serviço
+                              </div>
+                              <div className="p-3 text-sm text-gray-700">
+                                <p>{dados.descricaoServico || "Service description"}</p>
+                              </div>
+                            </div>
+                            <div className="border border-gray-300 rounded-md">
+                              <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Local de prestação</div>
+                              <div className="p-3 text-sm text-gray-700">
+                                <p>
+                                  <strong>Nome:</strong> {dados.localPrestacao.nome || "Service Location"}
+                                </p>
+                                <p>
+                                  <strong>{dados.localPrestacao.tipoDocumento}:</strong>{" "}
+                                  {dados.localPrestacao.documento || "000.000.000-00"}
+                                </p>
+                                <p>
+                                  <strong>Endereço:</strong> {dados.localPrestacao.endereco.rua || "Street"},{" "}
+                                  {dados.localPrestacao.endereco.numero || "Number"} -{" "}
+                                  {dados.localPrestacao.endereco.cidade || "City"},{" "}
+                                  {dados.localPrestacao.endereco.estado || "State"}
+                                </p>
+                              </div>
+                            </div>
+                          </section>
+
+                          {/* Items Table */}
+                          <section className="mt-6">
+                            <table className="w-full text-left border-collapse border border-gray-300">
+                              <thead>
+                                <tr className="bg-purple-600 text-white">
+                                  <th className="p-2 border border-gray-300">Quantidade</th>
+                                  <th className="p-2 border border-gray-300">Produto utilizado ou Serviço Prestado</th>
+                                  <th className="p-2 text-right border border-gray-300">Preço Unitário</th>
+                                  <th className="p-2 text-right border border-gray-300">Total</th>
+                                </tr>
+                              </thead>
+                              <tbody className="text-gray-700">
+                                {dados.itens.map((item, index) => (
+                                  <tr key={index}>
+                                    <td className="p-2 border border-gray-300">{item.quantidade}</td>
+                                    <td className="p-2 border border-gray-300">{item.descricao}</td>
+                                    <td className="p-2 text-right border border-gray-300">
+                                      {formatarMoeda(item.precoUnitario)}
+                                    </td>
+                                    <td className="p-2 text-right border border-gray-300">{formatarMoeda(item.totalItem)}</td>
+                                  </tr>
+                                ))}
+                                {/* Add operational costs as items */}
+                                {calcularCustoOperacional > 0 && (
+                                  <tr>
+                                    <td className="p-2 border border-gray-300">1</td>
+                                    <td className="p-2 border border-gray-300">
+                                      Custo Operacional ({dados.tempoExecucao}h)
+                                      {!dados.incluirSalarios && (
+                                        <span className="text-xs text-gray-500 block">*Salários não incluídos</span>
+                                      )}
+                                      {dados.custosVariaveis.length > 0 && (
+                                        <div className="text-xs text-gray-500 mt-1">
+                                          Inclui:{" "}
+                                          {dados.custosVariaveis
+                                            .map((c) => `${c.categoria} (${formatarMoeda(c.valor)})`)
+                                            .join(", ")}
+                                        </div>
+                                      )}
+                                    </td>
+                                    <td className="p-2 text-right border border-gray-300">
+                                      {formatarMoeda(calcularCustoOperacional)}
+                                    </td>
+                                    <td className="p-2 text-right border border-gray-300">
+                                      {formatarMoeda(calcularCustoOperacional)}
+                                    </td>
+                                  </tr>
+                                )}
+                                {/* Fill empty rows */}
+                                {Array.from({
+                                  length: Math.max(0, 4 - dados.itens.length - (calcularCustoOperacional > 0 ? 1 : 0)),
+                                }).map((_, index) => (
+                                  <tr key={`empty-${index}`} className="h-8">
+                                    <td className="p-2 border border-gray-300"></td>
+                                    <td className="border border-gray-300"></td>
+                                    <td className="border border-gray-300"></td>
+                                    <td className="border border-gray-300"></td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </section>
+
+                          {/* Payment and Totals */}
+                          <section className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                            <div className="border border-gray-300 rounded-md h-full">
+                              <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Forma de pagamento</div>
+                              <div className="p-3 text-sm text-gray-700">
+                                <p>{dados.formaPagamento || "Payment method"}</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
+                                <span className="font-semibold text-gray-600">Subtotal</span>
+                                <span className="text-gray-800 font-semibold">{formatarMoeda(calcularSubtotalGeral)}</span>
+                              </div>
+                              <div className="flex justify-between items-center p-2">
+                                <span className="font-semibold text-gray-600">Impostos ({dados.impostos}%)</span>
+                                <span className="text-red-600">+{formatarMoeda(calcularImpostos)}</span>
+                              </div>
+                              {dados.desconto > 0 && (
+                                <div className="flex justify-between items-center p-2">
+                                  <span className="font-semibold text-gray-600">Desconto</span>
+                                  <span className="text-red-600">-{formatarMoeda(dados.desconto)}</span>
                                 </div>
                               )}
-                            </td>
-                            <td className="p-2 text-right border border-gray-300">
-                              {formatarMoeda(calcularCustoOperacional)}
-                            </td>
-                            <td className="p-2 text-right border border-gray-300">
-                              {formatarMoeda(calcularCustoOperacional)}
-                            </td>
-                          </tr>
+                              {dados.acrescimos > 0 && (
+                                <div className="flex justify-between items-center p-2">
+                                  <span className="font-semibold text-gray-600">Acréscimos</span>
+                                  <span className="text-green-600">+{formatarMoeda(dados.acrescimos)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between items-center bg-gray-200 p-3 rounded-md">
+                                <span className="font-bold text-gray-800 text-lg">TOTAL</span>
+                                <span className="text-green-600 font-bold text-lg">{formatarMoeda(calcularTotalFinal)}</span>
+                              </div>
+                            </div>
+                          </section>
+
+                          {/* Footer */}
+                          <footer className="mt-8 pt-4">
+                            <p className="text-center text-sm text-gray-600 mb-8">
+                              Confirmo que o serviço foi prestado de acordo com o combinado.
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                              <div className="text-center">
+                                <div className="border-t border-gray-400 pt-2">
+                                  <p className="font-semibold">Assinatura do Cliente</p>
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="border-t border-gray-400 pt-2">
+                                  <p className="font-semibold">Data de entrega do serviço: {formatarData(dados.dataEntrega)}</p>
+                                </div>
+                              </div>
+                              <div className="text-center mt-8">
+                                <div className="border-t border-gray-400 pt-2">
+                                  <p className="font-semibold">Assinatura do Técnico</p>
+                                </div>
+                              </div>
+                              <div className="text-center mt-8 self-end">
+                                <p className="bg-purple-600 text-white font-bold p-2 rounded">nexprice.com.br</p>
+                              </div>
+                            </div>
+                          </footer>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-center gap-4 mt-6 print:hidden">
+                      <Button onClick={gerarPDF} className="bg-purple-600 hover:bg-purple-700">
+                        <Download className="h-4 w-4 mr-2" />
+                        Gerar PDF
+                      </Button>
+                      <Button onClick={imprimirOrcamento} variant="outline">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Imprimir Orçamento
+                      </Button>
+                    </div>
+
+                    {/* Financial Summary */}
+                    <Alert className="mt-6">
+                      <TrendingUp className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <strong>Custo Operacional:</strong>
+                            <br />
+                            {formatarMoeda(calcularCustoOperacional)}
+                            {!dados.incluirSalarios && <div className="text-xs text-gray-500">*Salários excluídos</div>}
+                          </div>
+                          <div>
+                            <strong>Lucro Líquido:</strong>
+                            <br />
+                            <span className="text-green-600">{formatarMoeda(calcularLucro)}</span>
+                          </div>
+                          <div>
+                            <strong>Margem de Lucro:</strong>
+                            <br />
+                            {dados.margemLucro}%
+                          </div>
+                          <div>
+                            <strong>Preço Final:</strong>
+                            <br />
+                            <span className="text-purple-600 font-bold">{formatarMoeda(calcularTotalFinal)}</span>
+                          </div>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  </TabsContent>
+            </Tabs>
+
+            {/* relatorio */}
+            <div className=" col-start-3 top-20 w-80 h-[calc(100vh-6rem)] overflow-y-auto ">
+                  <Card className="shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Relatório de Custos</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Fixed Costs Section */}
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Custos Fixos Mensais</h3>
+                        {dados.custosFixos.length === 0 ? (
+                          <p className="text-sm text-gray-500">Nenhum custo fixo adicionado.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {dados.custosFixos.map((custo) => {
+                              const isSalario =
+                                custo.descricao.toLowerCase().includes("salário") ||
+                                custo.descricao.toLowerCase().includes("pró-labore");
+                              const isExcluded = !dados.incluirSalarios && isSalario;
+
+                              return (
+                                <li
+                                  key={custo.id}
+                                  className={`text-sm flex justify-between ${isExcluded ? "opacity-50" : ""}`}
+                                >
+                                  <span>{custo.descricao}</span>
+                                  <span className="flex items-center gap-2">
+                                    {formatarMoeda(custo.valor)}
+                                    {isExcluded && <Badge variant="secondary" className="text-xs">Excluído</Badge>}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
                         )}
-                        {/* Fill empty rows */}
-                        {Array.from({
-                          length: Math.max(0, 4 - dados.itens.length - (calcularCustoOperacional > 0 ? 1 : 0)),
-                        }).map((_, index) => (
-                          <tr key={`empty-${index}`} className="h-8">
-                            <td className="p-2 border border-gray-300"></td>
-                            <td className="border border-gray-300"></td>
-                            <td className="border border-gray-300"></td>
-                            <td className="border border-gray-300"></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </section>
+                        <div className="mt-3 pt-2 border-t">
+                          <div className="flex justify-between text-sm font-semibold">
+                            <span>Total:</span>
+                            <span className="text-red-600">{formatarMoeda(calcularTotalCustosFixos)}</span>
+                          </div>
+                        </div>
+                      </div>
 
-                  {/* Payment and Totals */}
-                  <section className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                    <div className="border border-gray-300 rounded-md h-full">
-                      <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Forma de pagamento</div>
-                      <div className="p-3 text-sm text-gray-700">
-                        <p>{dados.formaPagamento || "Payment method"}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
-                        <span className="font-semibold text-gray-600">Subtotal</span>
-                        <span className="text-gray-800 font-semibold">{formatarMoeda(calcularSubtotalGeral)}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-2">
-                        <span className="font-semibold text-gray-600">Impostos ({dados.impostos}%)</span>
-                        <span className="text-red-600">+{formatarMoeda(calcularImpostos)}</span>
-                      </div>
-                      {dados.desconto > 0 && (
-                        <div className="flex justify-between items-center p-2">
-                          <span className="font-semibold text-gray-600">Desconto</span>
-                          <span className="text-red-600">-{formatarMoeda(dados.desconto)}</span>
-                        </div>
-                      )}
-                      {dados.acrescimos > 0 && (
-                        <div className="flex justify-between items-center p-2">
-                          <span className="font-semibold text-gray-600">Acréscimos</span>
-                          <span className="text-green-600">+{formatarMoeda(dados.acrescimos)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center bg-gray-200 p-3 rounded-md">
-                        <span className="font-bold text-gray-800 text-lg">TOTAL</span>
-                        <span className="text-green-600 font-bold text-lg">{formatarMoeda(calcularTotalFinal)}</span>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Footer */}
-                  <footer className="mt-8 pt-4">
-                    <p className="text-center text-sm text-gray-600 mb-8">
-                      Confirmo que o serviço foi prestado de acordo com o combinado.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                      <div className="text-center">
-                        <div className="border-t border-gray-400 pt-2">
-                          <p className="font-semibold">Assinatura do Cliente</p>
+                      {/* Variable Costs Section */}
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Custos Variáveis por Serviço</h3>
+                        {dados.custosVariaveis.length === 0 ? (
+                          <p className="text-sm text-gray-500">Nenhum custo variável adicionado.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {dados.custosVariaveis.map((custo) => (
+                              <li key={custo.id} className="text-sm">
+                                <div className="flex justify-between">
+                                  <span>{custo.descricao} ({custo.categoria})</span>
+                                  <span>{formatarMoeda(custo.valor)}</span>
+                                </div>
+                                {custo.observacoes && (
+                                  <p className="text-xs text-gray-500 italic">{custo.observacoes}</p>
+                                )}
+                                <p className="text-xs text-gray-600">{custo.unidade}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <div className="mt-3 pt-2 border-t">
+                          <div className="flex justify-between text-sm font-semibold">
+                            <span>Total:</span>
+                            <span className="text-orange-600">{formatarMoeda(calcularTotalCustosVariaveis)}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-center">
-                        <div className="border-t border-gray-400 pt-2">
-                          <p className="font-semibold">Data de entrega do serviço: {formatarData(dados.dataEntrega)}</p>
-                        </div>
-                      </div>
-                      <div className="text-center mt-8">
-                        <div className="border-t border-gray-400 pt-2">
-                          <p className="font-semibold">Assinatura do Técnico</p>
-                        </div>
-                      </div>
-                      <div className="text-center mt-8 self-end">
-                        <p className="bg-purple-600 text-white font-bold p-2 rounded">nexprice.com.br</p>
-                      </div>
-                    </div>
-                  </footer>
-                </div>
-              </div>
+                    </CardContent>
+                  </Card>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-4 mt-6 print:hidden">
-              <Button onClick={gerarPDF} className="bg-purple-600 hover:bg-purple-700">
-                <Download className="h-4 w-4 mr-2" />
-                Gerar PDF
-              </Button>
-              <Button onClick={imprimirOrcamento} variant="outline">
-                <FileText className="h-4 w-4 mr-2" />
-                Imprimir Orçamento
-              </Button>
-            </div>
-
-            {/* Financial Summary */}
-            <Alert className="mt-6">
-              <TrendingUp className="h-4 w-4" />
-              <AlertDescription>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <strong>Custo Operacional:</strong>
-                    <br />
-                    {formatarMoeda(calcularCustoOperacional)}
-                    {!dados.incluirSalarios && <div className="text-xs text-gray-500">*Salários excluídos</div>}
-                  </div>
-                  <div>
-                    <strong>Lucro Líquido:</strong>
-                    <br />
-                    <span className="text-green-600">{formatarMoeda(calcularLucro)}</span>
-                  </div>
-                  <div>
-                    <strong>Margem de Lucro:</strong>
-                    <br />
-                    {dados.margemLucro}%
-                  </div>
-                  <div>
-                    <strong>Preço Final:</strong>
-                    <br />
-                    <span className="text-purple-600 font-bold">{formatarMoeda(calcularTotalFinal)}</span>
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
-          </TabsContent>
-        </Tabs>
-      </div>
+        </Tabs> 
+      </div>   
     </div>
+
   )
 }
