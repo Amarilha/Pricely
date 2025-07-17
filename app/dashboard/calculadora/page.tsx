@@ -33,6 +33,10 @@ import { FinancialCharts } from "@/components/calculadora-01/financial-charts"
 import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
+import {stateAuth} from "@/app/src/services/estadoAuth"
+
+
+
 
 interface ServiceItem {
   id: string
@@ -255,7 +259,7 @@ export default function ServiceQuoteGenerator() {
 
   const handleSaveEmpresas = async () => {
     try {
-      const response = await fetch('/api/empresas', {
+      const response = await fetch('/dashboard/api/empresas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -319,7 +323,7 @@ export default function ServiceQuoteGenerator() {
   // Nova função para salvar cliente
   const handleSaveClient = async () => {
       try {
-        const response = await fetch('/api/client', {
+        const response = await fetch('/dashboard/api/client', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -358,8 +362,13 @@ export default function ServiceQuoteGenerator() {
   useEffect(() => {
     const fetchEmpresas = async () => {
       try {
+        const userId = await stateAuth();
         setLoading(true)
-        const response = await fetch('/api/empresas')
+        const response = await fetch('/dashboard/api/empresas',{
+          headers: {
+            'Authorization': `${userId}`
+          }
+        });
         if (!response.ok) {
           throw new Error(`Erro na API: ${response.statusText}`)
         }
@@ -379,8 +388,13 @@ export default function ServiceQuoteGenerator() {
   useEffect(() => {
     const fetchClient = async () => {
       try {
+        const userId = await stateAuth();
         setLoading(true)
-        const response = await fetch('/api/client')
+        const response = await fetch('/dashboard/api/client',{
+          headers:{
+            'Authorization': `${userId}`
+          }
+        });
         if (!response.ok) {
           throw new Error(`Erro na API: ${response.statusText}`)
         }
@@ -1538,7 +1552,7 @@ export default function ServiceQuoteGenerator() {
                           </div>
                         )}
                       </CardContent>
-                    </Card>id_client
+                    </Card>
 
 
 

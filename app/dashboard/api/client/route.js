@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getClient as fetchClientFromDB } from '../../src/services/routes'; // Importa a função original
+import { getClient as fetchClientFromDB } from '../../../src/services/routes'; // Importa a função original
 export async function GET(request) {
   try {
+    // Obtenha o userId do cabeçalho de autorização
+    const authHeader = request.headers.get('Authorization');
+    const userId = authHeader?.split(' ')[0]; // Assume formato "Bearer USER_ID"
     
-    const userId = 'HvafA2jd8JWr5j3Ds6wHX7GZVhj2'; // Ajuste para obter o userId da requisição real
-
+    if (!userId) {
+      // Usuário não autenticado
+      return Response.json({ error: 'Usuário não autenticado' }, { status: 401 });
+    }
+    //conexão com o banco de dados
     const client  = await fetchClientFromDB(userId);
-
     return NextResponse.json(client);
   } catch (error) {
     console.error('Erro ao buscar client na API:', error);
