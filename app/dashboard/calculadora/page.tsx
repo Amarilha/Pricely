@@ -54,7 +54,7 @@ interface VariableCost {
   descricao: string
   valor: number
   unidade: string
-  quandidade:number
+  quantidade:number
   observacoes: string
 }
 
@@ -415,7 +415,7 @@ export default function ServiceQuoteGenerator() {
           categoria: "Material",
           descricao: "",
           valor: 0,
-          quandidade: 0,
+          quantidade: 0,
           unidade: "unidade",
           observacoes: "",
         },
@@ -483,7 +483,7 @@ export default function ServiceQuoteGenerator() {
   }, [dados.custosFixos, dados.incluirSalarios])
 
   const calcularTotalCustosVariaveis = useMemo(() => {
-    return dados.custosVariaveis.reduce((total, custo) => total + ((custo.valor || 0)*(custo.quandidade || 0)), 0)
+    return dados.custosVariaveis.reduce((total, custo) => total + ((custo.valor || 0)*(custo.quantidade || 0)), 0)
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
@@ -575,7 +575,7 @@ export default function ServiceQuoteGenerator() {
     }
 
     // Create optimized PDF content
-    const pdfContent = `
+  const pdfContent = `
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
@@ -1817,8 +1817,8 @@ export default function ServiceQuoteGenerator() {
                                       type="number"
                                       step="1"
                                       placeholder="0,00"
-                                      value={custo.quandidade}
-                                      onChange={(e) => atualizarCustoVariavel(custo.id, "quandidade", Number(e.target.value))}
+                                      value={custo.quantidade}
+                                      onChange={(e) => atualizarCustoVariavel(custo.id, "quantidade", Number(e.target.value))}
                                     />
                                     </div>
                                     <div>
@@ -1856,7 +1856,8 @@ export default function ServiceQuoteGenerator() {
                                 </div>
 
                                  {/* observaçâo */}
-                                <div className="mt-2">
+                                 <div className="grid grid-cols-1 md:grid-cols-[80%_auto] gap-2">
+                                    <div className="mt-2">
                                   <TooltipHelper content="Observações adicionais sobre este custo">
                                     <Label className="text-xs">Observações</Label>
                                   </TooltipHelper>
@@ -1866,7 +1867,15 @@ export default function ServiceQuoteGenerator() {
                                     value={custo.observacoes}
                                     onChange={(e) => atualizarCustoVariavel(custo.id, "observacoes", e.target.value)}
                                   />
-                                </div>
+                                    </div>
+                                    <div className="mt-2">
+                                    <TooltipHelper content="Valor todal desse material">
+                                      <Label className="text-xs">Valor do material</Label>
+                                    </TooltipHelper>
+                                    <p className="text-xl h-8 text-left font-bold text-blue-600">{formatarMoeda((custo.valor || 0)*(custo.quantidade || 0))}</p>
+                                    </div>
+                                 </div>
+                                
 
                               </div>
                             ))}
@@ -2362,7 +2371,7 @@ export default function ServiceQuoteGenerator() {
                               <li key={custo.id} className="text-sm">
                                 <div className="flex justify-between">
                                   <span>{custo.descricao} ({custo.categoria})</span>
-                                  <span>{formatarMoeda(custo.valor)}</span>
+                                  <span>{formatarMoeda((custo.valor || 0)*(custo.quantidade || 0))}</span>
                                 </div>
                                 {custo.observacoes && (
                                   <p className="text-xs text-gray-500 italic">{custo.observacoes}</p>
