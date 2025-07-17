@@ -75,7 +75,7 @@ interface Company {
 }
 
 interface Client {
-  id: string
+  id_client: string
   nome: string
   cpf: string
   telefone: string
@@ -147,7 +147,7 @@ export default function ServiceQuoteGenerator() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [formData, setFormData] = useState({
+  const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
     cnpj: '',
     email: '',
@@ -159,6 +159,18 @@ export default function ServiceQuoteGenerator() {
     state: '',
     cep: ''
   })
+  const [formDataClient, setFormDataClient] = useState<Omit<Client, 'id_client'>>({
+    nome: '',
+    cpf: '',
+    telefone: '',
+    email: '',
+    endereco_rua: '',
+    endereco_numero: '',
+    endereco_cidade: '',
+    endereco_estado: '',
+    endereco_cep: '',
+    observacoes: '',
+  });
 
   const [dados, setDados] = useState<QuoteData>({
     empresaSelecionada: "",
@@ -177,7 +189,7 @@ export default function ServiceQuoteGenerator() {
     },
     clienteSelecionado: "",
     cliente: {
-      id: "",
+      id_client: "",
       nome: "",
       cpf: "",
       telefone: "",
@@ -235,13 +247,13 @@ export default function ServiceQuoteGenerator() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
-    setFormData(prev => ({
+    setFormDataEmpresas(prev => ({
       ...prev,
       [id.replace('company-', '')]: value
     }))
   }
 
-  const handleSave = async () => {
+  const handleSaveEmpresas = async () => {
     try {
       const response = await fetch('/api/empresas', {
         method: 'POST',
@@ -249,16 +261,16 @@ export default function ServiceQuoteGenerator() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          nome: formData.name,
-          cnpj: formData.cnpj,
-          email: formData.email,
-          telefone: formData.phone,
-          endereco_rua: formData.street,
-          endereco_numero: formData.number,
-          endereco_bairro: formData.neighborhood,
-          endereco_cidade: formData.city,
-          endereco_estado: formData.state,
-          endereco_cep: formData.cep,
+          nome: formDataEmpresas.name,
+          cnpj: formDataEmpresas.cnpj,
+          email: formDataEmpresas.email,
+          telefone: formDataEmpresas.phone,
+          endereco_rua: formDataEmpresas.street,
+          endereco_numero: formDataEmpresas.number,
+          endereco_bairro: formDataEmpresas.neighborhood,
+          endereco_cidade: formDataEmpresas.city,
+          endereco_estado: formDataEmpresas.state,
+          endereco_cep: formDataEmpresas.cep,
           logoChar: '' // Add default or dynamic logoChar if needed
         }),
       })
@@ -269,7 +281,7 @@ export default function ServiceQuoteGenerator() {
 
       const newCompany: Company = await response.json()
       setEmpresasCadastradas(prev => [...prev, newCompany])
-      setFormData({
+      setFormDataEmpresas({
         name: '',
         cnpj: '',
         email: '',
@@ -288,8 +300,8 @@ export default function ServiceQuoteGenerator() {
     }
   }
 
-  const handleCancel = () => {
-    setFormData({
+  const handleCancelEmpresas = () => {
+    setFormDataEmpresas({
       name: '',
       cnpj: '',
       email: '',
@@ -304,6 +316,45 @@ export default function ServiceQuoteGenerator() {
     setShowNewCompanyDialog(false)
   }
 
+  // Nova função para salvar cliente
+  const handleSaveClient = async () => {
+      try {
+        const response = await fetch('/api/client', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nome: formDataClient.nome, // Assumindo que você terá um formDataClient similar ao formData para empresas
+            cpf: formDataClient.cpf,
+            telefone: formDataClient.telefone,
+            email: formDataClient.email,
+            endereco_rua: formDataClient.endereco_rua,
+            endereco_numero: formDataClient.endereco_numero,
+            // endereco_bairro: formDataClient.endereco_bairro, // Se existir no seu formulário de cliente
+            endereco_cidade: formDataClient.endereco_cidade,
+            endereco_estado: formDataClient.endereco_estado,
+            endereco_cep: formDataClient.endereco_cep,
+            observacoes: formDataClient.observacoes // Se existir no seu formulário de cliente
+          }),
+        })
+  
+        if (!response.ok) {
+          throw new Error('Falha ao salvar cliente')
+        }
+  
+        const newClient: Client = await response.json()
+        setClientesCadastrados(prev => [...prev, newClient])
+        // Limpar o formulário do cliente após salvar (adapte conforme seu estado de formulário de cliente)
+        // setFormDataClient({ ...campos vazios do cliente ... })
+        // setShowNewClientDialog(false) // Se você tiver um modal para clientes
+      } catch (err) {
+        console.error('Erro ao salvar cliente:', err)
+        setError('Falha ao salvar cliente.')
+      }
+  }
+
+//fetchEmpresas
   useEffect(() => {
     const fetchEmpresas = async () => {
       try {
@@ -324,7 +375,7 @@ export default function ServiceQuoteGenerator() {
 
     fetchEmpresas()
   }, [])
-
+//fetchClient
   useEffect(() => {
     const fetchClient = async () => {
       try {
@@ -368,7 +419,7 @@ export default function ServiceQuoteGenerator() {
   // Client selection
   const selecionarCliente = useCallback(
     (clienteId: string) => {
-      const cliente = clientesCadastrados.find((c) => c.id === clienteId)
+      const cliente = clientesCadastrados.find((c) => c.id_client === clienteId)
       if (cliente) {
         setDados((prev) => ({
           ...prev,
@@ -1304,7 +1355,7 @@ export default function ServiceQuoteGenerator() {
                                   </Label>
                                   <Input
                                     id="company-name"
-                                    value={formData.name}
+                                    value={formDataEmpresas.name}
                                     onChange={handleChange}
                                     className="col-span-3"
                                   />
@@ -1315,7 +1366,7 @@ export default function ServiceQuoteGenerator() {
                                   </Label>
                                   <Input
                                     id="company-cnpj"
-                                    value={formData.cnpj}
+                                    value={formDataEmpresas.cnpj}
                                     onChange={(e) => {
                                       handleChange(e);
                                       // Apply CNPJ mask as the user types
@@ -1324,7 +1375,7 @@ export default function ServiceQuoteGenerator() {
                                       value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3'); // Add dot after 5 digits
                                       value = value.replace(/\.(\d{3})(\d)/, '.$1/$2'); // Add slash after 8 digits
                                       value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 12 digits
-                                      setFormData(prev => ({ ...prev, cnpj: value }));
+                                      setFormDataEmpresas(prev => ({ ...prev, cnpj: value }));
                                     }}
                                     className="col-span-3"
                                   />
@@ -1334,7 +1385,7 @@ export default function ServiceQuoteGenerator() {
                                   <Input
                                     id="company-email"
                                     type="email"
-                                    value={formData.email}
+                                    value={formDataEmpresas.email}
                                     onChange={handleChange}
                                     className="col-span-3"
                                   />
@@ -1346,7 +1397,7 @@ export default function ServiceQuoteGenerator() {
                                   <Input
                                     id="company-phone"
                                     type="tel"
-                                    value={formData.phone}
+                                    value={formDataEmpresas.phone}
                                     onChange={(e) => {
                                       handleChange(e);
                                       // Apply phone mask as the user types
@@ -1355,7 +1406,7 @@ export default function ServiceQuoteGenerator() {
                                       value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 4 digits
                                       // For 9 digit numbers (mobile), move dash
                                       value = value.replace(/(\d{5})-(\d)/, '$1-$2');
-                                      setFormData(prev => ({ ...prev, phone: value }));
+                                      setFormDataEmpresas(prev => ({ ...prev, phone: value }));
                                     }}
                                     className="col-span-3"
                                   />
@@ -1366,7 +1417,7 @@ export default function ServiceQuoteGenerator() {
                                   </Label>
                                   <Input
                                     id="company-street"
-                                    value={formData.street}
+                                    value={formDataEmpresas.street}
                                     onChange={handleChange}
                                     className="col-span-3"
                                   />
@@ -1377,7 +1428,7 @@ export default function ServiceQuoteGenerator() {
                                   </Label>
                                   <Input
                                     id="company-number"
-                                    value={formData.number}
+                                    value={formDataEmpresas.number}
                                     onChange={handleChange}
                                     className="col-span-3"
                                   />
@@ -1388,7 +1439,7 @@ export default function ServiceQuoteGenerator() {
                                   </Label>
                                   <Input
                                     id="company-neighborhood"
-                                    value={formData.neighborhood}
+                                    value={formDataEmpresas.neighborhood}
                                     onChange={handleChange}
                                     className="col-span-3"
                                   />
@@ -1399,7 +1450,7 @@ export default function ServiceQuoteGenerator() {
                                   </Label>
                                   <Input
                                     id="company-city"
-                                    value={formData.city}
+                                    value={formDataEmpresas.city}
                                     onChange={handleChange}
                                     className="col-span-3"
                                   />
@@ -1410,17 +1461,17 @@ export default function ServiceQuoteGenerator() {
                                   </Label>
                                   <Input
                                     id="company-state"
-                                    value={formData.state}
+                                    value={formDataEmpresas.state}
                                     onChange={handleChange}
                                     className="col-span-3"
                                   />
                                 </div>
                               </div>
                               <div className="flex justify-end gap-4">
-                                <Button variant="outline" onClick={handleCancel}>
+                                <Button variant="outline" onClick={handleCancelEmpresas}>
                                   Cancelar
                                 </Button>
-                                <Button onClick={handleSave}>
+                                <Button onClick={handleSaveEmpresas}>
                                   Salvar Empresa
                                 </Button>
                               </div>
@@ -1458,9 +1509,9 @@ export default function ServiceQuoteGenerator() {
 
                         {dados.empresaSelecionada && (
                           <div className="bg-muted p-4 rounded-lg">
-                            <h4 className="font-semibold mb-2">Detalhes da Empresa Selecionada:</h4>
+                            <h4 className="font-semibold text-center mb-2">Detalhes da Empresa Selecionada:</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div>
+                              <div className="text-left">
                                 <p>
                                   <strong>Nome:</strong> {dados.empresa.nome}
                                 </p>
@@ -1474,15 +1525,12 @@ export default function ServiceQuoteGenerator() {
                                   <strong>Email:</strong> {dados.empresa.email}
                                 </p>
                               </div>
-                              <div>
+                              <div className="text-left" >
                                 <p>
-                                  <strong>Endereço:</strong>
+                                  <strong>Endereço:</strong> {dados.empresa.endereco_rua}, {dados.empresa.endereco_numero}
                                 </p>
                                 <p>
-                                  {dados.empresa.endereco_rua}, {dados.empresa.endereco_numero}
-                                </p>
-                                <p>
-                                  {dados.empresa.endereco_cidade}, {dados.empresa.endereco_estado}
+                                  <strong>Cidade:</strong> {dados.empresa.endereco_cidade}, {dados.empresa.endereco_estado}
                                 </p>
                                 <p>CEP: {dados.empresa.endereco_cep}</p>
                               </div>
@@ -1490,7 +1538,7 @@ export default function ServiceQuoteGenerator() {
                           </div>
                         )}
                       </CardContent>
-                    </Card>
+                    </Card>id_client
 
 
 
@@ -1533,11 +1581,11 @@ export default function ServiceQuoteGenerator() {
                             </SelectTrigger>
                             <SelectContent>
                               {clientesCadastrados.map((cliente) => (
-                                <SelectItem key={cliente.id} value={cliente.id}>
-                                  <div>
+                                <SelectItem key={cliente.id_client} value={cliente.id_client}>
+                                  <div className="flex items-center gap-2">
                                     <div className="font-medium">{cliente.nome}</div>
                                     <div className="text-xs text-gray-500">
-                                      {cliente.cpf} • {cliente.telefone}
+                                     <strong>CNPJ:</strong>{cliente.cpf} • <strong>Telefone:</strong>{cliente.telefone}
                                     </div>
                                     {cliente.observacoes && <div className="text-xs text-blue-600">{cliente.observacoes}</div>}
                                   </div>
@@ -1551,7 +1599,7 @@ export default function ServiceQuoteGenerator() {
                           <div className="bg-muted p-4 rounded-lg">
                             <h4 className="font-semibold mb-2">Detalhes do Cliente Selecionado:</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div>
+                              <div className="text-left" >
                                 <p>
                                   <strong>Nome:</strong> {dados.cliente.nome}
                                 </p>
@@ -1565,15 +1613,12 @@ export default function ServiceQuoteGenerator() {
                                   <strong>Email:</strong> {dados.cliente.email}
                                 </p>
                               </div>
-                              <div>
+                              <div className="text-left" >
                                 <p>
-                                  <strong>Endereço:</strong>
+                                  <strong>Endereço:</strong> {dados.cliente.endereco_rua}, {dados.cliente.endereco_numero}                            
                                 </p>
                                 <p>
-                                  {dados.cliente.endereco_rua}, {dados.cliente.endereco_numero}
-                                </p>
-                                <p>
-                                  {dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
+                                  <strong>Cidade:</strong>{dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
                                 </p>
                                 <p>CEP: {dados.cliente.endereco_cep}</p>
                                 {dados.cliente.observacoes && (
