@@ -64,6 +64,7 @@ interface VariableCost {
 
 interface Company {
   id_company: string
+  id_user: string;
   nome: string
   cnpj: string
   endereco_rua: string
@@ -150,6 +151,7 @@ export default function ServiceQuoteGenerator() {
   const [showNewClientDialog, setShowNewClientDialog] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
@@ -180,6 +182,7 @@ export default function ServiceQuoteGenerator() {
     empresaSelecionada: "",
     empresa: {
       id_company: "",
+      id_user: "",
       nome: "",
       cnpj: "",
       endereco_rua: "",
@@ -257,52 +260,154 @@ export default function ServiceQuoteGenerator() {
     }))
   }
 
+  //ler o BD
+  const fetchEmpresas = async () => {
+    try {
+      const userId = await stateAuth();
+      setLoading(true)
+      const response = await fetch('/dashboard/api/empresas',{
+        headers: {
+          'Authorization': `${userId}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.statusText}`)
+      }
+      const data: Company[] = await response.json()
+      setEmpresasCadastradas(data)
+    } catch (err) {
+      console.error('Erro ao buscar empresas:', err)
+      setError('Falha ao carregar empresas.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  //fetchEmpresas
+  useEffect(() => { 
+    fetchEmpresas()
+  }, [])
+
+  //cadastro de empresas
   const handleSaveEmpresas = async () => {
     try {
+      console.log("handleSaveEmpresas")
+      setIsLoading(true);
+      const userId = await stateAuth();
+      console.log("userId retornado por stateAuth:", userId);
+      if (!userId) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const cleanedCnpj = formDataEmpresas.cnpj.replace(/\D/g, '');
+      console.log("CNPJ enviado:", cleanedCnpj);
+      if (cleanedCnpj.length !== 14) {
+        throw new Error('CNPJ inválido: deve conter exatamente 14 dígitos');
+      }
+
+      if (!formDataEmpresas.name || !formDataEmpresas.email) {
+        throw new Error('Campos obrigatórios (nome, email) não preenchidos');
+      }
+
       const response = await fetch('/dashboard/api/empresas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          id_user: userId,
           nome: formDataEmpresas.name,
-          cnpj: formDataEmpresas.cnpj,
-          email: formDataEmpresas.email,
-          telefone: formDataEmpresas.phone,
+          cnpj: cleanedCnpj,
           endereco_rua: formDataEmpresas.street,
           endereco_numero: formDataEmpresas.number,
           endereco_bairro: formDataEmpresas.neighborhood,
           endereco_cidade: formDataEmpresas.city,
           endereco_estado: formDataEmpresas.state,
           endereco_cep: formDataEmpresas.cep,
+          telefone: formDataEmpresas.phone,
+          email: formDataEmpresas.email,
           logoChar: '' // Add default or dynamic logoChar if needed
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Falha ao salvar empresa')
+        const errorData = await response.json();
+        console.log("Erro retornado pelo servidor:", errorData);
+        throw new Error(errorData.error || 'Falha ao salvar empresa');
       }
 
-      const newCompany: Company = await response.json()
-      setEmpresasCadastradas(prev => [...prev, newCompany])
-      setFormDataEmpresas({
-        name: '',
-        cnpj: '',
-        email: '',
-        phone: '',
-        street: '',
-        number: '',
-        neighborhood: '',
-        city: '',
-        state: '',
-        cep: ''
-      })
+      const newCompany: Company = await response.json();
+    setEmpresasCadastradas(prev => [...prev, newCompany]);
+
+    // Limpar os campos do formulário
+    setFormDataEmpresas({
+      name: '',
+      cnpj: '',
+      email: '',
+      phone: '',
+      street: '',
+      number: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      cep: '',
+    });
+     
+
+
       setShowNewCompanyDialog(false)
     } catch (err) {
-      console.error('Erro ao salvar empresa:', err)
-      setError('Falha ao salvar empresa.')
+      console.error('Erro ao salvar empresa:', err);
+      setError('Falha ao salvar empresa.');
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
+
+    // Company selection
+  // --- Funções para manipulação de estado (Exemplo para seleção de empresa) ---
+  const selecionarEmpresa = useCallback(
+    (empresaId: string) => {
+      const empresa = empresasCadastradas.find((e) => e.id_company === empresaId)
+      if (empresa) {
+        setDados((prev) => ({
+          ...prev,
+          empresaSelecionada: empresaId,
+          empresa: empresa,
+        }))
+      }
+    },
+    [empresasCadastradas], // Dependência: recalcula se a lista de empresas mudar
+  )
+
+
+
+  //fetchClient
+  useEffect(() => {
+    const fetchClient = async () => {
+      try {
+        const userId = await stateAuth();
+        setLoading(true)
+        const response = await fetch('/dashboard/api/client',{
+          headers:{
+            'Authorization': `${userId}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`)
+        }
+        const data: Client[] = await response.json()
+        setClientesCadastrados(data)
+      } catch (err) {
+        console.error('Erro ao buscar clientes:', err)
+        setError('Falha ao carregar clientes.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchClient()
+  }, [])
 
   const handleCancelEmpresas = () => {
     setFormDataEmpresas({
@@ -319,6 +424,7 @@ export default function ServiceQuoteGenerator() {
     })
     setShowNewCompanyDialog(false)
   }
+
 
   // Nova função para salvar cliente
   const handleSaveClient = async () => {
@@ -356,79 +462,7 @@ export default function ServiceQuoteGenerator() {
         console.error('Erro ao salvar cliente:', err)
         setError('Falha ao salvar cliente.')
       }
-  }
-
-//fetchEmpresas
-  useEffect(() => {
-    const fetchEmpresas = async () => {
-      try {
-        const userId = await stateAuth();
-        setLoading(true)
-        const response = await fetch('/dashboard/api/empresas',{
-          headers: {
-            'Authorization': `${userId}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`)
-        }
-        const data: Company[] = await response.json()
-        setEmpresasCadastradas(data)
-      } catch (err) {
-        console.error('Erro ao buscar empresas:', err)
-        setError('Falha ao carregar empresas.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchEmpresas()
-  }, [])
-//fetchClient
-  useEffect(() => {
-    const fetchClient = async () => {
-      try {
-        const userId = await stateAuth();
-        setLoading(true)
-        const response = await fetch('/dashboard/api/client',{
-          headers:{
-            'Authorization': `${userId}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`)
-        }
-        const data: Client[] = await response.json()
-        setClientesCadastrados(data)
-      } catch (err) {
-        console.error('Erro ao buscar clientes:', err)
-        setError('Falha ao carregar clientes.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchClient()
-  }, [])
-
-
-
-
-  // Company selection
-  // --- Funções para manipulação de estado (Exemplo para seleção de empresa) ---
-  const selecionarEmpresa = useCallback(
-    (empresaId: string) => {
-      const empresa = empresasCadastradas.find((e) => e.id_company === empresaId)
-      if (empresa) {
-        setDados((prev) => ({
-          ...prev,
-          empresaSelecionada: empresaId,
-          empresa: empresa,
-        }))
-      }
-    },
-    [empresasCadastradas], // Dependência: recalcula se a lista de empresas mudar
-  )
+  };
 
   // Client selection
   const selecionarCliente = useCallback(
@@ -1382,14 +1416,15 @@ export default function ServiceQuoteGenerator() {
                                     id="company-cnpj"
                                     value={formDataEmpresas.cnpj}
                                     onChange={(e) => {
-                                      handleChange(e);
-                                      // Apply CNPJ mask as the user types
-                                      let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-                                      value = value.replace(/^(\d{2})(\d)/, '$1.$2'); // Add dot after 2 digits
-                                      value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3'); // Add dot after 5 digits
-                                      value = value.replace(/\.(\d{3})(\d)/, '.$1/$2'); // Add slash after 8 digits
-                                      value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 12 digits
-                                      setFormDataEmpresas(prev => ({ ...prev, cnpj: value }));
+                                      let value = e.target.value.replace(/\D/g, ''); // Remove não dígitos
+                                      if (value.length > 14) value = value.slice(0, 14); // Limita a 14 dígitos
+                                      // Aplica máscara apenas para exibição
+                                      let formattedValue = value;
+                                      if (value.length > 2) formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                                      if (value.length > 5) formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                                      if (value.length > 8) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                                      if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
+                                      setFormDataEmpresas(prev => ({ ...prev, cnpj: formattedValue }));
                                     }}
                                     className="col-span-3"
                                   />
@@ -1481,12 +1516,26 @@ export default function ServiceQuoteGenerator() {
                                   />
                                 </div>
                               </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="company-cep" className="text-right">CEP</Label>
+                                <Input
+                                  id="company-cep"
+                                  value={formDataEmpresas.cep}
+                                  onChange={(e) => {
+                                    handleChange(e);
+                                    let value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                                    setFormDataEmpresas(prev => ({ ...prev, cep: value }));
+                                  }}
+                                  className="col-span-3"
+                                />
+                              </div>
                               <div className="flex justify-end gap-4">
                                 <Button variant="outline" onClick={handleCancelEmpresas}>
                                   Cancelar
                                 </Button>
-                                <Button onClick={handleSaveEmpresas}>
-                                  Salvar Empresa
+                                <Button onClick={handleSaveEmpresas} disabled={isLoading}>
+                                  {isLoading ? 'Salvando...' : 'Salvar Empresa'}
                                 </Button>
                               </div>
                             </DialogContent>
@@ -1677,18 +1726,7 @@ export default function ServiceQuoteGenerator() {
                               onChange={(e) => setDados((prev) => ({ ...prev, margemLucro: Number(e.target.value) }))}
                             />
                           </div>
-                          <div>
-                            <TooltipHelper content="Percentual de impostos que incidem sobre o serviço (Simples Nacional, ISS, etc.)">
-                              <Label htmlFor="impostos">Impostos (%)</Label>
-                            </TooltipHelper>
-                            <Input
-                              id="impostos"
-                              type="number"
-                              step="0.1"
-                              value={dados.impostos}
-                              onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
-                            />
-                          </div>
+                          
                         </div>
                       </CardContent>
                     </Card>

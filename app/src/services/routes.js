@@ -32,18 +32,16 @@ export async function getClient(userId) {
 }
 
 export async function createCompany(companyData) {
-  try {
-    // Pega o id_user do usuário autenticado
-    const id_user = 'EJwxgmp1i9SgQbmBxY4F8sLQbhf1';
-    if (!id_user) {
-      throw new Error('Usuário não autenticado');
-    }
 
+  console.log("Dados recebidos em createCompany:", companyData);
+  try {
+   
     // Gera um UUID para id_company
     const id_company = uuidv4();
 
     // Desestrutura os dados da empresa vindos do frontend
     const {
+      id_user,
       nome,
       cnpj,
       endereco_rua,
@@ -56,6 +54,25 @@ export async function createCompany(companyData) {
       email,
       logoChar = '', // Define um valor padrão vazio se não for fornecido
     } = companyData;
+
+    if (!id_user || !nome || !cnpj || !email) {
+      throw new Error('Campos obrigatórios (id_user, nome, cnpj, email) não fornecidos');
+    }
+
+    console.log("Executando query com valores:", {
+      id_company,
+      id_user,
+      nome,
+      cnpj,
+      endereco_rua,
+      endereco_numero,
+      endereco_cidade,
+      endereco_estado,
+      endereco_cep,
+      telefone,
+      email,
+      logoChar,
+    });
 
     // Executa a query para inserir a empresa
     const [result] = await pool.query(
@@ -75,7 +92,7 @@ export async function createCompany(companyData) {
         endereco_cep || null,
         telefone || null,
         email || null,
-        logoChar,
+        logoChar || null,
       ]
     );
 
@@ -84,7 +101,7 @@ export async function createCompany(companyData) {
       'SELECT * FROM Company WHERE id_company = ?',
       [id_company]
     );
-    return newCompany[0];
+    console.log("empresa criada",newCompany[0]);
   } catch (err) {
     console.error('❌ Erro ao criar empresa:', err);
     throw err;

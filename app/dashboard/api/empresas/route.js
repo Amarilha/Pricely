@@ -1,6 +1,6 @@
 // app/dashboard/api/empresas/route.js
-import { getEmpresas as fetchEmpresasFromDB, createCompany } from '../../../src/services/routes.js';
-
+import { getEmpresas as fetchEmpresasFromDB } from '../../../src/services/routes.js';
+import { createCompany as  createCompany } from '../../../src/services/routes.js';
 
 
 export async function GET(request) {
@@ -26,10 +26,11 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const companyData = await request.json();
+    console.log("Corpo da requisição recebido no POST:", companyData);
     const newCompany = await createCompany(companyData);
     return Response.json(newCompany, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar empresa:', error);
+    console.error('Erro no endpoint POST:', error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
