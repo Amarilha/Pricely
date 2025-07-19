@@ -101,7 +101,9 @@ export async function createCompany(companyData) {
       'SELECT * FROM Company WHERE id_company = ?',
       [id_company]
     );
+    
     console.log("empresa criada",newCompany[0]);
+    return newCompany[0]; // Retorna a empresa recém-criada
   } catch (err) {
     console.error('❌ Erro ao criar empresa:', err);
     throw err;
