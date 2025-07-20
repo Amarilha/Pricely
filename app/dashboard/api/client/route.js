@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getClient as fetchClientFromDB } from '../../../src/services/routes'; // Importa a função original
+import { createClient as createClient } from '../../../src/services/routes'; // Importa a função original
+
 export async function GET(request) {
   try {
     // Obtenha o userId do cabeçalho de autorização
@@ -23,11 +25,12 @@ export async function GET(request) {
 export async function POST(request) {
   console.log('POST request received');
   try {
-    const companyData = await request.json();
-    const newCompany = await createCompany(companyData);
-    return NextResponse.json(newCompany, { status: 201 });
+    const clientData = await request.json();
+    console.log("Corpo da requisição recebido no POST:", clientData);
+    const newClient = await createClient(clientData);
+    return NextResponse.json(newClient, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar empresa na API:', error);
+    console.error('Erro no endpoint POST:', error.message, error.stack);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

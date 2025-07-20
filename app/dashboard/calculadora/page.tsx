@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select"
 import {
   Plus,
   Trash2,
@@ -305,6 +305,10 @@ export default function ServiceQuoteGenerator() {
         throw new Error('CNPJ inválido: deve conter exatamente 14 dígitos');
       }
 
+      // Limpa e valida telefone (remove tudo que não for dígito)
+      const cleanedTelefone = formDataEmpresas.phone.replace(/\D/g, '');
+      console.log("Telefone enviado:", cleanedTelefone);
+
       if (!formDataEmpresas.name || !formDataEmpresas.email) {
         throw new Error('Campos obrigatórios (nome, email) não preenchidos');
       }
@@ -324,7 +328,7 @@ export default function ServiceQuoteGenerator() {
           endereco_cidade: formDataEmpresas.city,
           endereco_estado: formDataEmpresas.state,
           endereco_cep: formDataEmpresas.cep,
-          telefone: formDataEmpresas.phone,
+          telefone: cleanedTelefone,
           email: formDataEmpresas.email,
           logoChar: '' // Add default or dynamic logoChar if needed
         }),
@@ -353,8 +357,6 @@ export default function ServiceQuoteGenerator() {
       cep: '',
     });
      
-
-
       setShowNewCompanyDialog(false)
     } catch (err) {
       console.error('Erro ao salvar empresa:', err);
@@ -380,7 +382,22 @@ export default function ServiceQuoteGenerator() {
     [empresasCadastradas], // Dependência: recalcula se a lista de empresas mudar
   )
 
-
+  //Cancel Empresas
+  const handleCancelEmpresas = () => {
+    setFormDataEmpresas({
+      name: '',
+      cnpj: '',
+      email: '',
+      phone: '',
+      street: '',
+      number: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      cep: ''
+    })
+    setShowNewCompanyDialog(false)
+  }
 
   //fetchClient
   useEffect(() => {
@@ -409,58 +426,82 @@ export default function ServiceQuoteGenerator() {
     fetchClient()
   }, [])
 
-  const handleCancelEmpresas = () => {
-    setFormDataEmpresas({
-      name: '',
-      cnpj: '',
-      email: '',
-      phone: '',
-      street: '',
-      number: '',
-      neighborhood: '',
-      city: '',
-      state: '',
-      cep: ''
-    })
-    setShowNewCompanyDialog(false)
-  }
-
-
   // Nova função para salvar cliente
   const handleSaveClient = async () => {
       try {
+        setIsLoading(true);
+        const userId = await stateAuth();
+        console.log("userId retornado por stateAuth:", userId);
+        if (!userId) {
+          throw new Error('Usuário não autenticado');
+        }
+
+        // Limpa e valida CPF (remove tudo que não for dígito)
+        const cleanedCpf = formDataClient.cpf.replace(/\D/g, '');
+        console.log("CPF enviado:", cleanedCpf);
+
+        const cleanedCep = formDataClient.endereco_cep.replace(/\D/g,'');
+        console.log("CEP enviado", cleanedCep)
+
+        if (cleanedCpf.length !== 11) {
+          throw new Error('CPF inválido: deve conter exatamente 11 dígitos');
+        }
+
+        // Limpa e valida telefone (remove tudo que não for dígito)
+        const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
+        console.log("Telefone enviado:", cleanedTelefone);
+
+        if (cleanedTelefone.length < 10 || cleanedTelefone.length > 11) {
+          throw new Error('Telefone inválido: deve conter 10 ou 11 dígitos (com DDD)');
+        }
+
         const response = await fetch('/dashboard/api/client', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            id_user: userId,
             nome: formDataClient.nome, // Assumindo que você terá um formDataClient similar ao formData para empresas
-            cpf: formDataClient.cpf,
+            cpf: cleanedCpf,
             telefone: formDataClient.telefone,
             email: formDataClient.email,
             endereco_rua: formDataClient.endereco_rua,
             endereco_numero: formDataClient.endereco_numero,
-            // endereco_bairro: formDataClient.endereco_bairro, // Se existir no seu formulário de cliente
             endereco_cidade: formDataClient.endereco_cidade,
             endereco_estado: formDataClient.endereco_estado,
-            endereco_cep: formDataClient.endereco_cep,
+            endereco_cep: cleanedCep,
             observacoes: formDataClient.observacoes // Se existir no seu formulário de cliente
           }),
-        })
+        });
   
         if (!response.ok) {
-          throw new Error('Falha ao salvar cliente')
+          const errorData = await response.json();
+          console.log("Erro retornado pelo servidor:", errorData);
+          throw new Error(errorData.error || 'Falha ao salvar client');
         }
   
         const newClient: Client = await response.json()
         setClientesCadastrados(prev => [...prev, newClient])
         // Limpar o formulário do cliente após salvar (adapte conforme seu estado de formulário de cliente)
-        // setFormDataClient({ ...campos vazios do cliente ... })
-        // setShowNewClientDialog(false) // Se você tiver um modal para clientes
+        setFormDataClient({ 
+          nome: '',
+          cpf: '',
+          telefone: '',
+          email: '',
+          endereco_rua: '',
+          endereco_numero: '',
+          endereco_cidade: '',
+          endereco_estado: '',
+          endereco_cep: '',
+          observacoes: '',
+        })
+        setShowNewClientDialog(false) // Se você tiver um modal para clientes
       } catch (err) {
         console.error('Erro ao salvar cliente:', err)
         setError('Falha ao salvar cliente.')
+      }finally {
+        setIsLoading(false);
       }
   };
 
@@ -478,6 +519,48 @@ export default function ServiceQuoteGenerator() {
     },
     [clientesCadastrados],
   )
+
+  const handleCancelCliente = () => {
+    setFormDataEmpresas({
+      name: '',
+      cnpj: '',
+      email: '',
+      phone: '',
+      street: '',
+      number: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      cep: '',
+    });
+     
+    setShowNewClientDialog(false)
+  }
+
+  const handleChangeClient = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    
+    // Mapeamento dos IDs para os nomes no estado
+    const fieldMap: Record<string, string> = {
+      'client-name': 'nome',
+      'client-cpf': 'cpf',
+      'client-email': 'email',
+      'client-phone': 'telefone',
+      'client-street': 'endereco_rua',
+      'client-number': 'endereco_numero',
+      'client-city': 'endereco_cidade',
+      'client-state': 'endereco_estado',
+      'client-cep': 'endereco_cep',
+      'client-notes': 'observacoes'
+    };
+  
+    const fieldName = fieldMap[id] || id.replace('client-', '');
+    
+    setFormDataClient(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
+  }
 
   // Fixed Costs Management
   const adicionarCustoFixo = useCallback(() => {
@@ -1504,16 +1587,37 @@ export default function ServiceQuoteGenerator() {
                                     className="col-span-3"
                                   />
                                 </div>
+                                
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-state" className="text-right">
                                     Estado
                                   </Label>
-                                  <Input
-                                    id="company-state"
+                                  <Select
                                     value={formDataEmpresas.state}
-                                    onChange={handleChange}
-                                    className="col-span-3"
-                                  />
+                                    onValueChange={(value) => {
+                                      handleChange({
+                                        target: {
+                                          id: 'company-state',
+                                          value: value
+                                        }
+                                      } as React.ChangeEvent<HTMLInputElement>);
+                                    }}
+                                  >
+                                    <SelectTrigger className="col-span-3">
+                                      <SelectValue placeholder="Selecione um estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectGroup>
+                                        {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
+                                          'MA','MT','MS','MG','PA','PB','PR','PE','PI',
+                                          'RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map((sigla) => (
+                                          <SelectItem key={sigla} value={sigla}>
+                                            {sigla}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                               </div>
                               <div className="grid grid-cols-4 items-center gap-4">
@@ -1620,14 +1724,178 @@ export default function ServiceQuoteGenerator() {
                                 Novo Cliente
                               </Button>
                             </DialogTrigger>
+                            {/* cadastro do cliente */}
                             <DialogContent className="max-w-2xl">
                               <DialogHeader>
                                 <DialogTitle>Adicionar Novo Cliente</DialogTitle>
                               </DialogHeader>
-                              <div className="text-center py-8 text-gray-500">
-                                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                <p>Formulário de cadastro de cliente seria implementado aqui</p>
-                                <p className="text-sm">Isso permitiria adicionar novos clientes ao banco de dados</p>
+                              <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-name" className="text-right">
+                                    Nome Completo
+                                  </Label>
+                                  <Input
+                                    id="client-name"
+                                    type="text"
+                                    value={formDataClient.nome}
+                                    onChange={handleChangeClient}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-cpf" className="text-right">
+                                    CPF
+                                  </Label>
+                                  <Input
+                                    id="client-cpf"
+                                    value={formDataClient.cpf}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/\D/g, '');
+                                      if (value.length > 11) value = value.slice(0, 11);
+                                      let formattedValue = value;
+                                      if (value.length > 3) formattedValue = value.replace(/^(\d{3})(\d)/, '$1.$2');
+                                      if (value.length > 6) formattedValue = formattedValue.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+                                      if (value.length > 9) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1-$2');
+                                      handleChangeClient({ 
+                                        target: { 
+                                          id: 'client-cpf', 
+                                          value: formattedValue 
+                                        } 
+                                      } as React.ChangeEvent<HTMLInputElement>);
+                                    }}
+                                    className="col-span-3"
+                                    placeholder="000.000.000-00"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-email" className="text-right">Email</Label>
+                                  <Input
+                                    id="client-email"
+                                    type="email"
+                                    value={formDataClient.email}
+                                    onChange={handleChangeClient}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-phone" className="text-right">
+                                    Telefone
+                                  </Label>
+                                  <Input
+                                    id="client-phone"
+                                    type="tel"
+                                    value={formDataClient.telefone}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/\D/g, ''); // Remove não dígitos
+                                      if (value.length > 11) value = value.slice(0, 11); // Limita a 11 dígitos
+                                      // Aplica máscara
+                                      let formattedValue = value;
+                                      if (value.length > 0) formattedValue = `(${value.substring(0, 2)}`;
+                                      if (value.length > 2) formattedValue = `(${value.substring(0, 2)}) ${value.substring(2, 7)}`;
+                                      if (value.length > 7) formattedValue = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7)}`;
+                                      setFormDataClient(prev => ({ ...prev, telefone: formattedValue }));
+                                    }}
+                                    className="col-span-3"
+                                    placeholder="(00) 00000-0000"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-street" className="text-right">
+                                    Rua
+                                  </Label>
+                                  <Input
+                                    id="client-street"
+                                    value={formDataClient.endereco_rua}
+                                    onChange={handleChangeClient}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-number" className="text-right">
+                                    Número
+                                  </Label>
+                                  <Input
+                                    id="client-number"
+                                    value={formDataClient.endereco_numero}
+                                    onChange={handleChangeClient}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-city" className="text-right">
+                                    Cidade
+                                  </Label>
+                                  <Input
+                                    id="client-city"
+                                    value={formDataClient.endereco_cidade}
+                                    onChange={handleChangeClient}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-state" className="text-right">
+                                    Estado
+                                  </Label>
+                                  <Select
+                                    value={formDataClient.endereco_estado}
+                                    onValueChange={(value) => {
+                                      handleChangeClient({
+                                        target: {
+                                          id: 'client-state',
+                                          value: value
+                                        }
+                                      } as React.ChangeEvent<HTMLInputElement>);
+                                    }}
+                                  >
+                                    <SelectTrigger className="col-span-3">
+                                      <SelectValue placeholder="Selecione um estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectGroup>
+                                        {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
+                                          'MA','MT','MS','MG','PA','PB','PR','PE','PI',
+                                          'RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map((sigla) => (
+                                          <SelectItem key={sigla} value={sigla}>
+                                            {sigla}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-cep" className="text-right">CEP</Label>
+                                  <Input
+                                    id="client-cep"
+                                    value={formDataClient.endereco_cep}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                      value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                                      setFormDataClient(prev => ({ ...prev, endereco_cep: value }));
+                                    }}
+                                    className="col-span-3"
+                                    placeholder="00000-000"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="client-notes" className="text-right">
+                                    Observações
+                                  </Label>
+                                  <Input
+                                    id="client-notes"
+                                    value={formDataClient.observacoes}
+                                    onChange={handleChangeClient}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-4">
+                                <Button variant="outline" onClick={handleCancelCliente}>
+                                  Cancelar
+                                </Button>
+                                <Button onClick={handleSaveClient} disabled={isLoading}>
+                                  {isLoading ? 'Salvando...' : 'Salvar Cliente'}
+                                </Button>
                               </div>
                             </DialogContent>
                           </Dialog>
