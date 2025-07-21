@@ -229,7 +229,7 @@ export default function ServiceQuoteGenerator() {
     custosVariaveis: [],
     margemLucro: 30,
     impostos: 8,
-    tempoExecucao: 1,
+    tempoExecucao: 160,
     incluirSalarios: true,
     itens: [],
     formaPagamento: "",
@@ -1448,11 +1448,11 @@ export default function ServiceQuoteGenerator() {
             
             {/* tudo */}
             <Tabs defaultValue="setup" className="col-start-2 grid-2 mt-2 space-y-6">
-                  <TabsList className="grid w-90% grid-cols-6">
+                  <TabsList className="grid w-90% grid-cols-5">
                     <TabsTrigger value="setup">🏢 Informações</TabsTrigger>
                     <TabsTrigger value="costs">💰 Custos</TabsTrigger>
                     <TabsTrigger value="service">🔧 Serviço</TabsTrigger>
-                    <TabsTrigger value="taxes">📊 Impostos</TabsTrigger>
+                    {/*<TabsTrigger value="taxes">📊 Impostos</TabsTrigger>*/}
                     <TabsTrigger value="analytics">📈 Análises</TabsTrigger>
                     {/*<TabsTrigger value="boletos">💳 Boletos</TabsTrigger>*/}
                     <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
@@ -1975,6 +1975,7 @@ export default function ServiceQuoteGenerator() {
                             <TooltipHelper content="Total de horas que você trabalha por mês. Usado para calcular o custo por hora dos gastos fixos">
                               <Label htmlFor="horas-mes">Horas Trabalhadas/Mês</Label>
                             </TooltipHelper>
+                            
                             <Input
                               id="horas-mes"
                               type="number"
@@ -2285,7 +2286,8 @@ export default function ServiceQuoteGenerator() {
                         <CardTitle>Configuração do Serviço</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* 
                           <div>
                             <TooltipHelper content="Número único para identificar este orçamento">
                               <Label htmlFor="numero-ordem">Número da Orçamento</Label>
@@ -2296,6 +2298,7 @@ export default function ServiceQuoteGenerator() {
                               onChange={(e) => setDados((prev) => ({ ...prev, numeroOrdem: e.target.value }))}
                             />
                           </div>
+                            */}
                           <div>
                             <TooltipHelper content="Data de criação do orçamento">
                               <Label htmlFor="data">Data</Label>
@@ -2306,8 +2309,10 @@ export default function ServiceQuoteGenerator() {
                               value={dados.data}
                               onChange={(e) => setDados((prev) => ({ ...prev, data: e.target.value }))}
                             />
+                            
                           </div>
                           <div>
+
                             <TooltipHelper content="Quantas horas você vai levar para executar este serviço">
                               <Label htmlFor="tempo-execucao">Tempo de Execução (horas)</Label>
                             </TooltipHelper>
@@ -2337,7 +2342,7 @@ export default function ServiceQuoteGenerator() {
                     </Card>
 
                     {/* Payment and Adjustments */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                       <Card>
                         <CardHeader>
                           <CardTitle>
@@ -2355,7 +2360,7 @@ export default function ServiceQuoteGenerator() {
                           />
                         </CardContent>
                       </Card>
-
+                      {/* 
                       <Card>
                         <CardHeader>
                           <CardTitle>Ajustes</CardTitle>
@@ -2387,6 +2392,7 @@ export default function ServiceQuoteGenerator() {
                           </div>
                         </CardContent>
                       </Card>
+                      */}
                     </div>
                   </TabsContent>
 

@@ -26,8 +26,8 @@ export function PaymentMethodSelector({
       name: "À Vista",
       icon: Banknote,
       description: "Pagamento integral no ato da prestação do serviço",
-      terms: "Pagamento à vista no valor total de {valor} na entrega do serviço.",
-      discount: "Desconto de 5% para pagamento à vista",
+      terms: "Pagamento à vista.",
+      discount: "",
       color: "green",
     },
     {
@@ -35,73 +35,19 @@ export function PaymentMethodSelector({
       name: "PIX",
       icon: CheckCircle,
       description: "Transferência instantânea via PIX",
-      terms: "Pagamento via PIX no valor de {valor}. Chave PIX será fornecida após confirmação do serviço.",
-      discount: "Desconto de 3% para pagamento via PIX",
+      terms: "Pagamento via PIX . Chave PIX será fornecida após confirmação do serviço.",
+      discount: "",
       color: "blue",
-    },
-    {
-      id: "cartao_debito",
-      name: "Cartão de Débito",
-      icon: CreditCard,
-      description: "Pagamento com cartão de débito na entrega",
-      terms: "Pagamento com cartão de débito no valor de {valor} na entrega do serviço.",
-      discount: "",
-      color: "purple",
-    },
-    {
-      id: "cartao_credito",
-      name: "Cartão de Crédito",
-      icon: CreditCard,
-      description: "Pagamento com cartão de crédito",
-      terms: "Pagamento com cartão de crédito no valor de {valor}. Aceitas as principais bandeiras.",
-      discount: "",
-      color: "orange",
     },
     {
       id: "boleto",
       name: "Boleto Bancário",
       icon: Calendar,
       description: "Pagamento via boleto com vencimento em 30 dias",
-      terms: "Pagamento via boleto bancário no valor de {valor} com vencimento em 30 dias corridos.",
+      terms: "Pagamento via boleto bancário .",
       discount: "",
       color: "red",
-    },
-    {
-      id: "parcelado_2x",
-      name: "2x sem juros",
-      icon: Calendar,
-      description: "Parcelamento em 2 vezes sem juros",
-      terms: "Pagamento parcelado em 2x sem juros. 1ª parcela na entrega e 2ª parcela em 30 dias.",
-      discount: "",
-      color: "yellow",
-    },
-    {
-      id: "parcelado_3x",
-      name: "3x sem juros",
-      icon: Calendar,
-      description: "Parcelamento em 3 vezes sem juros",
-      terms: "Pagamento parcelado em 3x sem juros. Parcelas mensais de 30 em 30 dias.",
-      discount: "",
-      color: "indigo",
-    },
-    {
-      id: "entrada_saldo",
-      name: "Entrada + Saldo",
-      icon: Clock,
-      description: "50% entrada + 50% na entrega",
-      terms: "Pagamento: 50% de entrada para início dos trabalhos e 50% na entrega do serviço.",
-      discount: "",
-      color: "teal",
-    },
-    {
-      id: "personalizado",
-      name: "Personalizado",
-      icon: AlertCircle,
-      description: "Condições personalizadas de pagamento",
-      terms: "",
-      discount: "",
-      color: "gray",
-    },
+    }
   ]
 
   const selectedMethod = paymentMethods.find((method) => method.id === value)
@@ -135,13 +81,13 @@ export function PaymentMethodSelector({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="payment-method">Selecione a forma de pagamento</Label>
-            <Select value={value} onValueChange={onChange}>
-              <SelectTrigger>
+          <div >
+            <Label htmlFor="payment-method" className="m-5">Selecione a forma de pagamento</Label>
+            <Select value={value} onValueChange={onChange} >
+              <SelectTrigger >
                 <SelectValue placeholder="Escolha uma forma de pagamento..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent >
                 {paymentMethods.map((method) => {
                   const Icon = method.icon
                   return (
