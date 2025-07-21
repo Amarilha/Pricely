@@ -1,80 +1,88 @@
-import React from "react";
+import React from 'react';
 
-const TermoLGPD = () => {
+const TermosLGPD = () => {
   return (
-    <div className="max-w-3xl mx-auto p-8 bg-white text-black font-sans leading-relaxed text-justify shadow-md border border-gray-300">
-      <h1 className="text-2xl font-bold text-center mb-6 uppercase tracking-wide">
-        Termo de Responsabilidade Legal sobre o Tratamento de Dados Pessoais
-      </h1>
+    <div className="min-h-screen bg-white flex justify-center py-12">
+      <div className="max-w-5xl w-full mx-4 bg-white border border-gray-200 shadow-lg rounded-lg p-8 font-serif text-gray-900">
+        {/* Letterhead-like Header */}
+        <div className="text-center border-b-2 border-gray-300 pb-6 mb-10">
+          <h1 className="text-4xl font-bold text-gray-900">Termos de Tratamento de Dados</h1>
+          <p className="text-lg text-gray-600 mt-2">Conformidade com a Lei Geral de Proteção de Dados (LGPD)</p>
+        </div>
 
+        {/* Section 1 */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-l-4 border-blue-600 pl-4">
+            1. Suas Responsabilidades como Controlador de Dados
+          </h2>
+          <p className="mb-4 text-gray-700 leading-relaxed">
+            Ao utilizar nosso aplicativo, você atua como CONTROLADOR dos dados pessoais que coletar e processar, sendo responsável por:
+          </p>
+          <ul className="list-decimal pl-8 space-y-2 text-gray-700">
+            <li>Definir as finalidades do tratamento de dados;</li>
+            <li>Obter consentimento dos titulares quando necessário;</li>
+            <li>Fornecer informações claras sobre o tratamento de dados;</li>
+            <li>Implementar medidas de segurança adequadas;</li>
+            <li>Atender aos direitos dos titulares dos dados.</li>
+          </ul>
+        </div>
 
+        {/* Section 2 */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-l-4 border-blue-600 pl-4">
+            2. Como Tratamos Seus Dados
+          </h2>
+          <p className="mb-4 text-gray-700 leading-relaxed">
+            Como OPERADOR, nos comprometemos a:
+          </p>
+          <ul className="list-decimal pl-8 space-y-2 text-gray-700">
+            <li>Processar dados apenas conforme suas instruções;</li>
+            <li>Manter a confidencialidade dos dados;</li>
+            <li>Implementar medidas de segurança adequadas;</li>
+            <li>Notificar sobre incidentes de segurança;</li>
+            <li>Cooperar no atendimento aos direitos dos titulares;</li>
+            <li>Excluir ou devolver os dados quando solicitado.</li>
+          </ul>
+        </div>
 
-      <h2 className="font-semibold mb-2 text-lg">1. Identificação das Partes</h2>
-      <p>
-        Este documento estabelece os termos entre o(a) usuário(a) do aplicativo, na qualidade de <strong>Controlador(a)</strong> de dados pessoais, e o prestador de serviço, na qualidade de <strong>Operador(a)</strong>.
-      </p>
+        {/* Section 3 */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-l-4 border-blue-600 pl-4">
+            3. Segurança e Confidencialidade
+          </h2>
+          <p className="text-gray-700 leading-relaxed">
+            Mantemos todos os dados pessoais em sigilo e não os divulgamos a terceiros, exceto quando exigido por lei.
+          </p>
+        </div>
 
-      <h2 className="font-semibold mt-6 mb-2 text-lg">2. Objeto</h2>
-      <p>
-        O presente termo define as obrigações e responsabilidades do(a) Operador(a) quanto ao tratamento de dados pessoais por conta e ordem do(a) Controlador(a), conforme previsto na Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD).
-      </p>
+        {/* Section 4 */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-l-4 border-blue-600 pl-4">
+            4. Vigência e Alterações
+          </h2>
+          <p className="text-gray-700 leading-relaxed">
+            Estes termos estão em vigor desde a data de aceite e permanecem válidos enquanto você utilizar nossos serviços. Podemos atualizar estes termos periodicamente, e você será notificado sobre mudanças significativas.
+          </p>
+        </div>
 
-      <h2 className="font-semibold mt-6 mb-2 text-lg">3. Tratamento de Dados</h2>
-      <p>O tratamento de dados pessoais poderá incluir:</p>
-      <ul className="list-disc list-inside ml-6">
-        <li>Coleta, armazenamento, organização, consulta e análise de dados;</li>
-        <li>Utilização com o fim de operacionalizar funcionalidades do aplicativo;</li>
-        <li>Outras operações necessárias à execução dos serviços contratados.</li>
-      </ul>
+        {/* Section 5 */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-l-4 border-blue-600 pl-4">
+            5. Legislação Aplicável
+          </h2>
+          <p className="text-gray-700 leading-relaxed">
+            Estes termos são regidos pelas leis brasileiras, especialmente a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
+          </p>
+        </div>
 
-      <h2 className="font-semibold mt-6 mb-2 text-lg">4. Obrigações do(a) Operador(a)</h2>
-      <ul className="list-disc list-inside ml-6">
-        <li>Tratar os dados conforme as instruções documentadas do(a) Controlador(a);</li>
-        <li>Manter o dever de confidencialidade sobre os dados tratados;</li>
-        <li>Adotar medidas técnicas e administrativas para proteção de dados;</li>
-        <li>Reportar incidentes de segurança que envolvam dados pessoais;</li>
-        <li>Auxiliar o(a) Controlador(a) no atendimento aos direitos dos titulares;</li>
-        <li>Excluir ou devolver os dados após o término da relação contratual, salvo obrigação legal em contrário;</li>
-        <li>Permitir auditorias e inspeções autorizadas pelo(a) Controlador(a).</li>
-      </ul>
-
-      <h2 className="font-semibold mt-6 mb-2 text-lg">5. Obrigações do(a) Controlador(a)</h2>
-      <ul className="list-disc list-inside ml-6">
-        <li>Fornecer instruções claras e documentadas ao(à) Operador(a);</li>
-        <li>Garantir base legal para o tratamento de dados pessoais;</li>
-        <li>Informar aos titulares sobre o tratamento realizado;</li>
-        <li>Responder às solicitações dos titulares relacionadas aos dados.</li>
-      </ul>
-
-      <h2 className="font-semibold mt-6 mb-2 text-lg">6. Responsabilidades</h2>
-      <p>
-        Cada parte será responsável pelos danos decorrentes do descumprimento de suas obrigações legais ou contratuais, nos termos da LGPD.
-      </p>
-
-      <h2 className="font-semibold mt-6 mb-2 text-lg">7. Confidencialidade</h2>
-      <p>
-        O(a) Operador(a) compromete-se a manter sigilo absoluto sobre os dados pessoais tratados, sendo vedada sua divulgação a terceiros, salvo em cumprimento de obrigação legal.
-      </p>
-
-      <h2 className="font-semibold mt-6 mb-2 text-lg">8. Vigência</h2>
-      <p>
-        Este termo entra em vigor na data de sua aceitação e permanece válido enquanto perdurar o tratamento de dados pessoais. Poderá ser rescindido mediante notificação prévia por escrito com antecedência mínima de 180 dias.
-      </p>
-
-      <h2 className="font-semibold mt-6 mb-2 text-lg">9. Legislação Aplicável e Foro</h2>
-      <p>
-        Este termo será regido pelas leis da República Federativa do Brasil, elegendo as partes o foro da comarca de Joinville/SC para dirimir quaisquer controvérsias decorrentes do presente instrumento.
-      </p>
-
-      <p className="mt-10">
-        Ao prosseguir com o uso do aplicativo, o(a) usuário(a) declara que leu, compreendeu e está de acordo com os termos aqui apresentados.
-      </p>
-
-      <div className="mt-12 text-sm text-gray-600 border-t pt-4">
-        <p>Documento gerado eletronicamente – não requer assinatura física.</p>
+        {/* Footer */}
+        <div className="mt-12 text-sm text-gray-500 text-center border-t-2 border-gray-300 pt-6">
+          <p>Última atualização: 11/05/2025</p>
+          <p className="mt-2">Documento elaborado em conformidade com a legislação vigente.</p>
+        </div>
       </div>
     </div>
   );
 };
 
-export default TermoLGPD;
+export default TermosLGPD;

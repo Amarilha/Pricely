@@ -1970,7 +1970,7 @@ export default function ServiceQuoteGenerator() {
                         <CardTitle>Configuração do Negócio</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <TooltipHelper content="Total de horas que você trabalha por mês. Usado para calcular o custo por hora dos gastos fixos">
                               <Label htmlFor="horas-mes">Horas Trabalhadas/Mês</Label>
