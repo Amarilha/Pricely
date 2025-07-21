@@ -85,53 +85,59 @@ export function DataConsentDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle>Consentimento para Coleta de Dados</DialogTitle>
-          <DialogDescription>
-            Para melhorar sua experiência na plataforma Nexprice, gostaríamos de coletar alguns dados sobre como você utiliza nossos serviços.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="flex items-start space-x-3">
-            <Checkbox 
-              id="dataConsent" 
-              checked={consentGiven} 
-              onCheckedChange={(checked) => setConsentGiven(checked === true)}
-            />
-            <label
-              htmlFor="dataConsent"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Eu concordo com a coleta e processamento dos meus dados de acordo com a{" "}
-              <a href="/termos-de-uso" className="text-primary underline" target="_blank">
-                Política de Privacidade
-              </a>{" "}
-              da Nexprice.
-            </label>
+    <>
+      <style>
+        {`
+          [data-radix-dialog-close], .DialogClose {
+            display: none !important;
+          }
+        `}
+      </style>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Consentimento para Coleta de Dados</DialogTitle>
+            <DialogDescription>
+              Para melhorar sua experiência na plataforma Nexprice, gostaríamos de coletar alguns dados sobre como você utiliza nossos serviços.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="dataConsent"
+                checked={consentGiven}
+                onCheckedChange={(checked) => setConsentGiven(checked === true)}
+              />
+              <label
+                htmlFor="dataConsent"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Eu concordo com a coleta e processamento dos meus dados de acordo com a{" "}
+                <a href="/privacy-policy" className="text-primary underline" target="_blank">
+                  Política de Privacidade
+                </a>{" "}
+                da Nexprice.
+              </label>
+            </div>
+            <div className="text-sm text-muted-foreground mt-2">
+              <p>Os dados coletados incluem:</p>
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li>Informações de uso da plataforma</li>
+                <li>Preferências e configurações</li>
+                <li>Dados de interação com as funcionalidades</li>
+              </ul>
+              <p className="mt-2">
+                Você pode revogar este consentimento a qualquer momento nas configurações da sua conta.
+              </p>
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground mt-2">
-            <p>Os dados coletados incluem:</p>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Informações de uso da plataforma</li>
-              <li>Preferências e configurações</li>
-              <li>Dados de interação com as funcionalidades</li>
-            </ul>
-            <p className="mt-2">
-              Você pode revogar este consentimento a qualquer momento nas configurações da sua conta.
-            </p>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Mais tarde
-          </Button>
-          <Button onClick={handleConsent} disabled={loading}>
-            {loading ? "Processando..." : "Aceitar"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button onClick={handleConsent} disabled={loading}>
+              {loading ? "Processando..." : "Aceitar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
