@@ -25,14 +25,10 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts'
+import { calcularPrecoProjeto, formatarMoeda } from "@/lib/pricing-logic"
+import { useEffect } from "react"
 
-type CustoFixo = {
-  id: string
-  nome: string
-  valor: string
-}
-
-type CustoVariavel = {
+type Custo = {
   id: string
   nome: string
   valor: string
@@ -40,15 +36,17 @@ type CustoVariavel = {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
 
+
 export function CalculadoraForm() {
-  const [tipoEmpresa, setTipoEmpresa] = useState("mei")
-  const [custosFixos, setCustosFixos] = useState<CustoFixo[]>([
+  // Estados do formulário
+  const [tipoEmpresa, setTipoEmpresa] = useState<"mei" | "me">("mei")
+  const [custosFixos, setCustosFixos] = useState<Custo[]>([
     { id: "1", nome: "Aluguel", valor: "0,00" },
     { id: "2", nome: "Equipamentos", valor: "0,00" },
     { id: "3", nome: "Software", valor: "0,00" },
     { id: "4", nome: "Outros gastos fixos", valor: "0,00" },
   ])
-  const [custosVariaveis, setCustosVariaveis] = useState<CustoVariavel[]>([
+  const [custosVariaveis, setCustosVariaveis] = useState<Custo[]>([
     { id: "1", nome: "Gasolina/transporte", valor: "0,00" },
     { id: "2", nome: "Materiais", valor: "0,00" },
     { id: "3", nome: "Outros gastos variáveis", valor: "0,00" },
@@ -56,20 +54,24 @@ export function CalculadoraForm() {
   const [imposto, setImposto] = useState("0,00")
   const [valorHora, setValorHora] = useState(false)
   const [remuneracao, setRemuneracao] = useState("0,00")
-  const [diasUteis, setDiasUteis] = useState("0")
-  const [horasDia, setHorasDia] = useState("0")
+  const [diasUteis, setDiasUteis] = useState("20")
+  const [horasDia, setHorasDia] = useState("8")
   const [horasEstimadas, setHorasEstimadas] = useState("")
   const [faturamentoBruto, setFaturamentoBruto] = useState("0,00")
   const [tipoServico, setTipoServico] = useState("geral")
-  const [unidadeTempo, setUnidadeTempo] = useState("horas")
+  const [unidadeTempo, setUnidadeTempo] = useState<"horas" | "dias" | "semanas">("horas")
+  const [modoCalculo, setModoCalculo] = useState<"completo" | "realista">("completo")
+  const [margemLucro, setMargemLucro] = useState("30")
+  
+  // Estados do resultado
   const [mostrarResumo, setMostrarResumo] = useState(false)
-  const [valorCalculado, setValorCalculado] = useState("0,00")
-  const [proLabore, setProLabore] = useState("0,00")
+  const [resultado, setResultado] = useState<any>(null)
   const [chartData, setChartData] = useState<any[]>([])
   const [barChartData, setBarChartData] = useState<any[]>([])
   const [showPieChart, setShowPieChart] = useState(false)
   const [showBarChart, setShowBarChart] = useState(false)
 
+  // Função para formatar valores monetários
   const formatarValorMonetario = (valor: string): string => {
     const apenasNumeros = valor.replace(/\D/g, "")
     if (!apenasNumeros) return "0,00"
@@ -80,36 +82,51 @@ export function CalculadoraForm() {
     })
   }
 
-  const adicionarCustoFixo = () => {
-    setCustosFixos([...custosFixos, { id: Date.now().toString(), nome: "", valor: "0,00" }])
+  // Função para converter string formatada em número
+  const converterParaNumero = (valor: string): number => {
+    return parseFloat(valor.replace(".", "").replace(",", ".")) || 0
   }
 
-  const removerCustoFixo = (id: string) => {
-    setCustosFixos(custosFixos.filter((custo) => custo.id !== id))
+  // Funções para manipular custos
+  const adicionarCusto = (tipo: "fixo" | "variavel") => {
+    const novoCusto = { id: Date.now().toString(), nome: "", valor: "0,00" }
+    if (tipo === "fixo") {
+      setCustosFixos([...custosFixos, novoCusto])
+    } else {
+      setCustosVariaveis([...custosVariaveis, novoCusto])
+    }
   }
 
-  const atualizarCustoFixo = (id: string, campo: "nome" | "valor", valor: string) => {
+  const removerCusto = (id: string, tipo: "fixo" | "variavel") => {
+    if (tipo === "fixo") {
+      setCustosFixos(custosFixos.filter((custo) => custo.id !== id))
+    } else {
+      setCustosVariaveis(custosVariaveis.filter((custo) => custo.id !== id))
+    }
+  }
+
+  const atualizarCusto = (
+    id: string, 
+    tipo: "fixo" | "variavel", 
+    campo: "nome" | "valor", 
+    valor: string
+  ) => {
     if (campo === "valor") {
       valor = formatarValorMonetario(valor)
     }
-    setCustosFixos(custosFixos.map((custo) => (custo.id === id ? { ...custo, [campo]: valor } : custo)))
-  }
-
-  const adicionarCustoVariavel = () => {
-    setCustosVariaveis([...custosVariaveis, { id: Date.now().toString(), nome: "", valor: "0,00" }])
-  }
-
-  const removerCustoVariavel = (id: string) => {
-    setCustosVariaveis(custosVariaveis.filter((custo) => custo.id !== id))
-  }
-
-  const atualizarCustoVariavel = (id: string, campo: "nome" | "valor", valor: string) => {
-    if (campo === "valor") {
-      valor = formatarValorMonetario(valor)
+    
+    if (tipo === "fixo") {
+      setCustosFixos(custosFixos.map((custo) => 
+        custo.id === id ? { ...custo, [campo]: valor } : custo
+      ))
+    } else {
+      setCustosVariaveis(custosVariaveis.map((custo) => 
+        custo.id === id ? { ...custo, [campo]: valor } : custo
+      ))
     }
-    setCustosVariaveis(custosVariaveis.map((custo) => (custo.id === id ? { ...custo, [campo]: valor } : custo)))
   }
 
+  // Função para limpar o formulário
   const limparFormulario = () => {
     setCustosFixos([
       { id: "1", nome: "Aluguel", valor: "0,00" },
@@ -125,79 +142,57 @@ export function CalculadoraForm() {
     setImposto("0,00")
     setValorHora(false)
     setRemuneracao("0,00")
-    setDiasUteis("0")
-    setHorasDia("0")
+    setDiasUteis("20")
+    setHorasDia("8")
     setHorasEstimadas("")
     setFaturamentoBruto("0,00")
+    setModoCalculo("completo")
+    setMargemLucro("30")
     setMostrarResumo(false)
-    setValorCalculado("0,00")
-    setProLabore("0,00")
+    setResultado(null)
     setChartData([])
     setBarChartData([])
     setShowPieChart(false)
     setShowBarChart(false)
   }
 
-  const converterParaNumero = (valor: string) => {
-    return parseFloat(valor.replace(".", "").replace(",", ".")) || 0
-  }
-
+  // Função principal de cálculo
   const calcularPreco = () => {
-    const totalCustosFixos = custosFixos.reduce(
-      (total, custo) => total + converterParaNumero(custo.valor),
-      0
-    )
-
-    const totalCustosVariaveis = custosVariaveis.reduce(
-      (total, custo) => total + converterParaNumero(custo.valor),
-      0
-    )
-
-    let valorImposto = 0
-    if (tipoEmpresa === "mei") {
-      valorImposto = 70.60
-    } else {
-      valorImposto = Math.max(181.14, converterParaNumero(faturamentoBruto) * (converterParaNumero(imposto) / 100))
+    // Preparar parâmetros para a função de cálculo
+    const params = {
+      tipoEmpresa,
+      custosFixos: custosFixos.map(c => ({
+        ...c,
+        valor: converterParaNumero(c.valor)
+      })),
+      custosVariaveis: custosVariaveis.map(c => ({
+        ...c,
+        valor: converterParaNumero(c.valor)
+      })),
+      impostoPercentual: converterParaNumero(imposto),
+      faturamentoBrutoAnual: tipoEmpresa === "me" ? converterParaNumero(faturamentoBruto) : undefined,
+      remuneracaoDesejada: converterParaNumero(remuneracao),
+      valorHora: !valorHora ? converterParaNumero(remuneracao) : undefined,
+      diasUteisPorMes: parseInt(diasUteis) || 20,
+      horasProdutivasPorDia: parseInt(horasDia) || 8,
+      horasEstimadasProjeto: parseInt(horasEstimadas) || 0,
+      unidadeTempo,
+      tipoServico,
+      modoCalculo,
+      margemLucro: modoCalculo === "realista" ? parseFloat(margemLucro) : undefined
     }
 
-    let valorPorHora = converterParaNumero(remuneracao)
-    if (valorHora) {
-      const diasUteisNum = parseInt(diasUteis) || 20
-      const horasDiaNum = parseInt(horasDia) || 8
-      valorPorHora = converterParaNumero(remuneracao) / (diasUteisNum * horasDiaNum)
-    }
+    // Chamar a função de cálculo
+    const resultadoCalculo = calcularPrecoProjeto(params)
+    setResultado(resultadoCalculo)
 
-    let horasTotais = parseInt(horasEstimadas) || 0
-    if (unidadeTempo === "dias") {
-      horasTotais *= parseInt(horasDia) || 8
-    } else if (unidadeTempo === "semanas") {
-      horasTotais *= (parseInt(horasDia) || 8) * 5
-    }
-
-    const custoMensal = totalCustosFixos + valorImposto
-    const custoHora = custoMensal / ((parseInt(diasUteis) || 20) * (parseInt(horasDia) || 8))
-    const custoProjetoPorHora = custoHora * horasTotais
-    const custoVariavelProjeto = totalCustosVariaveis
-    const remuneracaoProjeto = valorPorHora * horasTotais
-
-    const valorProLabore = tipoEmpresa === "mei" ? remuneracaoProjeto * 0.28 : 0
-    setProLabore(valorProLabore.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
-
-    const valorTotalProjeto = custoProjetoPorHora + custoVariavelProjeto + remuneracaoProjeto + valorProLabore
-
-    setValorCalculado(
-      valorTotalProjeto.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    )
-
+    // Preparar dados para os gráficos
     const pieData = [
-      { name: 'Custos Fixos', value: custoProjetoPorHora },
-      { name: 'Custos Variáveis', value: custoVariavelProjeto },
-      { name: 'Remuneração', value: remuneracaoProjeto },
-      { name: 'Pró-labore', value: valorProLabore },
-      { name: 'Impostos', value: valorImposto }
+      { name: 'Custos Fixos', value: resultadoCalculo.distribuicaoCustos.custosFixos },
+      { name: 'Custos Variáveis', value: resultadoCalculo.distribuicaoCustos.custosVariaveis },
+      { name: 'Remuneração', value: resultadoCalculo.distribuicaoCustos.remuneracao },
+      { name: 'Pró-labore', value: resultadoCalculo.distribuicaoCustos.proLabore },
+      { name: 'Impostos', value: resultadoCalculo.distribuicaoCustos.impostos }
     ].filter(item => item.value > 0)
 
     setChartData(pieData)
@@ -205,11 +200,11 @@ export function CalculadoraForm() {
     const barData = [
       {
         name: 'Distribuição de Custos',
-        'Custos Fixos': custoProjetoPorHora,
-        'Custos Variáveis': custoVariavelProjeto,
-        'Remuneração': remuneracaoProjeto,
-        'Pró-labore': valorProLabore,
-        'Impostos': valorImposto
+        'Custos Fixos': resultadoCalculo.distribuicaoCustos.custosFixos,
+        'Custos Variáveis': resultadoCalculo.distribuicaoCustos.custosVariaveis,
+        'Remuneração': resultadoCalculo.distribuicaoCustos.remuneracao,
+        'Pró-labore': resultadoCalculo.distribuicaoCustos.proLabore,
+        'Impostos': resultadoCalculo.distribuicaoCustos.impostos
       }
     ]
 
@@ -217,6 +212,7 @@ export function CalculadoraForm() {
     setMostrarResumo(true)
   }
 
+  // Componente de tooltip de ajuda
   const HelpTooltip = ({ text }: { text: string }) => (
     <HoverCard>
       <HoverCardTrigger asChild>
@@ -241,13 +237,35 @@ export function CalculadoraForm() {
         <CardTitle className="text-xl text-foreground">Calculadora de Precificação</CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
+        {/* Seção Modo de Cálculo */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-sm font-medium">Modo de Cálculo</h3>
+            <HelpTooltip text="Modo Completo: Inclui todos os custos e garante sustentabilidade. Modo Realista: Focado em remuneração mínima viável para projetos com orçamento limitado." />
+          </div>
+          <RadioGroup value={modoCalculo} onValueChange={(v: "completo" | "realista") => setModoCalculo(v)} className="flex gap-2">
+            <div className={cn("flex items-center justify-center rounded-md border border-border px-4 py-2", modoCalculo === "completo" && "bg-purple-600/10 border-purple-600")}>
+              <RadioGroupItem value="completo" id="completo" className="sr-only" />
+              <Label htmlFor="completo" className={cn("cursor-pointer font-medium", modoCalculo === "completo" && "text-purple-600")}>
+                Completo
+              </Label>
+            </div>
+            <div className={cn("flex items-center justify-center rounded-md border border-border px-4 py-2", modoCalculo === "realista" && "bg-purple-600/10 border-purple-600")}>
+              <RadioGroupItem value="realista" id="realista" className="sr-only" />
+              <Label htmlFor="realista" className={cn("cursor-pointer font-medium", modoCalculo === "realista" && "text-purple-600")}>
+                Realista
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+
         {/* Seção Tipo de Empresa */}
         <div>
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-sm font-medium">Tipo de Empresa</h3>
             <HelpTooltip text="Escolha entre MEI (Microempreendedor Individual) ou ME (Microempresa). MEI tem imposto fixo de R$ 70,60, enquanto ME tem imposto variável conforme faturamento." />
           </div>
-          <RadioGroup value={tipoEmpresa} onValueChange={setTipoEmpresa} className="flex gap-2">
+          <RadioGroup value={tipoEmpresa} onValueChange={(v: "mei" | "me") => setTipoEmpresa(v)} className="flex gap-2">
             <div className={cn("flex items-center justify-center rounded-md border border-border px-4 py-2", tipoEmpresa === "mei" && "bg-purple-600/10 border-purple-600")}>
               <RadioGroupItem value="mei" id="mei" className="sr-only" />
               <Label htmlFor="mei" className={cn("cursor-pointer font-medium", tipoEmpresa === "mei" && "text-purple-600")}>
@@ -261,9 +279,6 @@ export function CalculadoraForm() {
               </Label>
             </div>
           </RadioGroup>
-          <p className="text-xs text-muted-foreground mt-2">
-            {tipoEmpresa === "mei" ? "MEI: R$ 70,60" : "ME: Imposto variável conforme faturamento (a partir de R$ 181,14)"}
-          </p>
 
           {tipoEmpresa === "me" && (
             <div className="mt-4">
@@ -288,94 +303,96 @@ export function CalculadoraForm() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-sm font-medium">Serviço</h3>
-            <HelpTooltip text="Selecione a categoria do serviço que você oferece. Isso ajuda a organizar seus projetos e pode influenciar na precificação." />
+            <HelpTooltip text="Selecione a categoria do serviço que você oferece. Isso ajuda a organizar seus projetos." />
           </div>
-          <div className="flex flex-col gap-2">
           <Input
-                placeholder="Digite o tipo de serviço"
-                onChange={(e) => setTipoServico(e.target.value)}
-                className="flex-1"
-              />
-          </div>
+            value={tipoServico}
+            onChange={(e) => setTipoServico(e.target.value)}
+            placeholder="Digite o tipo de serviço"
+          />
         </div>
 
-        {/* Seção Custos Fixos */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Custos Fixos Mensais</h3>
-            <HelpTooltip text="Custos que você tem todo mês, independente da quantidade de trabalho. Por exemplo: aluguel, internet, software, equipamentos, etc." />
-          </div>
-          <div className="space-y-2">
-            {custosFixos.map((custo) => (
-              <div key={custo.id} className="flex gap-2">
-                <Input
-                  value={custo.nome}
-                  onChange={(e) => atualizarCustoFixo(custo.id, "nome", e.target.value)}
-                  placeholder="Nome do custo"
-                />
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">R$</span>
+        {/* Seção Custos Fixos (mostrar apenas no modo completo) */}
+        {modoCalculo === "completo" && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-medium">Custos Fixos Mensais</h3>
+              <HelpTooltip text="Custos que você tem todo mês, independente da quantidade de trabalho. Ex: aluguel, internet, software, etc." />
+            </div>
+            <div className="space-y-2">
+              {custosFixos.map((custo) => (
+                <div key={custo.id} className="flex gap-2">
                   <Input
-                    value={custo.valor}
-                    onChange={(e) => atualizarCustoFixo(custo.id, "valor", e.target.value)}
-                    className="pl-9"
+                    value={custo.nome}
+                    onChange={(e) => atualizarCusto(custo.id, "fixo", "nome", e.target.value)}
+                    placeholder="Nome do custo"
                   />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">R$</span>
+                    <Input
+                      value={custo.valor}
+                      onChange={(e) => atualizarCusto(custo.id, "fixo", "valor", e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removerCusto(custo.id, "fixo")}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removerCustoFixo(custo.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-100"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <Button variant="outline" size="sm" onClick={adicionarCustoFixo} className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar custo fixo
-            </Button>
+              ))}
+              <Button variant="outline" size="sm" onClick={() => adicionarCusto("fixo")} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar custo fixo
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Seção Custos Variáveis */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Custos Variáveis</h3>
-            <HelpTooltip text="Custos que variam conforme o projeto ou quantidade de trabalho. Por exemplo: deslocamento, materiais específicos, terceirização, etc." />
-          </div>
-          <div className="space-y-2">
-            {custosVariaveis.map((custo) => (
-              <div key={custo.id} className="flex gap-2">
-                <Input
-                  value={custo.nome}
-                  onChange={(e) => atualizarCustoVariavel(custo.id, "nome", e.target.value)}
-                  placeholder="Nome do custo"
-                />
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">R$</span>
+        {/* Seção Custos Variáveis (mostrar apenas no modo completo) */}
+        {modoCalculo === "completo" && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-medium">Custos Variáveis</h3>
+              <HelpTooltip text="Custos que variam conforme o projeto. Ex: deslocamento, materiais específicos, etc." />
+            </div>
+            <div className="space-y-2">
+              {custosVariaveis.map((custo) => (
+                <div key={custo.id} className="flex gap-2">
                   <Input
-                    value={custo.valor}
-                    onChange={(e) => atualizarCustoVariavel(custo.id, "valor", e.target.value)}
-                    className="pl-9"
+                    value={custo.nome}
+                    onChange={(e) => atualizarCusto(custo.id, "variavel", "nome", e.target.value)}
+                    placeholder="Nome do custo"
                   />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">R$</span>
+                    <Input
+                      value={custo.valor}
+                      onChange={(e) => atualizarCusto(custo.id, "variavel", "valor", e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removerCusto(custo.id, "variavel")}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removerCustoVariavel(custo.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-100"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <Button variant="outline" size="sm" onClick={adicionarCustoVariavel} className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar custo variável
-            </Button>
+              ))}
+              <Button variant="outline" size="sm" onClick={() => adicionarCusto("variavel")} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar custo variável
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Seção Impostos */}
         <div>
@@ -383,22 +400,29 @@ export function CalculadoraForm() {
             <h3 className="text-sm font-medium">Impostos e Taxas</h3>
             <HelpTooltip text="Para MEI, o imposto é fixo em R$ 70,60. Para ME, insira a porcentagem de impostos que você paga (DAS, ISS, etc)." />
           </div>
-          <div className="flex gap-2 items-center">
-            <Input
-              value={imposto}
-              onChange={(e) => {
-                const apenasNumeros = e.target.value.replace(/\D/g, "")
-                const numero = apenasNumeros ? parseInt(apenasNumeros, 10) / 100 : 0
-                const valorFormatado = numero.toLocaleString("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
-                setImposto(valorFormatado)
-              }}
-              placeholder="Percentual de imposto"
-            />
-            <span className="text-muted-foreground">%</span>
-          </div>
+          {tipoEmpresa === "me" ? (
+            <div className="flex gap-2 items-center">
+              <Input
+                value={imposto}
+                onChange={(e) => {
+                  const apenasNumeros = e.target.value.replace(/\D/g, "")
+                  const numero = apenasNumeros ? parseInt(apenasNumeros, 10) / 100 : 0
+                  const valorFormatado = numero.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })
+                  setImposto(valorFormatado)
+                }}
+                placeholder="Percentual de imposto"
+              />
+              <span className="text-muted-foreground">%</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between px-3 py-2 border rounded-md text-sm">
+              <span>Imposto fixo MEI:</span>
+              <span className="font-medium">R$ 70,60</span>
+            </div>
+          )}
         </div>
 
         <Separator />
@@ -406,15 +430,20 @@ export function CalculadoraForm() {
         {/* Seção Remuneração */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Remuneração por Hora</h3>
-            <HelpTooltip text="Quanto você quer ganhar por hora de trabalho. Se não souber, ative a opção para calcular com base no salário mensal desejado." />
+            <h3 className="text-sm font-medium">
+              {modoCalculo === "completo" ? "Remuneração por Hora" : "Remuneração Mínima"}
+            </h3>
+            <HelpTooltip text="Quanto você quer ganhar por hora de trabalho ou valor mínimo mensal desejado." />
           </div>
-          <div className="flex items-center space-x-2 mb-4">
-            <Switch id="valor-hora" checked={valorHora} onCheckedChange={setValorHora} />
-            <Label htmlFor="valor-hora">Não sei o valor por hora</Label>
-          </div>
+          
+          {modoCalculo === "completo" && (
+            <div className="flex items-center space-x-2 mb-4">
+              <Switch id="valor-hora" checked={valorHora} onCheckedChange={setValorHora} />
+              <Label htmlFor="valor-hora">Não sei o valor por hora</Label>
+            </div>
+          )}
 
-          {!valorHora ? (
+          {modoCalculo === "completo" && !valorHora ? (
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">R$</span>
               <Input
@@ -432,31 +461,53 @@ export function CalculadoraForm() {
                   value={remuneracao}
                   onChange={(e) => setRemuneracao(formatarValorMonetario(e.target.value))}
                   className="pl-9"
-                  placeholder="Remuneração mensal desejada"
+                  placeholder={modoCalculo === "completo" ? "Remuneração mensal desejada" : "Remuneração mínima mensal"}
                 />
               </div>
-              <div>
-                <Label htmlFor="dias-uteis" className="text-xs">
-                  Dias Úteis no Mês
-                </Label>
-                <Input
-                  id="dias-uteis"
-                  value={diasUteis}
-                  onChange={(e) => setDiasUteis(e.target.value.replace(/\D/g, ""))}
-                  placeholder="Dias úteis no mês"
-                />
-              </div>
-              <div>
-                <Label htmlFor="horas-dia" className="text-xs">
-                  Horas Produtivas por Dia
-                </Label>
-                <Input
-                  id="horas-dia"
-                  value={horasDia}
-                  onChange={(e) => setHorasDia(e.target.value.replace(/\D/g, ""))}
-                  placeholder="Horas produtivas por dia"
-                />
-              </div>
+
+              {modoCalculo === "completo" && (
+                <>
+                  <div>
+                    <Label htmlFor="dias-uteis" className="text-xs">
+                      Dias Úteis no Mês
+                    </Label>
+                    <Input
+                      id="dias-uteis"
+                      value={diasUteis}
+                      onChange={(e) => setDiasUteis(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Dias úteis no mês"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="horas-dia" className="text-xs">
+                      Horas Produtivas por Dia
+                    </Label>
+                    <Input
+                      id="horas-dia"
+                      value={horasDia}
+                      onChange={(e) => setHorasDia(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Horas produtivas por dia"
+                    />
+                  </div>
+                </>
+              )}
+
+              {modoCalculo === "realista" && (
+                <div>
+                  <Label htmlFor="margem-lucro" className="text-xs">
+                    Margem de Lucro (%)
+                  </Label>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      id="margem-lucro"
+                      value={margemLucro}
+                      onChange={(e) => setMargemLucro(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Margem de lucro"
+                    />
+                    <span className="text-muted-foreground">%</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -464,16 +515,16 @@ export function CalculadoraForm() {
         {/* Seção Horas Estimadas */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-medium">Horas Estimadas do Serviço/Projeto</h3>
-            <HelpTooltip text="Tempo total estimado para realizar o projeto. Você pode informar em horas, dias ou semanas. Para dias e semanas, usaremos suas horas produtivas por dia para o cálculo." />
+            <h3 className="text-sm font-medium">Tempo Estimado do Serviço/Projeto</h3>
+            <HelpTooltip text="Tempo total estimado para realizar o projeto. Você pode informar em horas, dias ou semanas." />
           </div>
           <div className="flex gap-2">
             <Input
               value={horasEstimadas}
               onChange={(e) => setHorasEstimadas(e.target.value.replace(/\D/g, ""))}
-              placeholder="Horas estimadas"
+              placeholder="Tempo estimado"
             />
-            <Select value={unidadeTempo} onValueChange={setUnidadeTempo}>
+            <Select value={unidadeTempo} onValueChange={(v: "horas" | "dias" | "semanas") => setUnidadeTempo(v)}>
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Unidade" />
               </SelectTrigger>
@@ -501,7 +552,7 @@ export function CalculadoraForm() {
         </div>
 
         {/* Resumo de Cálculo */}
-        {mostrarResumo && (
+        {mostrarResumo && resultado && (
           <div className="mt-6 border border-border rounded-lg p-4 bg-muted/30">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-medium text-lg">Resumo do Orçamento</h3>
@@ -521,6 +572,11 @@ export function CalculadoraForm() {
 
             <div className="space-y-3">
               <div>
+                <p className="text-sm text-muted-foreground">Modo de cálculo</p>
+                <p className="font-medium capitalize">{modoCalculo}</p>
+              </div>
+              
+              <div>
                 <p className="text-sm text-muted-foreground">Tipo de empresa</p>
                 <p className="font-medium">{tipoEmpresa === "mei" ? "MEI" : "ME"}</p>
               </div>
@@ -530,87 +586,104 @@ export function CalculadoraForm() {
                 <p className="font-medium capitalize">{tipoServico}</p>
               </div>
               
-              <div>
-                <p className="text-sm text-muted-foreground">Custos fixos mensais</p>
-                <ul className="space-y-1">
-                  {custosFixos.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
-                    <li key={custo.id} className="flex justify-between">
-                      <span>{custo.nome}</span>
-                      <span>R$ {custo.valor}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <p className="text-sm text-muted-foreground">Custos variáveis</p>
-                <ul className="space-y-1">
-                  {custosVariaveis.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
-                    <li key={custo.id} className="flex justify-between">
-                      <span>{custo.nome}</span>
-                      <span>R$ {custo.valor}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {modoCalculo === "completo" && (
+                <>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Custos fixos mensais</p>
+                    <ul className="space-y-1">
+                      {custosFixos.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
+                        <li key={custo.id} className="flex justify-between">
+                          <span>{custo.nome}</span>
+                          <span>R$ {custo.valor}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-muted-foreground">Custos variáveis</p>
+                    <ul className="space-y-1">
+                      {custosVariaveis.filter(c => c.nome && c.valor !== "0,00").map((custo) => (
+                        <li key={custo.id} className="flex justify-between">
+                          <span>{custo.nome}</span>
+                          <span>R$ {custo.valor}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
               
               <div>
                 <p className="text-sm text-muted-foreground">Impostos</p>
                 <p className="font-medium">
-                  {tipoEmpresa === "mei" ? "R$ 70,60 (fixo)" : `${imposto}%`}
+                  {tipoEmpresa === "mei" 
+                    ? "R$ 70,60 (fixo)" 
+                    : `${imposto}%`}
                 </p>
               </div>
               
               <div>
                 <p className="text-sm text-muted-foreground">Remuneração</p>
                 <p className="font-medium">
-                  {valorHora 
+                  {modoCalculo === "completo" && valorHora 
                     ? `R$ ${remuneracao} por mês (${diasUteis} dias × ${horasDia} horas)`
-                    : `R$ ${remuneracao} por hora`}
+                    : `R$ ${remuneracao} por ${modoCalculo === "completo" ? "hora" : "mês"}`}
                 </p>
               </div>
 
-              <div>
-                <p className="text-sm text-muted-foreground">Pró-labore</p>
-                <p className="font-medium">
-                  {tipoEmpresa === "mei" 
-                    ? `R$ ${proLabore} (28% da remuneração)` 
-                    : "Não aplicável para ME"}
-                </p>
-              </div>
+              {modoCalculo === "completo" && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Pró-labore</p>
+                  <p className="font-medium">
+                    {tipoEmpresa === "mei" 
+                      ? `R$ ${resultado.distribuicaoCustos.proLabore.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (28% da remuneração)` 
+                      : "Não aplicável para ME"}
+                  </p>
+                </div>
+              )}
               
               <div>
                 <p className="text-sm text-muted-foreground">Tempo estimado</p>
                 <p className="font-medium">{horasEstimadas} {unidadeTempo}</p>
               </div>
+
+              {modoCalculo === "realista" && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Margem de lucro</p>
+                  <p className="font-medium">{margemLucro}%</p>
+                </div>
+              )}
               
               <Separator />
               
               <div className="pt-2">
                 <p className="text-lg font-semibold flex justify-between">
                   <span>Valor total do serviço:</span>
-                  <span className="text-purple-600">R$ {valorCalculado}</span>
+                  <span className="text-purple-600">{formatarMoeda(resultado.valorProjeto)}</span>
                 </p>
               </div>
 
-              <div className="flex gap-2 mt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowPieChart(!showPieChart)}
-                  className="flex-1"
-                >
-                  <PieChart className="mr-2 h-4 w-4" />
-                  Gráfico Pizza
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowBarChart(!showBarChart)}
-                  className="flex-1"
-                >
-                  <BarChart2 className="mr-2 h-4 w-4" />
-                  Gráfico Barras
-                </Button>
-              </div>
+              {modoCalculo === "completo" && (
+                <div className="flex gap-2 mt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowPieChart(!showPieChart)}
+                    className="flex-1"
+                  >
+                    <PieChart className="mr-2 h-4 w-4" />
+                    Gráfico Pizza
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowBarChart(!showBarChart)}
+                    className="flex-1"
+                  >
+                    <BarChart2 className="mr-2 h-4 w-4" />
+                    Gráfico Barras
+                  </Button>
+                </div>
+              )}
 
               {showPieChart && chartData.length > 0 && (
                 <div className="mt-4 h-64">
