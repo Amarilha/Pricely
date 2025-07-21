@@ -34,17 +34,18 @@ import { auth, db } from "@/app/src/config/firebaseConfig"
 import Image from "next/image"
 
 const menuItems = [
-  {
-    name: "Home",
-    href: "/dashboard",
-    icon: HomeIcon,
-  },
+  
   {
     name: "Calculadora",
     href: "/dashboard/calculadora",
     icon: Calculator,
   },
+  /*{
   {
+    name: "Home",
+    href: "/dashboard",
+    icon: HomeIcon,
+  },
     name: "Consultor IA",
     href: "/dashboard/chat",
     icon: MessageSquare,
@@ -73,8 +74,10 @@ const menuItems = [
     name: "Configurações",
     href: "/dashboard/configuracoes",
     icon: Settings,
-  },
+  }, */
 ]
+
+
 
 export function Sidebar() {
   const pathname = usePathname()

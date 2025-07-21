@@ -2,14 +2,16 @@
 
 import { onAuthStateChanged, getAuth } from "firebase/auth";
 import { collection, query, where, getDoc, doc, getFirestore } from "firebase/firestore";
-import { auth, db, signOut } from "@/app/src/config/firebaseConfig.js"
+import { auth, db } from "@/app/src/config/firebaseConfig.js"
 
 export function stateAuth() {
     return new Promise((resolve) => {
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 resolve(user.uid);
-                //console.log('User is authenticated:', user.uid);
+                const usuario = user.uid;
+                
+                return usuario;
             } else {
                 resolve(null);
             }
@@ -58,7 +60,7 @@ export async function stateSignOut() {
 };
 
 // Make stateSignOut available globally
-window.stateSignOut = stateSignOut;
+//window.stateSignOut = stateSignOut;
 
 export function perfil(uid) {
     if (!uid) {

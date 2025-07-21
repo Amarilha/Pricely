@@ -76,7 +76,7 @@ export function LoginForm() {
     
     try {
       await authGoogle()
-      window.location.href = "/dashboard"
+      window.location.href = "/dashboard/calculadora"
     } catch (error: any) {
       let errorMessage = "Falha no login com Google"
       
