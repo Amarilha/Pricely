@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Check, X } from "lucide-react"
@@ -5,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 const plans = [
   {
+    slug: "gratuito",
     name: "Gratuito",
     description: "Para freelancers iniciantes",
     price: "R$ 0",
@@ -23,6 +25,7 @@ const plans = [
     popular: false,
   },
   {
+    slug: "profissional",
     name: "Profissional",
     description: "Para freelancers em crescimento",
     price: "R$ 49",
@@ -41,6 +44,7 @@ const plans = [
     popular: true,
   },
   {
+    slug: "empresarial",
     name: "Empresarial",
     description: "Para agências e equipes",
     price: "R$ 99",
@@ -91,12 +95,14 @@ export function PricingPlans() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button
-              className={cn("w-full", plan.popular && "bg-primary hover:bg-primary/90")}
-              variant={plan.popular ? "default" : "outline"}
-            >
-              {plan.cta}
-            </Button>
+            <Link href={`/pagamento/${plan.slug}`} className="w-full">
+              <Button
+                className={cn("w-full", plan.popular && "bg-primary hover:bg-primary/90")}
+                variant={plan.popular ? "default" : "outline"}
+              >
+                {plan.cta}
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
       ))}
