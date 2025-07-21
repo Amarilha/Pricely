@@ -1970,7 +1970,7 @@ export default function ServiceQuoteGenerator() {
                         <CardTitle>Configuração do Negócio</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <TooltipHelper content="Total de horas que você trabalha por mês. Usado para calcular o custo por hora dos gastos fixos">
                               <Label htmlFor="horas-mes">Horas Trabalhadas/Mês</Label>
@@ -1994,7 +1994,18 @@ export default function ServiceQuoteGenerator() {
                               onChange={(e) => setDados((prev) => ({ ...prev, margemLucro: Number(e.target.value) }))}
                             />
                           </div>
-                          
+                          <div>
+                            <TooltipHelper content="Percentual de impostos que incidem sobre o serviço (Simples Nacional, ISS, etc.)">
+                              <Label htmlFor="impostos">Impostos (%)</Label>
+                            </TooltipHelper>
+                            <Input
+                              id="impostos"
+                              type="number"
+                              step="0.1"
+                              value={dados.impostos}
+                              onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
+                            />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
