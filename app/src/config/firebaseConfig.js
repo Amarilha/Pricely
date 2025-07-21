@@ -30,24 +30,35 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-const db = getFirestore(app);
+let app, auth, provider, db;
+
+if (process.env.npm_lifecycle_event !== 'build') {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  provider = new GoogleAuthProvider();
+  db = getFirestore(app);
+} else {
+  console.log('ℹ️  Build em andamento, a inicialização do Firebase será ignorada.');
+  // Mocking Firebase services for build time
+  app = {};
+  auth = {};
+  provider = {};
+  db = {};
+}
 
 // Exporte separadamente os métodos do Firebase e hooks do React
-export { 
-  auth, 
-  provider, 
-  db, 
+export {
+  auth,
+  provider,
+  db,
   signInWithPopup,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
   updateProfile,
   FirebaseError,
   setDoc,
   doc,
-  getDoc, 
+  getDoc,
   onAuthStateChanged
 };
 
