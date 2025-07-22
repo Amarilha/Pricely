@@ -6,7 +6,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export function PaymentForm() {
+interface PaymentFormProps {
+  plan?: string
+}
+
+export function PaymentForm({ plan }: PaymentFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [name, setName] = useState("")
   const [number, setNumber] = useState("")
@@ -23,14 +27,14 @@ export function PaymentForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, number, expiry, cvv }),
+        body: JSON.stringify({ name, number, expiry, cvv, plan }),
       })
 
       if (!response.ok) {
         throw new Error("Falha no pagamento")
       }
 
-      alert("Pagamento realizado com sucesso!")
+      alert(`Pagamento${plan ? ` do plano ${plan}` : ""} realizado com sucesso!`)
     } catch (error) {
       console.error(error)
       alert("Erro ao processar pagamento. Tente novamente.")
@@ -42,6 +46,11 @@ export function PaymentForm() {
   return (
     <Card>
       <CardContent className="pt-6">
+        {plan && (
+          <p className="mb-4 text-center text-lg font-medium">
+            Plano selecionado: {plan}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nome no Cartão</Label>
