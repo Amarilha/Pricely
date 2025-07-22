@@ -40,7 +40,7 @@ export function LoginForm() {
       const idToken = await userCredential.user.getIdToken()
       document.cookie = `session=${idToken}; path=/; max-age=3600; secure; samesite=strict`
       
-      window.location.href = "/dashboard"
+      window.location.href = "/dashboard/calculadora"
     } catch (error: any) { // Usando any temporariamente para acessar a propriedade code
       let errorMessage = "Falha no login"
       
