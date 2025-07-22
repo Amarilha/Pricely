@@ -34,7 +34,7 @@ import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-
+import {WorkHoursCalendar} from "@/components/calculadora-01/calendario"
 
 
 
@@ -178,65 +178,77 @@ export default function ServiceQuoteGenerator() {
     observacoes: '',
   });
 
-  const [dados, setDados] = useState<QuoteData>({
-    empresaSelecionada: "",
-    empresa: {
-      id_company: "",
-      id_user: "",
-      nome: "",
-      cnpj: "",
-      endereco_rua: "",
-      endereco_numero: "",
-      endereco_cidade: "",
-      endereco_estado: "",
-      endereco_cep: "",
-      telefone: "",
-      email: "",
-      logoChar: "",
-    },
-    clienteSelecionado: "",
-    cliente: {
-      id_client: "",
-      nome: "",
-      cpf: "",
-      telefone: "",
-      email: "",
-      endereco_rua: "",
-      endereco_numero: "",
-      endereco_cidade: "",
-      endereco_estado: "",
-      endereco_cep: "",
-      observacoes: "",
-    },
-    numeroOrdem: `OS-${Date.now().toString().slice(-6)}`,
-    data: new Date().toISOString().split("T")[0],
-    dataEntrega: "",
-    descricaoServico: "",
-    enderecoCobranca: "",
-    localPrestacao: {
-      nome: "",
-      tipoDocumento: "CPF",
-      documento: "",
-      endereco: { rua: "", numero: "", cidade: "", estado: "" },
-    },
-    horasTrabalhadasMes: 160,
-    custosFixos: [
-      { id: "1", descricao: "Aluguel/Financiamento", valor: 0 },
-      { id: "2", descricao: "Energia Elétrica", valor: 0 },
-      { id: "3", descricao: "Internet/Telefone", valor: 0 },
-      { id: "4", descricao: "Salários/Pró-labore", valor: 0 },
-    ],
-    custosVariaveis: [],
-    margemLucro: 30,
-    impostos: 8,
-    tempoExecucao: 160,
-    incluirSalarios: true,
-    itens: [],
-    formaPagamento: "",
-    desconto: 0,
-    acrescimos: 0,
-    condicoesPersonalizadas: "",
-  })
+  const [dados, setDados] = useState<QuoteData>(() => {
+    const saved = localStorage.getItem('calculadoraDados');
+    return saved
+      ? JSON.parse(saved)
+      : {
+          empresaSelecionada: '',
+          empresa: {
+            id_company: '',
+            id_user: '',
+            nome: '',
+            cnpj: '',
+            endereco_rua: '',
+            endereco_numero: '',
+            endereco_cidade: '',
+            endereco_estado: '',
+            endereco_cep: '',
+            telefone: '',
+            email: '',
+            logoChar: '',
+          },
+          clienteSelecionado: '',
+          cliente: {
+            id_client: '',
+            nome: '',
+            cpf: '',
+            telefone: '',
+            email: '',
+            endereco_rua: '',
+            endereco_numero: '',
+            endereco_cidade: '',
+            endereco_estado: '',
+            endereco_cep: '',
+            observacoes: '',
+          },
+          numeroOrdem: `OS-${Date.now().toString().slice(-6)}`,
+          data: new Date().toISOString().split('T')[0],
+          dataEntrega: '',
+          descricaoServico: '',
+          enderecoCobranca: '',
+          localPrestacao: {
+            nome: '',
+            tipoDocumento: 'CPF',
+            documento: '',
+            endereco: { rua: '', numero: '', cidade: '', estado: '' },
+          },
+          horasTrabalhadasMes: 0,
+          selectedDays: Array(7).fill(false), // Inicializa com todos os dias desmarcados
+          hoursPerDay: 8, // Valor padrão
+          custosFixos: [
+            { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
+            { id: '2', descricao: 'Energia Elétrica', valor: 0 },
+            { id: '3', descricao: 'Internet/Telefone', valor: 0 },
+            { id: '4', descricao: 'Salários/Pró-labore', valor: 0 },
+          ],
+          custosVariaveis: [],
+          margemLucro: 30,
+          impostos: 8,
+          tempoExecucao: 160,
+          incluirSalarios: true,
+          itens: [],
+          formaPagamento: '',
+          desconto: 0,
+          acrescimos: 0,
+          condicoesPersonalizadas: '',
+        };
+  });
+  
+  // Persistir dados no localStorage
+  useEffect(() => {
+    localStorage.setItem('calculadoraDados', JSON.stringify(dados));
+  }, [dados]);
 
   const [impostosDetalhados, setImpostosDetalhados] = useState({
     total: 0,
@@ -669,8 +681,8 @@ export default function ServiceQuoteGenerator() {
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
-    return dados.horasTrabalhadasMes > 0 ? calcularTotalCustosFixos / dados.horasTrabalhadasMes : 0
-  }, [calcularTotalCustosFixos, dados.horasTrabalhadasMes])
+    return dados.horasTrabalhadasMes > 0 ? calcularTotalCustosFixos / dados.horasTrabalhadasMes : 0;
+  }, [calcularTotalCustosFixos, dados.horasTrabalhadasMes]);
 
   const calcularCustoOperacional = useMemo(() => {
     const custoHora = calcularCustoHora
@@ -1971,19 +1983,9 @@ export default function ServiceQuoteGenerator() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <TooltipHelper content="Total de horas que você trabalha por mês. Usado para calcular o custo por hora dos gastos fixos">
-                              <Label htmlFor="horas-mes">Horas Trabalhadas/Mês</Label>
-                            </TooltipHelper>
-                            
-                            <Input
-                              id="horas-mes"
-                              type="number"
-                              value={dados.horasTrabalhadasMes}
-                              onChange={(e) => setDados((prev) => ({ ...prev, horasTrabalhadasMes: Number(e.target.value) }))}
-                            />
-                            <p className="text-xs text-gray-500 mt-1">ex: 8h/dia × 20 dias = 160h</p>
-                          </div>
+                        
+                        <WorkHoursCalendar dados={dados} setDados={setDados} startDay="Tuesday" daysInMonth={30} />
+
                           <div>
                             <TooltipHelper content="Percentual de lucro que você deseja obter sobre os custos. Recomendado: 25% ou mais">
                               <Label htmlFor="margem-lucro">Margem de Lucro (%)</Label>
