@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next/types"
+import type { Metadata, Viewport } from "next/types"
 import { Inter } from "next/font/google"
 import { SidebarProvider } from "@/components/sidebar-provider"
 import { Sidebar } from "@/components/sidebar"
@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   icons:{
     icon:'nexprice.jpeg',
   },
+}
+
+export const viewport: Viewport = {
   themeColor: "dark",
 }
 
