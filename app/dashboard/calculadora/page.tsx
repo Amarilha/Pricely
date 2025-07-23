@@ -278,6 +278,7 @@ export default function ServiceQuoteGenerator() {
   const fetchEmpresas = async () => {
     try {
       const userId = await stateAuth();
+      console.log("fetchEmpresas:", userId),
       setLoading(true)
       const response = await fetch('/dashboard/api/empresas',{
         headers: {
@@ -418,6 +419,7 @@ export default function ServiceQuoteGenerator() {
     const fetchClient = async () => {
       try {
         const userId = await stateAuth();
+        console.log("fetchClient:", userId),
         setLoading(true)
         const response = await fetch('/dashboard/api/client',{
           headers:{
