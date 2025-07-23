@@ -224,9 +224,8 @@ export default function ServiceQuoteGenerator() {
     hoursPerDay: 8, // Valor padrão
     custosFixos: [
       { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
-      { id: '2', descricao: 'Energia Elétrica', valor: 0 },
-      { id: '3', descricao: 'Internet/Telefone', valor: 0 },
-      { id: '4', descricao: 'Salários/Pró-labore', valor: 0 },
+      { id: '2', descricao: 'Internet/Telefone', valor: 0 },
+      { id: '3', descricao: 'Salários/Pró-labore', valor: 0 },
     ],
     custosVariaveis: [],
     margemLucro: 30,
@@ -320,6 +319,9 @@ export default function ServiceQuoteGenerator() {
         throw new Error('CNPJ inválido: deve conter exatamente 14 dígitos');
       }
 
+      const cleanedCep = formDataEmpresas.cep.replace(/\D/g,'');
+        console.log("CEP enviado", cleanedCep)
+
       // Limpa e valida telefone (remove tudo que não for dígito)
       const cleanedTelefone = formDataEmpresas.phone.replace(/\D/g, '');
       console.log("Telefone enviado:", cleanedTelefone);
@@ -342,7 +344,7 @@ export default function ServiceQuoteGenerator() {
           endereco_bairro: formDataEmpresas.neighborhood,
           endereco_cidade: formDataEmpresas.city,
           endereco_estado: formDataEmpresas.state,
-          endereco_cep: formDataEmpresas.cep,
+          endereco_cep: cleanedCep,
           telefone: cleanedTelefone,
           email: formDataEmpresas.email,
           logoChar: '' // Add default or dynamic logoChar if needed
@@ -458,6 +460,7 @@ export default function ServiceQuoteGenerator() {
 
         const cleanedCep = formDataClient.endereco_cep.replace(/\D/g,'');
         console.log("CEP enviado", cleanedCep)
+        
 
         if (cleanedCpf.length !== 11) {
           throw new Error('CPF inválido: deve conter exatamente 11 dígitos');
@@ -480,7 +483,7 @@ export default function ServiceQuoteGenerator() {
             id_user: userId,
             nome: formDataClient.nome, // Assumindo que você terá um formDataClient similar ao formData para empresas
             cpf: cleanedCpf,
-            telefone: formDataClient.telefone,
+            telefone: cleanedTelefone,
             email: formDataClient.email,
             endereco_rua: formDataClient.endereco_rua,
             endereco_numero: formDataClient.endereco_numero,
@@ -1548,12 +1551,26 @@ export default function ServiceQuoteGenerator() {
                                     value={formDataEmpresas.phone}
                                     onChange={(e) => {
                                       handleChange(e);
-                                      // Apply phone mask as the user types
-                                      let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-                                      value = value.replace(/^(\d{2})(\d)/, '($1) $2'); // Add parentheses and space
-                                      value = value.replace(/(\d{4})(\d)/, '$1-$2'); // Add dash after 4 digits
-                                      // For 9 digit numbers (mobile), move dash
-                                      value = value.replace(/(\d{5})-(\d)/, '$1-$2');
+                                      
+                                      // Remove todos os caracteres não numéricos e sinais negativos
+                                      let value = e.target.value.replace(/\D/g, '').replace(/^-/, '');
+
+                                      // Limita a 11 dígitos
+                                      if (value.length > 11) {
+                                        value = value.substring(0, 11);
+                                      }
+
+                                      // Aplica a máscara de telefone
+                                      if (value.length <= 10) {
+                                        // Formato para telefone fixo: (XX) XXXX-XXXX
+                                        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                                        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                                      } else if (value.length === 11) {
+                                        // Formato para celular: (XX) 9XXXX-XXXX
+                                        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                                        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                                      }
+
                                       setFormDataEmpresas(prev => ({ ...prev, phone: value }));
                                     }}
                                     className="col-span-3"
@@ -1802,13 +1819,26 @@ export default function ServiceQuoteGenerator() {
                                     type="tel"
                                     value={formDataClient.telefone}
                                     onChange={(e) => {
-                                      let value = e.target.value.replace(/\D/g, ''); // Remove não dígitos
-                                      if (value.length > 11) value = value.slice(0, 11); // Limita a 11 dígitos
-                                      // Aplica máscara
+                                      // Remove tudo que não for dígito e evita números negativos
+                                      let value = e.target.value.replace(/\D/g, '').replace(/^-/, '');
+
+                                      // Limita a 11 dígitos
+                                      if (value.length > 11) {
+                                        value = value.substring(0, 11);
+                                      }
+
+                                      // Aplica a máscara de telefone (XX) XXXXX-XXXX
                                       let formattedValue = value;
-                                      if (value.length > 0) formattedValue = `(${value.substring(0, 2)}`;
-                                      if (value.length > 2) formattedValue = `(${value.substring(0, 2)}) ${value.substring(2, 7)}`;
-                                      if (value.length > 7) formattedValue = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7)}`;
+                                      if (value.length > 0) {
+                                        formattedValue = `(${value.substring(0, 2)}`;
+                                      }
+                                      if (value.length > 2) {
+                                        formattedValue = `(${value.substring(0, 2)}) ${value.substring(2, 7)}`;
+                                      }
+                                      if (value.length > 7) {
+                                        formattedValue = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7)}`;
+                                      }
+
                                       setFormDataClient(prev => ({ ...prev, telefone: formattedValue }));
                                     }}
                                     className="col-span-3"
@@ -2066,53 +2096,59 @@ export default function ServiceQuoteGenerator() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-3">
-                            {dados.custosFixos.map((custo) => {
-                              const isSalario =
-                                custo.descricao.toLowerCase().includes("salário") ||
-                                custo.descricao.toLowerCase().includes("pró-labore")
-                              const isExcluded = !dados.incluirSalarios && isSalario
+                        <div className="space-y-3">
+                          {dados.custosFixos.map((custo) => {
+                            const isSalario =
+                              custo.descricao.toLowerCase().includes("salário") ||
+                              custo.descricao.toLowerCase().includes("pró-labore");
+                            const isExcluded = !dados.incluirSalarios && isSalario;
 
-                              return (
-                                <div key={custo.id} className={`flex gap-3 items-center ${isExcluded ? "opacity-50" : ""}`}>
-                                  <div className="flex-1">
-                                    <Input
-                                      placeholder="Descrição do custo"
-                                      value={custo.descricao}
-                                      onChange={(e) => atualizarCustoFixo(custo.id, "descricao", e.target.value)}
-                                      disabled={isExcluded}
-                                    />
-                                  </div>
-                                  <div className="w-32">
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      placeholder="R$ 0,00"
-                                      value={custo.valor}
-                                      onChange={(e) => atualizarCustoFixo(custo.id, "valor", Number(e.target.value))}
-                                      disabled={isExcluded}
-                                    />
-                                  </div>
-                                  <Button variant="destructive" size="sm" onClick={() => removerCustoFixo(custo.id)}>
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                  {isExcluded && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      Excluído
-                                    </Badge>
-                                  )}
+                            return (
+                              <div key={custo.id} className={`flex gap-3 items-center ${isExcluded ? "opacity-50" : ""}`}>
+                                <div className="flex-1">
+                                  <Input
+                                    placeholder="Descrição do custo"
+                                    value={custo.descricao}
+                                    onChange={(e) => atualizarCustoFixo(custo.id, "descricao", e.target.value)}
+                                    disabled={isExcluded}
+                                  />
                                 </div>
-                              )
-                            })}
-                            <div className="flex justify-between items-center pt-3 border-t">
-                              <span className="font-semibold">Total Custos Fixos:</span>
-                              <span className="font-bold text-lg text-red-600">{formatarMoeda(calcularTotalCustosFixos)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Custo por Hora:</span>
-                              <span className="text-sm font-semibold text-blue-600">{formatarMoeda(calcularCustoHora)}</span>
-                            </div>
+                                <div className="w-32">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0" // Impede valores negativos via controle do navegador
+                                    placeholder="R$ 0,00"
+                                    value={custo.valor}
+                                    onChange={(e) => {
+                                      const value = Number(e.target.value);
+                                      if (value >= 0) { // Validação para garantir que não seja negativo
+                                        atualizarCustoFixo(custo.id, "valor", value);
+                                      }
+                                    }}
+                                    disabled={isExcluded}
+                                  />
+                                </div>
+                                <Button variant="destructive" size="sm" onClick={() => removerCustoFixo(custo.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                {isExcluded && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Excluído
+                                  </Badge>
+                                )}
+                              </div>
+                            );
+                          })}
+                          <div className="flex justify-between items-center pt-3 border-t">
+                            <span className="font-semibold">Total Custos Fixos:</span>
+                            <span className="font-bold text-lg text-red-600">{formatarMoeda(calcularTotalCustosFixos)}</span>
                           </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Custo por Hora:</span>
+                            <span className="text-sm font-semibold text-blue-600">{formatarMoeda(calcularCustoHora)}</span>
+                          </div>
+                        </div>
                         </CardContent>
                       </Card>
 
@@ -2177,57 +2213,68 @@ export default function ServiceQuoteGenerator() {
                                   </div>
                                   
                                   {/* valores QT e unidade */}
-                                  <div className="grid grid-cols-1 md:grid-cols-[auto_auto_25%] gap-2" >
+                                  <div className="grid grid-cols-1 md:grid-cols-[auto_auto_25%] gap-2">
                                     <div>
-                                    <TooltipHelper content="Valor unitário ou total do custo">
-                                      <Label className="text-xs">Valor (R$)</Label>
-                                    </TooltipHelper>
-                                    <Input
-                                      className="h-8"
-                                      type="number"
-                                      step="0.01"
-                                      placeholder="0,00"
-                                      value={custo.valor}
-                                      onChange={(e) => atualizarCustoVariavel(custo.id, "valor", Number(e.target.value))}
-                                    />
+                                      <TooltipHelper content="Valor unitário ou total do custo">
+                                        <Label className="text-xs">Valor (R$)</Label>
+                                      </TooltipHelper>
+                                      <Input
+                                        className="h-8"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="0,00"
+                                        value={custo.valor}
+                                        onChange={(e) => {
+                                          const value = Number(e.target.value);
+                                          if (value >= 0) {
+                                            atualizarCustoVariavel(custo.id, "valor", value);
+                                          }
+                                        }}
+                                      />
                                     </div>
                                     <div>
-                                    <TooltipHelper content="Quantidade total ">
-                                      <Label className="text-xs">QT</Label>
-                                    </TooltipHelper>
-                                    <Input
-                                      className="h-8"
-                                      type="number"
-                                      step="1"
-                                      placeholder="0,00"
-                                      value={custo.quantidade}
-                                      onChange={(e) => atualizarCustoVariavel(custo.id, "quantidade", Number(e.target.value))}
-                                    />
+                                      <TooltipHelper content="Quantidade total">
+                                        <Label className="text-xs">QT</Label>
+                                      </TooltipHelper>
+                                      <Input
+                                        className="h-8"
+                                        type="number"
+                                        step="1"
+                                        min="0"
+                                        placeholder="0,00"
+                                        value={custo.quantidade}
+                                        onChange={(e) => {
+                                          const value = Number(e.target.value);
+                                          if (value >= 0) {
+                                            atualizarCustoVariavel(custo.id, "quantidade", value);
+                                          }
+                                        }}
+                                      />
                                     </div>
                                     <div>
-                                    <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
-                                      <Label className="text-xs">Unidade</Label>
-                                    </TooltipHelper>
-                                    <Select
-                                      value={custo.unidade}
-                                      onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
-                                    >
-                                      <SelectTrigger className="h-8">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="unidade">un</SelectItem>
-                                        <SelectItem value="kg">kg</SelectItem>
-                                        <SelectItem value="litros">L</SelectItem>
-                                        <SelectItem value="metros">m</SelectItem>
-                                        <SelectItem value="horas">h</SelectItem>
-                                        <SelectItem value="dias">dias</SelectItem>
-                                        <SelectItem value="pacote">pacote</SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                      <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
+                                        <Label className="text-xs">Unidade</Label>
+                                      </TooltipHelper>
+                                      <Select
+                                        value={custo.unidade}
+                                        onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
+                                      >
+                                        <SelectTrigger className="h-8">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="unidade">un</SelectItem>
+                                          <SelectItem value="kg">kg</SelectItem>
+                                          <SelectItem value="litros">L</SelectItem>
+                                          <SelectItem value="metros">m</SelectItem>
+                                          <SelectItem value="horas">h</SelectItem>
+                                          <SelectItem value="dias">dias</SelectItem>
+                                          <SelectItem value="pacote">pacote</SelectItem>
+                                        </SelectContent>
+                                      </Select>
                                     </div>
                                   </div>
-
 
                                   {/* botão de lixo */}
                                   <div className="flex items-end w-10">
