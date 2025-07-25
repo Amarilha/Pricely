@@ -35,6 +35,8 @@ import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
 import {WorkHoursCalendar} from "@/components/calculadora-01/calendario"
+import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
+
 
 
 
@@ -220,8 +222,11 @@ export default function ServiceQuoteGenerator() {
       endereco: { rua: '', numero: '', cidade: '', estado: '' },
     },
     horasTrabalhadasMes: 0,
-    selectedDays: Array(7).fill(false), // Inicializa com todos os dias desmarcados
-    hoursPerDay: 8, // Valor padrão
+    selectedDays: Array(7).fill(false),
+    hoursPerDay: 8,
+    dataInicio: '',
+    dataFim: '',
+    tempoExecucao: 160,
     custosFixos: [
       { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
       { id: '2', descricao: 'Internet/Telefone', valor: 0 },
@@ -230,7 +235,6 @@ export default function ServiceQuoteGenerator() {
     custosVariaveis: [],
     margemLucro: 30,
     impostos: 8,
-    tempoExecucao: 160,
     incluirSalarios: true,
     itens: [],
     formaPagamento: '',
@@ -238,6 +242,41 @@ export default function ServiceQuoteGenerator() {
     acrescimos: 0,
     condicoesPersonalizadas: '',
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('calculadoraDados');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setDados(parsed);
+      } catch (error) {
+        console.error('Erro ao carregar dados do localStorage:', error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('calculadoraDados', JSON.stringify(dados));
+  }, [dados]);
+  
+  const [workDays, setWorkDays] = useState([true, true, true, true, true, false, false]); // Seg-Sex
+  const [hoursPerDay, setHoursPerDay] = useState(8);
+
+  const handleDateRangeChange = (startDate: Date | null, endDate: Date | null, totalHours: number) => {
+    console.log('Dados recebidos do DateRangeSelector:', {
+      startDate,
+      endDate,
+      totalHours
+    });
+
+    // Atualize o estado do seu formulário aqui
+    setDados(prev => ({
+      ...prev,
+      dataInicio: startDate?.toISOString().split('T')[0] || '',
+      dataFim: endDate?.toISOString().split('T')[0] || '',
+      tempoExecucao: totalHours
+    }));
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem('calculadoraDados');
@@ -264,6 +303,8 @@ export default function ServiceQuoteGenerator() {
       regime: "simples",
     },
   })
+
+ 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -2362,22 +2403,18 @@ export default function ServiceQuoteGenerator() {
                               value={dados.data}
                               onChange={(e) => setDados((prev) => ({ ...prev, data: e.target.value }))}
                             />
-                            
                           </div>
-                          <div>
-
-                            <TooltipHelper content="Quantas horas você vai levar para executar este serviço">
-                              <Label htmlFor="tempo-execucao">Tempo de Execução (horas)</Label>
-                            </TooltipHelper>
-                            <Input
-                              id="tempo-execucao"
-                              type="number"
-                              step="0.5"
-                              //value={dados.horasTrabalhadasMes}
-                              value={dados.tempoExecucao}
-                              onChange={(e) => setDados((prev) => ({ ...prev, tempoExecucao: Number(e.target.value) }))}
-                            />
-                          </div>
+                           {/*Tempo de Execução */}
+                           <div>
+                              <TooltipHelper content="Selecione o período de execução do projeto">
+                                <Label>Período de Execução</Label>
+                              </TooltipHelper>
+                              <DateRangeSelector 
+                              workDays={workDays}
+                              hoursPerDay={hoursPerDay}
+                              onDateRangeChange={handleDateRangeChange}
+                              />
+                            </div>
                         </div>
                         <div>
                           <TooltipHelper content="Descrição detalhada do que será feito no serviço">
