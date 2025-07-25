@@ -239,7 +239,7 @@ export const DateRangeSelector = ({
                             className={`
                               text-center py-2 rounded relative
                               ${date ? 'cursor-pointer' : 'text-gray-300'}
-                              ${isSelected ? 'bg-purple-100 text-purple-600' : 'hover:bg-purple-50'}
+                              ${isSelected ? 'bg-purple-100 text-purple-600' : 'hover:bg-purple-500'}
                               ${isStart ? 'rounded-l-full bg-purple-600 text-white' : ''}
                               ${isEnd ? 'rounded-r-full bg-purple-600 text-white' : ''}
                             `}
@@ -280,7 +280,7 @@ export const DateRangeSelector = ({
                             className={`
                               text-center py-2 rounded relative
                               ${date ? 'cursor-pointer' : 'text-gray-300'}
-                              ${isSelected ? 'bg-purple-100 text-purple-600' : 'hover:bg-purple-50'}
+                              ${isSelected ? 'bg-purple-100 text-purple-600' : 'hover:bg-purple-500'}
                               ${isStart ? 'rounded-l-full bg-purple-600 text-white' : ''}
                               ${isEnd ? 'rounded-r-full bg-purple-600 text-white' : ''}
                             `}
@@ -354,20 +354,20 @@ export const DateRangeSelector = ({
 
       {/* Resumo exibido fora do modal */}
       {selectedStartDate && selectedEndDate && (
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <div className="bg-purble-50 p-4 rounded-lg border border-purble-200">
           <h3 className="font-medium text-gray-700 mb-2">Resumo do Período</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Data inicial:</p>
-              <p className="font-medium">{formatDate(selectedStartDate)}</p>
+              <p className="font-medium text-gray-500">{formatDate(selectedStartDate)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Data final:</p>
-              <p className="font-medium">{formatDate(selectedEndDate)}</p>
+              <p className="font-medium  text-gray-500">{formatDate(selectedEndDate)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Dias trabalhados:</p>
-              <p className="font-medium">{workingDaysCount} dias</p>
+              <p className="font-medium text-gray-500">{workingDaysCount} dias</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Total de horas:</p>
