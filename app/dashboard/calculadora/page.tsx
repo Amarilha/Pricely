@@ -2715,32 +2715,16 @@ export default function ServiceQuoteGenerator() {
                             </div>
                           </section>
 
-                          {/* Footer */}
-                          <footer className="mt-8 pt-4">
-                            <p className="text-center text-sm text-gray-600 mb-8">
-                              Confirmo que o serviço foi prestado de acordo com o combinado.
-                            </p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                              <div className="text-center">
-                                <div className="border-t border-gray-400 pt-2">
-                                  <p className="font-semibold">Assinatura do Cliente</p>
-                                </div>
-                              </div>
-                              <div className="text-center">
-                                <div className="border-t border-gray-400 pt-2">
-                                  <p className="font-semibold">Data de entrega do serviço: {formatarData(dados.dataEntrega)}</p>
-                                </div>
-                              </div>
-                              <div className="text-center mt-8">
-                                <div className="border-t border-gray-400 pt-2">
-                                  <p className="font-semibold">Assinatura do Técnico</p>
-                                </div>
-                              </div>
+                          {/* Footer */} 
+                          <footer className="mt-8 pt-4">                           
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">                             
                               <div className="text-center mt-8 self-end">
                                 <p className="bg-purple-600 text-white font-bold p-2 rounded">nexprice.com.br</p>
                               </div>
                             </div>
                           </footer>
+                          
+
                         </div>
                       </div>
                     </div>

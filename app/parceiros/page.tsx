@@ -6,8 +6,8 @@ import { SiteHeader } from "@/components/site/site-header"
 import { SiteFooter } from "@/components/site/site-footer"
 
 export const metadata: Metadata = {
-  title: "Parceiros | Valluo",
-  description: "Conheça nossos parceiros e saiba como se tornar um parceiro Valluo",
+  title: "Parceiros | Nexprice",
+  description: "Conheça nossos parceiros e saiba como se tornar um parceiro Nexprice",
 }
 
 export default function ParceirosPage() {
@@ -29,7 +29,7 @@ export default function ParceirosPage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-3">Torne-se um Parceiro</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Junte-se ao nosso programa de parceiros e cresça seu negócio com a Valluo
+                Junte-se ao nosso programa de parceiros e cresça seu negócio com a Nexprice
               </p>
             </div>
 
