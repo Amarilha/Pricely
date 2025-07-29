@@ -34,8 +34,8 @@ import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-import {WorkHoursCalendar} from "@/components/calculadora-01/calendario"
-import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
+import {WorkHoursCalendar, DateRangeSelector} from "@/components/calculadora-01/calendario"
+//import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
 
@@ -2057,10 +2057,8 @@ export default function ServiceQuoteGenerator() {
                         <CardTitle>Configuração do Negócio</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         
-                        <WorkHoursCalendar dados={dados} setDados={setDados} startDay="Tuesday" daysInMonth={30} />
-
                           <div>
                             <TooltipHelper content="Percentual de lucro que você deseja obter sobre os custos. Recomendado: 25% ou mais">
                               <Label htmlFor="margem-lucro">Margem de Lucro (%)</Label>
@@ -2410,9 +2408,9 @@ export default function ServiceQuoteGenerator() {
                                 <Label>Período de Execução</Label>
                               </TooltipHelper>
                               <DateRangeSelector 
-                              workDays={workDays}
-                              hoursPerDay={hoursPerDay}
-                              onDateRangeChange={handleDateRangeChange}
+                                workDays={[true, true, true, true, true, false, false]}
+                                hoursPerDay={8}
+                                onDateRangeChange={(start, end, hours) => console.log(start, end, hours)}
                               />
                             </div>
                         </div>
