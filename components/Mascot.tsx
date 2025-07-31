@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import Image from 'next/image';
+import MascotSprite from './MascotSprite';
 
 export interface MascotHandles {
   showMessage: (text: string, duration?: number) => void;
@@ -70,7 +70,7 @@ const Mascot = forwardRef<MascotHandles, {}>((props, ref) => {
           {message}
         </div>
       )}
-      <Image src="/mascote.png" alt="Mascote" width={100} height={100} />
+      <MascotSprite />
     </div>
   );
 });
