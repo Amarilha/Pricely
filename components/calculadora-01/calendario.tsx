@@ -221,14 +221,16 @@ const StandardWorkDaysSelector = ({
   );
 };
 
+import { useDateRange } from './data-context';
+
 export const DateRangeSelector = ({ 
   onDateRangeChange,
   workDays = [true, true, true, true, true, false, false],
   hoursPerDay = 8,
   setDados
 }: DateRangeSelectorProps) => {
-  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
-  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
+  const { dateRange, setDateRange } = useDateRange();
+  const { startDate: selectedStartDate, endDate: selectedEndDate } = dateRange;
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const [totalHours, setTotalHours] = useState(0);
@@ -323,14 +325,12 @@ export const DateRangeSelector = ({
 
   const handleDateClick = (date: Date) => {
     if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
-      setSelectedStartDate(date);
-      setSelectedEndDate(null);
+      setDateRange({ startDate: date, endDate: null, totalHours: 0 });
     } else {
       if (date > selectedStartDate) {
-        setSelectedEndDate(date);
+        setDateRange({ startDate: selectedStartDate, endDate: date, totalHours: totalHours });
       } else {
-        setSelectedStartDate(date);
-        setSelectedEndDate(selectedStartDate);
+        setDateRange({ startDate: date, endDate: selectedStartDate, totalHours: totalHours });
       }
     }
   };
@@ -339,6 +339,8 @@ export const DateRangeSelector = ({
     if (selectedStartDate && selectedEndDate) {
       const { hours } = calculateWorkHours(selectedStartDate, selectedEndDate, selectedDays, dailyHours);
       
+      setDateRange({ startDate: selectedStartDate, endDate: selectedEndDate, totalHours: hours });
+
       if (setDados) {
         setDados(prev => ({
           ...prev,
