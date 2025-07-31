@@ -10,9 +10,115 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Company {
+  id_company       String      @id @default(cuid())
+  id_user          String
+  nome             String
+  cnpj             String      @unique
+  endereco_rua     String?
+  endereco_numero  String?
+  endereco_bairro  String?
+  endereco_cidade  String?
+  endereco_estado  String?
+  endereco_cep     String?
+  telefone         String?
+  email            String      @unique
+  logoChar         String?
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  orcamentos       Orcamento[]
+}
+
+model Client {
+  id_client        String      @id @default(cuid())
+  id_user          String
+  nome             String
+  cpf              String      @unique
+  telefone         String?
+  email            String?
+  endereco_rua     String?
+  endereco_numero  String?
+  endereco_cidade  String?
+  endereco_estado  String?
+  endereco_cep     String?
+  observacoes      String?
+  orcamentos       Orcamento[]
+}
+
+model Orcamento {
+  id_orcamento          String           @id @default(cuid())
+  userId                String
+  numeroOrdem           String           @unique
+  data                  DateTime
+  dataEntrega           DateTime?
+  descricaoServico      String?          @db.Text
+  enderecoCobranca      String?
+  margemLucro           Float
+  impostos              Float
+  tempoExecucao         Float
+  formaPagamento        String?
+  desconto              Float?
+  acrescimos            Float?
+  condicoesPersonalizadas String?        @db.Text
+  total                 Float
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  empresaId             String
+  empresa               Company          @relation(fields: [empresaId], references: [id_company])
+  clienteId             String
+  cliente               Client           @relation(fields: [clienteId], references: [id_client])
+  localPrestacao        LocalPrestacao?
+  custosFixos           CustoFixo[]
+  custosVariaveis       CustoVariavel[]
+  itens                 ItemServico[]
+}
+
+model LocalPrestacao {
+  id_local_prestacao String    @id @default(cuid())
+  nome               String?
+  tipoDocumento      String?
+  documento          String?
+  rua                String?
+  numero             String?
+  cidade             String?
+  estado             String?
+  orcamentoId        String    @unique
+  orcamento          Orcamento @relation(fields: [orcamentoId], references: [id_orcamento])
+}
+
+model CustoFixo {
+  id_custo_fixo String    @id @default(cuid())
+  descricao     String
+  valor         Float
+  orcamentoId   String
+  orcamento     Orcamento @relation(fields: [orcamentoId], references: [id_orcamento])
+}
+
+model CustoVariavel {
+  id_custo_variavel String    @id @default(cuid())
+  categoria         String
+  descricao         String
+  valor             Float
+  unidade           String?
+  quantidade        Int?
+  observacoes       String?
+  orcamentoId       String
+  orcamento         Orcamento @relation(fields: [orcamentoId], references: [id_orcamento])
+}
+
+model ItemServico {
+  id_item_servico String    @id @default(cuid())
+  quantidade      Int
+  descricao       String
+  precoUnitario   Float
+  totalItem       Float
+  orcamentoId     String
+  orcamento       Orcamento @relation(fields: [orcamentoId], references: [id_orcamento])
+}
+
 model Project {
   id          String   @id @default(cuid())
-  userId      String   // From Firebase
+  userId      String
   name        String
   description String?
   cost        Float
