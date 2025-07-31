@@ -145,10 +145,10 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
               <div className="text-right">
                 <h1 className="text-3xl font-bold text-gray-800">ORÇAMENTO</h1>
                 <div className="mt-2 border border-gray-300 rounded-md p-2 text-left">
-                  <p className="text-sm">
+                  <p className="text-sm text-gray-700">
                     <span className="font-semibold">Ordem nº:</span> {dados.numeroOrdem}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-sm text-gray-700">
                     <span className="font-semibold">Data:</span> {formatarData(dados.data || '')}
                   </p>
                 </div>
