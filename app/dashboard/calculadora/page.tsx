@@ -1433,7 +1433,7 @@ export default function ServiceQuoteGenerator() {
         {/* bory */}
         <Tabs defaultValue="setup" className="grid grid-cols-3 gap-2 space-y-6" style={{ gridTemplateColumns: "20% 60% 20%"}}>
             {/* Cost Analysis */}
-            <div className="grid grid-rows-1 mt-6 md:grid-rows-4 gap-4">
+            <div className="grid grid-rows-1 mt-6 md:grid-rows-4 gap-4" data-mascot-comment="Aqui você pode ver um resumo dos seus custos.">
               <Card>
                 <CardContent className="p-4 text-center">
                   <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
@@ -1482,7 +1482,7 @@ export default function ServiceQuoteGenerator() {
                     <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="setup" className="space-y-6">
+                  <TabsContent value="setup" className="space-y-6" data-mascot-comment="Nesta seção você pode configurar as informações da sua empresa e do seu cliente.">
                     {/* Company Selection */}
                     <Card>
                       <CardHeader>
@@ -2054,7 +2054,7 @@ export default function ServiceQuoteGenerator() {
                   </TabsContent>
                   {/* custo */}
                     
-                  <TabsContent value="costs" className="space-y-6">
+                  <TabsContent value="costs" className="space-y-6" data-mascot-comment="Aqui você pode adicionar seus custos fixos e variáveis.">
                       {/* Salary Inclusion Option */}
                       <Card>
                         <CardHeader>
@@ -2337,7 +2337,7 @@ export default function ServiceQuoteGenerator() {
 
                   </TabsContent>
                     
-                  <TabsContent value="service" className="space-y-6">
+                  <TabsContent value="service" className="space-y-6" data-mascot-comment="Configure os detalhes do serviço, como datas e descrição.">
                     {/* Service Configuration */}
                     <Card>
                       <CardHeader>
@@ -2480,7 +2480,7 @@ export default function ServiceQuoteGenerator() {
                     />
                   </TabsContent>
 */}
-                  <TabsContent value="quote">
+                  <TabsContent value="quote" data-mascot-comment="Veja como seu orçamento profissional ficará.">
                     {/* Professional Quote Document */}
                     <div id="service-quote-pdf" className="bg-white">
                       <div className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg print:shadow-none">
