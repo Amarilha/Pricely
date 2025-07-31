@@ -2554,6 +2554,7 @@ function ServiceQuoteGeneratorContent() {
                       gerarPDF={gerarPDF}
                       imprimirOrcamento={imprimirOrcamento}
                       handleSaveOrcamento={handleSaveOrcamento}
+                      custosFixos={dados.custosFixos}
                     />
                     {/* Financial Summary */}
                     <Alert className="mt-6">

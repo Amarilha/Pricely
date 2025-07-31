@@ -1,9 +1,11 @@
 "use client"
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, FileText } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 // Definindo as interfaces para as props do componente
 interface Company {
@@ -39,6 +41,11 @@ interface VariableCost {
     valor: number;
 }
 
+interface FixedCost {
+    descricao: string;
+    valor: number;
+}
+
 interface QuoteData {
   empresa: Company;
   cliente: Client;
@@ -61,6 +68,7 @@ interface QuoteData {
   tempoExecucao?: number;
   incluirSalarios?: boolean;
   custosVariaveis: VariableCost[];
+  custosFixos: FixedCost[];
   formaPagamento?: string;
   desconto?: number;
   acrescimos?: number;
@@ -94,8 +102,19 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
   imprimirOrcamento,
   handleSaveOrcamento,
 }) => {
+  const [visualizacaoDetalhada, setVisualizacaoDetalhada] = useState(false);
+
   return (
     <>
+      <div className="flex justify-end items-center gap-2 mb-4 print:hidden">
+        <Label htmlFor="detalhe-switch">Visualização Resumida</Label>
+        <Switch
+          id="detalhe-switch"
+          checked={visualizacaoDetalhada}
+          onCheckedChange={setVisualizacaoDetalhada}
+        />
+        <Label htmlFor="detalhe-switch">Visualização Detalhada</Label>
+      </div>
       <div id="service-quote-pdf" className="bg-white">
         <Card className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg print:shadow-none">
           <CardContent className="page-content">
@@ -126,10 +145,10 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
               <div className="text-right">
                 <h1 className="text-3xl font-bold text-gray-800">ORÇAMENTO</h1>
                 <div className="mt-2 border border-gray-300 rounded-md p-2 text-left">
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm">
                     <span className="font-semibold">Ordem nº:</span> {dados.numeroOrdem}
                   </p>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm">
                     <span className="font-semibold">Data:</span> {formatarData(dados.data || '')}
                   </p>
                 </div>
@@ -209,45 +228,62 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                   </tr>
                 </thead>
                 <tbody className="text-gray-700">
+                  {/* Renderização dos itens principais */}
                   {dados.itens.map((item, index) => (
-                    <tr key={index}>
+                    <tr key={`item-${index}`}>
                       <td className="p-2 border border-gray-300">{item.quantidade}</td>
                       <td className="p-2 border border-gray-300">{item.descricao}</td>
-                      <td className="p-2 text-right border border-gray-300">
-                        {formatarMoeda(item.precoUnitario)}
-                      </td>
+                      <td className="p-2 text-right border border-gray-300">{formatarMoeda(item.precoUnitario)}</td>
                       <td className="p-2 text-right border border-gray-300">{formatarMoeda(item.totalItem)}</td>
                     </tr>
                   ))}
-                  {/* Add operational costs as items */}
-                  {calcularCustoOperacional > 0 && (
-                    <tr>
-                      <td className="p-2 border border-gray-300">1</td>
-                      <td className="p-2 border border-gray-300">
-                        Custo Operacional ({dados.tempoExecucao}h)
-                        {!dados.incluirSalarios && (
-                          <span className="text-xs text-gray-500 block">*Salários não incluídos</span>
-                        )}
-                        {dados.custosVariaveis.length > 0 && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Inclui:{" "}
-                            {dados.custosVariaveis
-                              .map((c) => `${c.categoria} (${formatarMoeda(c.valor)})`)
-                              .join(", ")}
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-2 text-right border border-gray-300">
-                        {formatarMoeda(calcularCustoOperacional)}
-                      </td>
-                      <td className="p-2 text-right border border-gray-300">
-                        {formatarMoeda(calcularCustoOperacional)}
-                      </td>
-                    </tr>
+
+                  {/* Renderização Condicional: Detalhada vs. Resumida */}
+                  {visualizacaoDetalhada ? (
+                    <>
+                      {/* Custos Fixos Detalhados */}
+                      {dados.custosFixos.map((custo, index) => {
+                        const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
+                        if (!dados.incluirSalarios && isSalario) return null;
+                        return (
+                          <tr key={`fixo-${index}`} className="text-xs bg-gray-50">
+                            <td className="p-2 border border-gray-300"></td>
+                            <td className="p-2 border border-gray-300 italic">{custo.descricao} (Custo Fixo)</td>
+                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                          </tr>
+                        );
+                      })}
+                      {/* Custos Variáveis Detalhados */}
+                      {dados.custosVariaveis.map((custo, index) => (
+                        <tr key={`variavel-${index}`} className="text-xs bg-gray-50">
+                          <td className="p-2 border border-gray-300"></td>
+                          <td className="p-2 border border-gray-300 italic">{custo.categoria} (Custo Variável)</td>
+                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                        </tr>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {/* Custo Operacional Resumido */}
+                      {calcularCustoOperacional > 0 && (
+                        <tr>
+                          <td className="p-2 border border-gray-300">1</td>
+                          <td className="p-2 border border-gray-300">
+                            Custo Operacional ({dados.tempoExecucao}h)
+                            {!dados.incluirSalarios && <span className="text-xs text-gray-500 block">*Salários não incluídos</span>}
+                          </td>
+                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(calcularCustoOperacional)}</td>
+                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(calcularCustoOperacional)}</td>
+                        </tr>
+                      )}
+                    </>
                   )}
-                  {/* Fill empty rows */}
+
+                  {/* Linhas Vazias para preenchimento */}
                   {Array.from({
-                    length: Math.max(0, 4 - dados.itens.length - (calcularCustoOperacional > 0 ? 1 : 0)),
+                    length: Math.max(0, 4 - dados.itens.length - (visualizacaoDetalhada ? dados.custosFixos.length + dados.custosVariaveis.length : (calcularCustoOperacional > 0 ? 1 : 0))),
                   }).map((_, index) => (
                     <tr key={`empty-${index}`} className="h-8">
                       <td className="p-2 border border-gray-300"></td>
