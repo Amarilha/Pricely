@@ -146,9 +146,10 @@ const TooltipHelper = ({ content, children }: { content: string; children: React
   </TooltipProvider>
 )
 
-import { DateRangeProvider } from "@/components/calculadora-01/data-context";
+import { DateRangeProvider, useDateRange } from "@/components/calculadora-01/data-context";
 
 function ServiceQuoteGeneratorContent() {
+  const { dateRange } = useDateRange();
   const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([])
   const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([])
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
@@ -713,11 +714,6 @@ function ServiceQuoteGeneratorContent() {
   const calcularTotalCustosVariaveis = useMemo(() => {
     return dados.custosVariaveis.reduce((total, custo) => total + ((custo.valor || 0)*(custo.quantidade || 0)), 0)
   }, [dados.custosVariaveis])
-
-import { useDateRange } from "@/components/calculadora-01/data-context";
-
-function ServiceQuoteGeneratorContent() {
-  const { dateRange } = useDateRange();
 
   const calcularCustoHora = useMemo(() => {
     const { totalHours } = dateRange;
