@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getClient as fetchClientFromDB } from '../../../src/services/routes'; // Importa a função original
-import { createClient as createClient } from '../../../src/services/routes'; // Importa a função original
+import { getClient as fetchClientFromDB } from '../../../src/services/routes.js'; // Importa a função original
+import { createClient as createClient } from '../../../src/services/routes.js'; // Importa a função original
 
 export async function GET(request) {
   try {

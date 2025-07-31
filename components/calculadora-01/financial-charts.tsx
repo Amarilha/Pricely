@@ -42,7 +42,6 @@ export function FinancialCharts({
   receitaLiquida,
   impostos,
 }: FinancialChartsProps) {
-  // Define formatarMoeda locally
   const formatarMoeda = (valor: number) => {
     return valor.toLocaleString("pt-BR", {
       style: "currency",
@@ -51,14 +50,12 @@ export function FinancialCharts({
     })
   }
 
-  // Cálculo do Markup
   const calcularMarkup = () => {
     const custoTotal = custosFixos + custosVariaveis
     if (custoTotal <= 0 || receitaLiquida <= 0) return 0
     return receitaLiquida / custoTotal
   }
 
-  // Cálculo do GAO (Grau de Alavancagem Operacional)
   const calcularGAO = () => {
     const margemContribuicao = receitaLiquida - custosVariaveis
     const lucroOperacional = receitaLiquida - (custosVariaveis + custosFixos)
@@ -66,7 +63,6 @@ export function FinancialCharts({
     return margemContribuicao / lucroOperacional
   }
 
-  // Cálculo do Break-even
   const calcularBreakeven = () => {
     const margemContribuicaoUnitaria = receitaLiquida > 0 ? (receitaLiquida - custosVariaveis) / receitaLiquida : 0
     if (margemContribuicaoUnitaria <= 0) return 0
@@ -77,13 +73,11 @@ export function FinancialCharts({
   const gao = calcularGAO()
   const breakeven = calcularBreakeven()
 
-  // Dados para os gráficos
   const markupData: ChartData[] = [
     { name: "Markup Atual", value: markup, color: COLORS.markupAtual },
     { name: "Markup Ideal", value: 2.5, color: COLORS.markupIdeal },
   ]
 
-  // Generate range data for GAO line chart
   const generateGAOData = () => {
     const maxRevenue = receitaLiquida * 1.5
     const steps = 5
@@ -95,13 +89,12 @@ export function FinancialCharts({
       data.push({
         revenueLevel: i,
         gaoAtual: lucroOperacional > 0 && margemContribuicao > 0 ? margemContribuicao / lucroOperacional : 0,
-        gaoThreshold: 1.5, // Threshold for moderate risk
+        gaoThreshold: 1.5,
       })
     }
     return data
   }
 
-  // Generate range data for Break-even line chart with dynamic margin
   const generateBreakevenData = () => {
     const maxRevenue = receitaLiquida * 1.5
     const steps = 5
@@ -137,9 +130,9 @@ export function FinancialCharts({
   const gaoStatus = getGaoStatus(gao)
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
       {/* Markup Chart */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -147,7 +140,7 @@ export function FinancialCharts({
           </CardTitle>
           <CardDescription>Markup atual vs. ideal para sustentabilidade do negócio</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[300px]">
           {markup === 0 ? (
             <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
           ) : (
@@ -156,9 +149,8 @@ export function FinancialCharts({
                 markupAtual: { label: "Markup Atual", color: COLORS.markupAtual },
                 markupIdeal: { label: "Markup Ideal", color: COLORS.markupIdeal },
               }}
-              className="min-h-[250px]"
             >
-              <ResponsiveContainer width="100%" height="100%" aspect={2}>
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={markupData} aria-label="Gráfico de Markup">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -183,7 +175,7 @@ export function FinancialCharts({
       </Card>
 
       {/* GAO Chart */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <gaoStatus.icon className="h-5 w-5" />
@@ -205,7 +197,7 @@ export function FinancialCharts({
           </CardTitle>
           <CardDescription>Sensibilidade do lucro às variações de receita</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[350px]">
           {gao === 0 ? (
             <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
           ) : (
@@ -214,9 +206,8 @@ export function FinancialCharts({
                 gao: { label: "GAO", color: COLORS.gao },
                 gaoThreshold: { label: "Limite de Risco", color: COLORS.gaoThreshold },
               }}
-              className="min-h-[300px]"
             >
-              <ResponsiveContainer width="100%" height="100%" aspect={1.5}>
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={gaoData} aria-label="Gráfico de GAO">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                   <XAxis
@@ -278,7 +269,7 @@ export function FinancialCharts({
       </Card>
 
       {/* Break-even Chart */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
@@ -301,7 +292,7 @@ export function FinancialCharts({
           </CardTitle>
           <CardDescription>Ponto de equilíbrio e margem de segurança</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[350px]">
           {breakeven === 0 && receitaLiquida === 0 ? (
             <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
           ) : (
@@ -311,9 +302,8 @@ export function FinancialCharts({
                 breakeven: { label: "Break-even", color: COLORS.breakeven },
                 margem: { label: "Margem de Segurança", color: COLORS.margemSeguranca },
               }}
-              className="min-h-[300px]"
             >
-              <ResponsiveContainer width="100%" height="100%" aspect={1.5}>
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={breakevenData} aria-label="Gráfico de Break-even">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                   <XAxis
@@ -387,12 +377,12 @@ export function FinancialCharts({
       </Card>
 
       {/* Composição de Custos */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>Composição de Custos</CardTitle>
           <CardDescription>Distribuição dos custos e margem de lucro</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[400px]"> {/* Aumentei a altura e removi aspect-square */}
           {composicaoCustos.every((item) => item.value === 0) ? (
             <p className="text-center text-muted-foreground">Dados insuficientes para exibir o gráfico</p>
           ) : (
@@ -404,26 +394,27 @@ export function FinancialCharts({
                 }),
                 {},
               )}
-              className="min-h-[250px]"
             >
-              <ResponsiveContainer width="100%" height="100%" aspect={1}>
-                <PieChart aria-label="Gráfico de Composição de Custos">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}> {/* Adicionei margens */}
                   <Pie
                     data={composicaoCustos}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    innerRadius={40} // Creates donut effect
-                    outerRadius={100}
-                    label={({ name, value }) => `${name}: ${formatarMoeda(value)}`}
-                    labelLine={true}
+                    innerRadius={40}  // Aumentei o innerRadius
+                    outerRadius={80}  // Diminuí o outerRadius para deixar espaço para os rótulos
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`} // Mostra porcentagem para economizar espaço
+                    labelLine={false} // Remove as linhas dos rótulos para evitar overflow
                   >
                     {composicaoCustos.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <ChartTooltip content={<ChartTooltipContent formatter={formatarMoeda} />} />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent formatter={formatarMoeda} />} 
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </ChartContainer>

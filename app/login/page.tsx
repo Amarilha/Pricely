@@ -4,8 +4,8 @@ import { SiteHeader } from "@/components/site/site-header"
 import { SiteFooter } from "@/components/site/site-footer"
 
 export const metadata: Metadata = {
-  title: "Login | Valluo",
-  description: "Acesse sua conta na plataforma Valluo",
+  title: "Login | Nexprice",
+  description: "Acesse sua conta na plataforma Nexprice",
 }
 
 export default function LoginPage() {
@@ -16,7 +16,7 @@ export default function LoginPage() {
         <div className="container max-w-md mx-auto py-16 px-4">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Acesse sua conta</h1>
-            <p className="text-muted-foreground">Entre com suas credenciais para acessar a plataforma Valluo</p>
+            <p className="text-muted-foreground">Entre com suas credenciais para acessar a plataforma Nexprice</p>
           </div>
           <LoginForm />
         </div>
