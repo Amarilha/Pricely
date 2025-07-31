@@ -35,6 +35,8 @@ import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
 import {WorkHoursCalendar} from "@/components/calculadora-01/calendario"
+import Mascot, { MascotHandles } from '@/components/Mascot';
+import { useRef } from 'react';
 
 
 
@@ -152,6 +154,7 @@ export default function ServiceQuoteGenerator() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false);
+  const mascotRef = useRef<MascotHandles>(null);
 
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
@@ -1400,12 +1403,14 @@ export default function ServiceQuoteGenerator() {
 
   return (
     <div className="min-h-screen bg-background p-4">
+      <Mascot ref={mascotRef} />
       <div className=" mb-6 text-center">
         {/* titulo */}
         <h1 className="text-4xl font-bold text-foreground flex items-center justify-center gap-3">
               <Calculator className="h-10 w-10 text-purple-600" />
               Gerador Profissional de Orçamentos
         </h1>
+        <Button onClick={() => mascotRef.current?.showMessage('Olá! Precisa de ajuda?')}>Fale com o Mascote</Button>
         <p className="text-muted-foreground mt-2 text-lg">
               Crie orçamentos precisos com cálculo inteligente de custos e exportação profissional em PDF
         </p>
