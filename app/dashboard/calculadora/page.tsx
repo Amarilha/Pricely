@@ -714,9 +714,15 @@ function ServiceQuoteGeneratorContent() {
     return dados.custosVariaveis.reduce((total, custo) => total + ((custo.valor || 0)*(custo.quantidade || 0)), 0)
   }, [dados.custosVariaveis])
 
+import { useDateRange } from "@/components/calculadora-01/data-context";
+
+function ServiceQuoteGeneratorContent() {
+  const { dateRange } = useDateRange();
+
   const calcularCustoHora = useMemo(() => {
-    return dados.horasTrabalhadasMes > 0 ? calcularTotalCustosFixos / dados.horasTrabalhadasMes : 0;
-  }, [calcularTotalCustosFixos, dados.horasTrabalhadasMes]);
+    const { totalHours } = dateRange;
+    return totalHours > 0 ? calcularTotalCustosFixos / totalHours : 0;
+  }, [calcularTotalCustosFixos, dateRange]);
 
   const calcularCustoOperacional = useMemo(() => {
     const custoHora = calcularCustoHora
