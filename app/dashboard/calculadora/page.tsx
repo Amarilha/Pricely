@@ -146,7 +146,9 @@ const TooltipHelper = ({ content, children }: { content: string; children: React
   </TooltipProvider>
 )
 
-export default function ServiceQuoteGenerator() {
+import { DateRangeProvider } from "@/components/calculadora-01/data-context";
+
+function ServiceQuoteGeneratorContent() {
   const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([])
   const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([])
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
@@ -261,22 +263,6 @@ export default function ServiceQuoteGenerator() {
   
   const [workDays, setWorkDays] = useState([true, true, true, true, true, false, false]); // Seg-Sex
   const [hoursPerDay, setHoursPerDay] = useState(8);
-
-  const handleDateRangeChange = (startDate: Date | null, endDate: Date | null, totalHours: number) => {
-    console.log('Dados recebidos do DateRangeSelector:', {
-      startDate,
-      endDate,
-      totalHours
-    });
-
-    // Atualize o estado do seu formulário aqui
-    setDados(prev => ({
-      ...prev,
-      dataInicio: startDate?.toISOString().split('T')[0] || '',
-      dataFim: endDate?.toISOString().split('T')[0] || '',
-      tempoExecucao: totalHours
-    }));
-  };
 
   useEffect(() => {
     const saved = localStorage.getItem('calculadoraDados');
@@ -2410,7 +2396,6 @@ export default function ServiceQuoteGenerator() {
                               <DateRangeSelector 
                                 workDays={[true, true, true, true, true, false, false]}
                                 hoursPerDay={8}
-                                onDateRangeChange={(start, end, hours) => console.log(start, end, hours)}
                               />
                             </div>
                         </div>
@@ -2851,4 +2836,12 @@ export default function ServiceQuoteGenerator() {
     </div>
 
   )
+}
+
+export default function ServiceQuoteGenerator() {
+  return (
+    <DateRangeProvider>
+      <ServiceQuoteGeneratorContent />
+    </DateRangeProvider>
+  );
 }
