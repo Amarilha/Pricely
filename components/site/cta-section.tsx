@@ -12,7 +12,7 @@ export function CTASection() {
             Nexprice.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/cadastro">
+            <Link href="/login">
               <Button size="lg" variant="link" className="bg-white text-primary hover:bg-primary/90 hover:text-primary-foreground hover:border-primary/90">
                 Começar Grátis
               </Button>
