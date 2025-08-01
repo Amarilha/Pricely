@@ -39,35 +39,13 @@ export function HeroSection() {
           </div>
 
           <div className="relative">
-            <div className="relative rounded-lg border bg-background p-2 shadow-lg">
-              <div className="rounded-md overflow-hidden">
-                <img src="/placeholder.svg?height=600&width=800" alt="Dashboard Nexprice" className="w-full h-auto" />
-              </div>
+            <div className="">
+                <img src="/mascote_02.png" alt="Dashboard Nexprice" className="w-full h-auto" />
             </div>
 
-            <div className="absolute -bottom-6 -left-6 rounded-lg border bg-background p-4 shadow-lg hidden md:block">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-xl">+</span>
-                </div>
-                <div>
-                  <p className="font-medium">Aumento de produtividade</p>
-                  <p className="text-green-600 font-bold">+35%</p>
-                </div>
-              </div>
-            </div>
+            
 
-            <div className="absolute -top-6 -right-6 rounded-lg border bg-background p-4 shadow-lg hidden md:block">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-xl">$</span>
-                </div>
-                <div>
-                  <p className="font-medium">Aumento de faturamento</p>
-                  <p className="text-blue-600 font-bold">+28%</p>
-                </div>
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>
