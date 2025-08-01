@@ -1,10 +1,13 @@
 "use client"
 
 import { useState } from "react"
-
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-
-
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Checkbox } from "@/components/ui/checkbox"
 import { auth, signInWithEmailAndPassword } from "@/app/src/config/firebaseConfig.js"
 import { authGoogle } from "@/app/src/services/auth.js"
 
@@ -21,7 +24,8 @@ export function LoginForm() {
     const formData = new FormData(e.currentTarget as HTMLFormElement)
     const email = formData.get("email") as string
     const password = formData.get("password") as string
-
+    
+    // Validação
     if (!email || !password) {
       setError("Preencha todos os campos")
       setIsLoading(false)
@@ -95,9 +99,67 @@ export function LoginForm() {
   }
 
   return (
-    
-      <div className="max-w-md mx-auto p-6 space-y-6">
-        <Button 
+    <Card>
+      <CardContent className="pt-6">
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input 
+              id="email" 
+              name="email" 
+              type="email" 
+              placeholder="Digite seu e-mail" 
+              required 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Senha</Label>
+              <Link href="/recuperar-senha" className="text-xs text-primary hover:underline">
+                Esqueceu a senha?
+              </Link>
+            </div>
+            <Input 
+              id="password" 
+              name="password" 
+              type="password" 
+              placeholder="Digite sua senha" 
+              required 
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox id="remember" />
+            <Label htmlFor="remember" className="text-sm font-normal">
+              Lembrar de mim
+            </Label>
+          </div>
+
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoading}>
+            {isLoading ? "Entrando..." : "Entrar"}
+          </Button>
+        </form>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <Separator />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-2 text-xs text-muted-foreground">
+              Ou continue com
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <Button 
           variant="outline" 
           className="w-full"
           onClick={handleGoogleLogin}
@@ -113,17 +175,17 @@ export function LoginForm() {
           {isGoogleLoading ? "Entrando..." : "Entrar com o Google"}
         </Button>
 
-        
-        <label
-                htmlFor="dataConsent"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Criando uma conta, você concorda com todos os nossos{" "}
-                <a href="/privacy-policy" className="text-primary underline" target="_blank">
-                termos e condições
-                </a>{" "}
-                .
-              </label>
-      </div>
+        </div>
+      </CardContent>
+
+      <CardFooter className="flex justify-center border-t p-6">
+        <p className="text-sm text-muted-foreground">
+          Não tem uma conta?{" "}
+          <Link href="/cadastro" className="text-primary hover:underline">
+            Cadastre-se
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
   )
 }
