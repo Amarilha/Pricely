@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/sidebar"
 import Script from 'next/script'
 import { cn } from "@/lib/utils"
 import {AdSense} from "@/components/AdSense"
+import { DashboardMain } from "@/components/dashboard-main"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -36,13 +37,9 @@ export default function DashboardLayout({
           <Sidebar />
           
           {/* Conteúdo principal com margem ajustável */}
-          <main className={cn(
-            "flex-1 p-8 min-h-screen transition-margin duration-300",
-            "ml-20", // Margem padrão quando sidebar recolhido
-            "lg:ml-64" // Margem quando sidebar expandido (ajuste conforme necessário)
-          )}>
+          <DashboardMain>
             {children}
-          </main>
+          </DashboardMain>
         </div>
 
       </div>

@@ -1540,7 +1540,8 @@ function ServiceQuoteGeneratorContent() {
 
             {/* tudo */}
             <Tabs defaultValue="setup" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                <div className="overflow-x-auto">
+                  <TabsList className="min-w-max">
                     <TabsTrigger value="setup">🏢 Informações</TabsTrigger>
                     <TabsTrigger value="costs">💰 Custos</TabsTrigger>
                     <TabsTrigger value="service">🔧 Serviço</TabsTrigger>
@@ -1549,6 +1550,7 @@ function ServiceQuoteGeneratorContent() {
                     {/*<TabsTrigger value="boletos">💳 Boletos</TabsTrigger>*/}
                     <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
                   </TabsList>
+                </div>
 
                   <TabsContent value="setup" className="space-y-6">
                     {/* Company Selection */}
