@@ -6,6 +6,7 @@ import {
   signInWithPopup, 
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword, 
+  sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged // Correto: vem do auth
 } from "firebase/auth";
@@ -59,6 +60,7 @@ export {
   setDoc,
   doc,
   getDoc,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail
 };
 
