@@ -2562,29 +2562,25 @@ function ServiceQuoteGeneratorContent() {
                     <Alert className="mt-6">
                       <TrendingUp className="h-4 w-4" />
                       <AlertDescription>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-sm">
+                          <div className="flex justify-between">
                             <strong>Custo Operacional:</strong>
-                            <br />
-                            {formatarMoeda(calcularCustoOperacional)}
-                            {!dados.incluirSalarios && <div className="text-xs text-gray-500">*Salários excluídos</div>}
+                            <span>{formatarMoeda(calcularCustoOperacional)}</span>
                           </div>
-                          <div>
+                          <div className="flex justify-between">
                             <strong>Lucro Líquido:</strong>
-                            <br />
                             <span className="text-green-600">{formatarMoeda(calcularLucro)}</span>
                           </div>
-                          <div>
+                          <div className="flex justify-between">
                             <strong>Margem de Lucro:</strong>
-                            <br />
-                            {dados.margemLucro}%
+                            <span>{dados.margemLucro}%</span>
                           </div>
-                          <div>
+                          <div className="flex justify-between">
                             <strong>Preço Final:</strong>
-                            <br />
                             <span className="text-purple-600 font-bold">{formatarMoeda(calcularTotalFinal)}</span>
                           </div>
                         </div>
+                        {!dados.incluirSalarios && <div className="text-xs text-gray-500 mt-2">*Salários excluídos</div>}
                       </AlertDescription>
                     </Alert>
                   </TabsContent>
