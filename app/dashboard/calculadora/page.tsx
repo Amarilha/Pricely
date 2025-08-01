@@ -1257,7 +1257,7 @@ function ServiceQuoteGeneratorContent() {
               <span class="value">${formatarMoeda(calcularSubtotalGeral)}</span>
             </div>
             <div class="total-row">
-              
+              <span class="label">Lucro (${dados.margemLucro}%)</span>
               <span class="value positive">+${formatarMoeda(calcularLucro)}</span>
             </div>
             <div class="total-row">
