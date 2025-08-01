@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise';
 import parse from 'parse-database-url';
 
 // 1. Obtenha a DATABASE_URL
-const databaseUrl = "mysql://root:dnctNmkOHoucXXtvWbehwajuSxjOmleZ@nextprice.railway.internal:3306/railway";
+const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   console.error('❌ ERRO: A variável de ambiente DATABASE_URL não está definida.');
