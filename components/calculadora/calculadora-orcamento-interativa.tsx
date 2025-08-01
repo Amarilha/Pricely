@@ -283,8 +283,8 @@ export  function CalculadoraOrcamentoInterativa() {
         {/* Header com Switch */}
         <div className="bg-card border-b p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-4xl font-bold text-foreground">{labels.titulo}</h1>
+            <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground">{labels.titulo}</h1>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3">
                   <Building2 className="w-5 h-5" />
@@ -318,7 +318,7 @@ export  function CalculadoraOrcamentoInterativa() {
               ></div>
             </div>
 
-            <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {Object.entries(camposPreenchidos).map(([key, concluido], index) => (
                 <div key={key} className="flex flex-col items-center">
                   <div
@@ -349,7 +349,7 @@ export  function CalculadoraOrcamentoInterativa() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label>Data do Orçamento</Label>
                       <Input
@@ -383,7 +383,7 @@ export  function CalculadoraOrcamentoInterativa() {
                       placeholder={modoObra ? "Endereço completo da obra" : "Local onde será executado"}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label>Responsável</Label>
                       <Input
@@ -458,7 +458,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             }
                           />
                         </div>
-                        <div className="grid grid-cols-4 gap-3 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                           <div>
                             <Label>Pessoas</Label>
                             <Input
@@ -562,7 +562,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             </Button>
                           )}
                         </div>
-                        <div className="grid grid-cols-3 gap-3 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                           <div>
                             <Label>Quantidade</Label>
                             <Input
@@ -666,7 +666,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             </Button>
                           )}
                         </div>
-                        <div className="grid grid-cols-3 gap-3 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                           <div>
                             <Label>Quantidade</Label>
                             <Input
@@ -777,7 +777,7 @@ export  function CalculadoraOrcamentoInterativa() {
             </Button>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
           <div>
             <Label>{modoObra ? "Qt. Barras" : "Quantidade"}</Label>
             <Input
@@ -807,7 +807,7 @@ export  function CalculadoraOrcamentoInterativa() {
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
           <div>
             <Label>Preço/unid (R$)</Label>
             <Input
@@ -900,7 +900,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             }
                           />
                         </div>
-                        <div className="grid grid-cols-4 gap-3 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                           <div>
                             <Label>Pessoas</Label>
                             <Input
@@ -1004,7 +1004,7 @@ export  function CalculadoraOrcamentoInterativa() {
                             </Button>
                           )}
                         </div>
-                        <div className="grid grid-cols-3 gap-3 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                           <div>
                             <Label>Quantidade</Label>
                             <Input
@@ -1092,7 +1092,7 @@ export  function CalculadoraOrcamentoInterativa() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"> 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
                       <Label>{modoObra ? "Engenharia" : "Planejamento"}</Label>
                       <Input
@@ -1190,7 +1190,7 @@ export  function CalculadoraOrcamentoInterativa() {
               {/* Breakdown de Custos */}
               <div className="lg:col-span-2">
                 <h3 className="text-xl font-semibold mb-4">Breakdown de Custos</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div className="space-y-3">
                     <div className="flex justify-between p-3 bg-chart-1/5 rounded-lg">
                       <span>{labels.materiais}:</span>
@@ -1382,7 +1382,7 @@ export  function CalculadoraOrcamentoInterativa() {
             </div>
 
             {/* Botões de Ação */}
-            <div className="mt-8 flex justify-center gap-4">
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               
             <Button
               size="lg"
