@@ -1499,48 +1499,12 @@ function ServiceQuoteGeneratorContent() {
         </div>
 
         {/* bory */}
-        <Tabs defaultValue="setup" className="grid grid-cols-3 gap-2 space-y-6" style={{ gridTemplateColumns: "20% 60% 20%"}}>
-            {/* Cost Analysis */}
-            <div className="grid grid-rows-1 mt-6 md:grid-rows-4 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
-                    <p className="text-sm text-gray-600">Custo Operacional</p>
-                  </TooltipHelper>
-                  <p className="text-xl font-bold text-blue-600">{formatarMoeda(calcularCustoOperacional)}</p>
-                </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <TooltipHelper content="Valor do lucro baseado na margem definida">
-                      <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
-                    </TooltipHelper>
-                    <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                <CardContent className="p-4 text-center">
-                  <TooltipHelper content="Valor dos impostos sobre o serviço">
-                      <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
-                  </TooltipHelper>
-                    <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Preço base antes de descontos e acréscimos">
-                              <p className="text-sm text-gray-600">Preço Base</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-purple-600">
-                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
-                            </p>
-                </CardContent>
-              </Card>
-            </div>
+        <div className="grid grid-cols-1 gap-6 mt-6">
             
             {/* tudo */}
-            <Tabs defaultValue="setup" className="col-start-2 grid-2 mt-2 space-y-6">
-                  <TabsList className="grid w-90% grid-cols-5">
+            <Tabs defaultValue="setup" className="space-y-6">
+                <div className="overflow-x-auto">
+                  <TabsList className="min-w-max">
                     <TabsTrigger value="setup">🏢 Informações</TabsTrigger>
                     <TabsTrigger value="costs">💰 Custos</TabsTrigger>
                     <TabsTrigger value="service">🔧 Serviço</TabsTrigger>
@@ -1549,6 +1513,7 @@ function ServiceQuoteGeneratorContent() {
                     {/*<TabsTrigger value="boletos">💳 Boletos</TabsTrigger>*/}
                     <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
                   </TabsList>
+                </div>
 
                   <TabsContent value="setup" className="space-y-6">
                     {/* Company Selection */}
@@ -2118,8 +2083,8 @@ function ServiceQuoteGeneratorContent() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  {/* custo */}
-                    
+
+                  {/* custo */}  
                   <TabsContent value="costs" className="space-y-6">
                       {/* Salary Inclusion Option */}
                       <Card>
@@ -2401,6 +2366,44 @@ function ServiceQuoteGeneratorContent() {
                         </CardContent>
                       </Card>
 
+                      {/* Cost Analysis */}
+                      <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 gap-4">
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
+                              <p className="text-sm text-gray-600">Custo Operacional</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-blue-600">{formatarMoeda(calcularCustoOperacional)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Valor do lucro baseado na margem definida">
+                              <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Valor dos impostos sobre o serviço">
+                              <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Preço base antes de descontos e acréscimos">
+                              <p className="text-sm text-gray-600">Preço Base</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-purple-600">
+                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+
                   </TabsContent>
                     
                   <TabsContent value="service" className="space-y-6">
@@ -2560,110 +2563,33 @@ function ServiceQuoteGeneratorContent() {
                     <Alert className="mt-6">
                       <TrendingUp className="h-4 w-4" />
                       <AlertDescription>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-sm">
+                          <div className="flex justify-between">
                             <strong>Custo Operacional:</strong>
-                            <br />
-                            {formatarMoeda(calcularCustoOperacional)}
-                            {!dados.incluirSalarios && <div className="text-xs text-gray-500">*Salários excluídos</div>}
+                            <span>{formatarMoeda(calcularCustoOperacional)}</span>
                           </div>
-                          <div>
+                          <div className="flex justify-between">
                             <strong>Lucro Líquido:</strong>
-                            <br />
                             <span className="text-green-600">{formatarMoeda(calcularLucro)}</span>
                           </div>
-                          <div>
+                          <div className="flex justify-between">
                             <strong>Margem de Lucro:</strong>
-                            <br />
-                            {dados.margemLucro}%
+                            <span>{dados.margemLucro}%</span>
                           </div>
-                          <div>
+                          <div className="flex justify-between">
                             <strong>Preço Final:</strong>
-                            <br />
                             <span className="text-purple-600 font-bold">{formatarMoeda(calcularTotalFinal)}</span>
                           </div>
                         </div>
+                        {!dados.incluirSalarios && <div className="text-xs text-gray-500 mt-2">*Salários excluídos</div>}
                       </AlertDescription>
                     </Alert>
                   </TabsContent>
             </Tabs>
 
-            {/* relatorio */}
-            <div className=" col-start-3 top-20 w-80 h-[calc(100vh-6rem)] overflow-y-auto ">
-                  <Card className="shadow-lg">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Relatório de Custos</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {/* Fixed Costs Section */}
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Custos Fixos Mensais</h3>
-                        {dados.custosFixos.length === 0 ? (
-                          <p className="text-sm text-gray-500">Nenhum custo fixo adicionado.</p>
-                        ) : (
-                          <ul className="space-y-2">
-                            {dados.custosFixos.map((custo) => {
-                              const isSalario =
-                                custo.descricao.toLowerCase().includes("salário") ||
-                                custo.descricao.toLowerCase().includes("pró-labore");
-                              const isExcluded = !dados.incluirSalarios && isSalario;
+            
 
-                              return (
-                                <li
-                                  key={custo.id}
-                                  className={`text-sm flex justify-between ${isExcluded ? "opacity-50" : ""}`}
-                                >
-                                  <span>{custo.descricao}</span>
-                                  <span className="flex items-center gap-2">
-                                    {formatarMoeda(custo.valor)}
-                                    {isExcluded && <Badge variant="secondary" className="text-xs">Excluído</Badge>}
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
-                        <div className="mt-3 pt-2 border-t">
-                          <div className="flex justify-between text-sm font-semibold">
-                            <span>Total:</span>
-                            <span className="text-red-600">{formatarMoeda(calcularTotalCustosFixos)}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Variable Costs Section */}
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Custos Variáveis por Serviço</h3>
-                        {dados.custosVariaveis.length === 0 ? (
-                          <p className="text-sm text-gray-500">Nenhum custo variável adicionado.</p>
-                        ) : (
-                          <ul className="space-y-2">
-                            {dados.custosVariaveis.map((custo) => (
-                              <li key={custo.id} className="text-sm">
-                                <div className="flex justify-between">
-                                  <span>{custo.descricao} ({custo.categoria})</span>
-                                  <span>{formatarMoeda((custo.valor || 0)*(custo.quantidade || 0))}</span>
-                                </div>
-                                {custo.observacoes && (
-                                  <p className="text-xs text-gray-500 italic">{custo.observacoes}</p>
-                                )}
-                                <p className="text-xs text-gray-600">{custo.unidade}</p>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        <div className="mt-3 pt-2 border-t">
-                          <div className="flex justify-between text-sm font-semibold">
-                            <span>Total:</span>
-                            <span className="text-orange-600">{formatarMoeda(calcularTotalCustosVariaveis)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-            </div>
-
-        </Tabs> 
+        </div>
       </div>   
     </div>
 

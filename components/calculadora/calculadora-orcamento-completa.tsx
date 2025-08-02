@@ -207,7 +207,7 @@ export default function CalculadoraOrcamentoCompleta() {
             ></div>
           </div>
 
-          <div className="grid grid-cols-6 md:grid-cols-9 lg:grid-cols-18 gap-2">
+          <div className="grid grid-cols-6 sm:grid-cols-9 md:grid-cols-12 lg:grid-cols-18 gap-2">
             {etapas.map((etapa) => (
               <div key={etapa.numero} className="flex flex-col items-center">
                 <div
@@ -237,7 +237,7 @@ export default function CalculadoraOrcamentoCompleta() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Data do Orçamento</Label>
                     <Input value={dadosCadastro.dataOrcamento} readOnly className="bg-gray-50" />
@@ -269,7 +269,7 @@ export default function CalculadoraOrcamentoCompleta() {
               <CardContent>
                 <div className="space-y-3">
                   {materiaPrima.map((item) => (
-                    <div key={item.id} className="grid grid-cols-5 gap-2 text-sm p-2 bg-gray-50 rounded">
+                    <div key={item.id} className="grid grid-cols-1 sm:grid-cols-5 gap-2 text-sm p-2 bg-gray-50 rounded">
                       <span className="font-medium">{item.qtBarras} barras</span>
                       <span>{item.quantKg} kg</span>
                       <span>R$ {item.precoKg.toFixed(2)}/kg</span>
@@ -301,7 +301,7 @@ export default function CalculadoraOrcamentoCompleta() {
                 <div>
                   <h4 className="font-semibold mb-2">Fabricação</h4>
                   {maoObraFabricacao.map((item) => (
-                    <div key={item.id} className="grid grid-cols-6 gap-2 text-sm p-2 bg-gray-50 rounded">
+                    <div key={item.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 text-sm p-2 bg-gray-50 rounded">
                       <span>{item.descricao}</span>
                       <span>{item.pessoas}p</span>
                       <span>{item.dias}d</span>
@@ -322,7 +322,7 @@ export default function CalculadoraOrcamentoCompleta() {
                 <div>
                   <h4 className="font-semibold mb-2">Instalação</h4>
                   {maoObraInstalacao.map((item) => (
-                    <div key={item.id} className="grid grid-cols-6 gap-2 text-sm p-2 bg-gray-50 rounded">
+                    <div key={item.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 text-sm p-2 bg-gray-50 rounded">
                       <span>{item.descricao}</span>
                       <span>{item.pessoas}p</span>
                       <span>{item.dias}d</span>
@@ -361,7 +361,7 @@ export default function CalculadoraOrcamentoCompleta() {
               <CardContent>
                 <div className="space-y-2">
                   {itensComerciais.map((item) => (
-                    <div key={item.id} className="grid grid-cols-4 gap-2 text-sm p-2 bg-gray-50 rounded">
+                    <div key={item.id} className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm p-2 bg-gray-50 rounded">
                       <span>
                         {item.qt} {item.unid}
                       </span>
@@ -393,7 +393,7 @@ export default function CalculadoraOrcamentoCompleta() {
               <CardContent>
                 <div className="space-y-2">
                   {acabamento.map((item) => (
-                    <div key={item.id} className="grid grid-cols-4 gap-2 text-sm p-2 bg-gray-50 rounded">
+                    <div key={item.id} className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm p-2 bg-gray-50 rounded">
                       <span>
                         {item.quant} {item.unid}
                       </span>
@@ -426,7 +426,7 @@ export default function CalculadoraOrcamentoCompleta() {
                   {consumo
                     .filter((item) => item.qt > 0)
                     .map((item) => (
-                      <div key={item.id} className="grid grid-cols-4 gap-2 text-sm p-2 bg-gray-50 rounded">
+                      <div key={item.id} className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm p-2 bg-gray-50 rounded">
                         <span>
                           {item.qt} {item.unid}
                         </span>
@@ -456,7 +456,7 @@ export default function CalculadoraOrcamentoCompleta() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span>Matéria Prima:</span>
@@ -526,7 +526,7 @@ export default function CalculadoraOrcamentoCompleta() {
 
                   <Separator />
 
-                  <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
                       <p className="text-xs text-gray-600">Peso por m²</p>
                       <p className="text-lg font-bold text-blue-600">{(pesoTotal / 75).toFixed(1)} kg/m²</p>
@@ -554,7 +554,7 @@ export default function CalculadoraOrcamentoCompleta() {
         </div>
 
         {/* Botões de Ação */}
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
           <Button className="bg-blue-600 hover:bg-blue-700">
             <FileText className="w-4 h-4 mr-2" />
             Gerar Proposta PDF
