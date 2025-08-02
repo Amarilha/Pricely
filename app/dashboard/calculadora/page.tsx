@@ -1499,7 +1499,7 @@ function ServiceQuoteGeneratorContent() {
         </div>
 
         {/* bory */}
-        <div className="grid grid-cols-1 lg:grid-cols-[auto_auto] gap-6 mt-6">
+        <div className="grid grid-cols-1 gap-6 mt-6">
             
             {/* tudo */}
             <Tabs defaultValue="setup" className="space-y-6">
