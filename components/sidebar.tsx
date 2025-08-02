@@ -118,7 +118,8 @@ export function Sidebar() {
     <div
       className={cn(
         "h-screen bg-background border-r border-border transition-all duration-300 flex flex-col",
-        "fixed top-0 left-0 z-50", // Classes fixas adicionadas aqui
+        "fixed top-0 left-0 z-50",
+        "hidden lg:flex", // Oculto em telas pequenas, flex em telas grandes
         expanded ? "w-64" : "w-20"
       )}
     >
