@@ -107,19 +107,8 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
   imprimirOrcamento,
   handleSaveOrcamento,
 }) => {
-  const [visualizacaoDetalhada, setVisualizacaoDetalhada] = useState(false);
-
   return (
     <>
-      <div className="flex justify-end items-center gap-2 mb-4 print:hidden">
-        <Label htmlFor="detalhe-switch">Visualização Resumida</Label>
-        <Switch
-          id="detalhe-switch"
-          checked={visualizacaoDetalhada}
-          onCheckedChange={setVisualizacaoDetalhada}
-        />
-        <Label htmlFor="detalhe-switch">Visualização Detalhada</Label>
-      </div>
       <div id="service-quote-pdf" className="bg-white">
         <Card className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg print:shadow-none">
           <CardContent className="page-content">
@@ -243,52 +232,32 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                     </tr>
                   ))}
 
-                  {/* Renderização Condicional: Detalhada vs. Resumida */}
-                  {visualizacaoDetalhada ? (
-                    <>
-                      {/* Custos Fixos Detalhados */}
-                      {dados.custosFixos.map((custo, index) => {
-                        const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
-                        if (!dados.incluirSalarios && isSalario) return null;
-                        return (
-                          <tr key={`fixo-${index}`} className="text-xs bg-gray-50">
-                            <td className="p-2 border border-gray-300"></td>
-                            <td className="p-2 border border-gray-300 italic">{custo.descricao} (Custo Fixo)</td>
-                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
-                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
-                          </tr>
-                        );
-                      })}
-                      {/* Custos Variáveis Detalhados */}
-                        {dados.custosVariaveis.map((custo, index) => (
-                          <tr key={`variavel-${index}`} className="text-xs bg-gray-50">
-                            <td className="p-2 border border-gray-300">{custo.quantidade} {custo.unidade}</td>
-                            <td className="p-2 border border-gray-300 italic">{custo.descricao} ({custo.categoria})</td>
-                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
-                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor * custo.quantidade)}</td>
-                          </tr>
-                        ))}
-                    </>
-                  ) : (
-                    <>
-                      {/* Custo Operacional Resumido */}
-                      {calcularCustoOperacional > 0 && (
-                        <tr>
-                          <td className="p-2 border border-gray-300">1</td>
-                          <td className="p-2 border border-gray-300">
-                            Custo Operacional ({dados.tempoExecucao}h)
-                            {!dados.incluirSalarios && <span className="text-xs text-gray-500 block">*Salários não incluídos</span>}
-                          </td>
-                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(calcularCustoOperacional)}</td>
-                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(calcularCustoOperacional)}</td>
-                        </tr>
-                      )}
-                    </>
-                  )}
+                  {/* Custos Fixos Detalhados */}
+                  {dados.custosFixos.map((custo, index) => {
+                    const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
+                    if (!dados.incluirSalarios && isSalario) return null;
+                    return (
+                      <tr key={`fixo-${index}`} className="text-xs bg-gray-50">
+                        <td className="p-2 border border-gray-300"></td>
+                        <td className="p-2 border border-gray-300 italic">{custo.descricao} (Custo Fixo)</td>
+                        <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                        <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                      </tr>
+                    );
+                  })}
+                  {/* Custos Variáveis Detalhados */}
+                    {dados.custosVariaveis.map((custo, index) => (
+                      <tr key={`variavel-${index}`} className="text-xs bg-gray-50">
+                        <td className="p-2 border border-gray-300">{custo.quantidade} {custo.unidade}</td>
+                        <td className="p-2 border border-gray-300 italic">{custo.descricao} ({custo.categoria})</td>
+                        <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                        <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor * custo.quantidade)}</td>
+                      </tr>
+                    ))}
 
                   {/* Linhas Vazias para preenchimento */}
                   {Array.from({
-                    length: Math.max(0, 4 - dados.itens.length - (visualizacaoDetalhada ? dados.custosFixos.length + dados.custosVariaveis.length : (calcularCustoOperacional > 0 ? 1 : 0))),
+                    length: Math.max(0, 4 - dados.itens.length - (dados.custosFixos.length + dados.custosVariaveis.length)),
                   }).map((_, index) => (
                     <tr key={`empty-${index}`} className="h-8">
                       <td className="p-2 border border-gray-300"></td>
