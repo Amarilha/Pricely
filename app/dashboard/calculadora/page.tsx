@@ -703,7 +703,7 @@ function ServiceQuoteGeneratorContent() {
 
   const handleRegimeTributarioChange = useCallback((value: "MEI" | "ME") => {
     setRegimeTributario(value)
-    const impostoRate = value === "MEI" ? 5 : 8 // 5% for MEI, 8% for ME
+    const impostoRate = value === "MEI" ? 0 : 8 // 0 for MEI (fixed), 8% for ME
     setDados((prev) => ({
       ...prev,
       impostos: impostoRate,
@@ -753,9 +753,12 @@ function ServiceQuoteGeneratorContent() {
   }, [calcularSubtotalGeral, dados.margemLucro])
 
   const calcularImpostos = useMemo(() => {
+    if (regimeTributario === 'MEI') {
+      return 80;
+    }
     const subtotalComLucro = calcularSubtotalGeral + calcularLucro
     return subtotalComLucro * ((dados.impostos || 0) / 100)
-  }, [calcularSubtotalGeral, calcularLucro, dados.impostos])
+  }, [regimeTributario, calcularSubtotalGeral, calcularLucro, dados.impostos])
 
   const calcularTotalFinal = useMemo(() => {
     const subtotal = calcularSubtotalGeral
@@ -2086,12 +2089,15 @@ function ServiceQuoteGeneratorContent() {
                                 <SelectValue placeholder="Selecione o regime" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="MEI">MEI (Microempreendedor Individual) - 5%</SelectItem>
-                                <SelectItem value="ME">ME (Simples Nacional) - 8%</SelectItem>
+                                <SelectItem value="MEI">MEI (Taxa Fixa)</SelectItem>
+                                <SelectItem value="ME">ME (Simples Nacional)</SelectItem>
                               </SelectContent>
                             </Select>
                             <p className="text-xs text-gray-500 mt-1">
-                              Imposto aplicado: <strong>{dados.impostos}%</strong>
+                              Imposto aplicado:{" "}
+                              <strong>
+                                {regimeTributario === "MEI" ? formatarMoeda(80) : `${dados.impostos}%`}
+                              </strong>
                             </p>
                           </div>
                         </div>
