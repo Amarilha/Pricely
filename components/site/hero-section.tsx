@@ -39,9 +39,19 @@ export function HeroSection() {
           </div>
 
           <div className="relative">
-            <div className="">
-                <img src="/mascote_02.png" alt="Dashboard Nexprice" className="w-full h-auto" />
-            </div>
+
+                <div className="">
+                <div className="relative rounded-lg border bg-background p-2 shadow-lg">
+                  <div className="rounded-md overflow-hidden">
+                    <img src="/dashboard.png" alt="Dashboard Nexprice" className="w-auto h-auto" />
+                  </div>
+                </div>
+          
+
+
+          
+                </div>
+              </div>
 
             
 
@@ -49,6 +59,6 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-    </div>
+
   )
 }
