@@ -2093,10 +2093,24 @@ function ServiceQuoteGeneratorContent() {
                                 <SelectItem value="ME">ME (Simples Nacional)</SelectItem>
                               </SelectContent>
                             </Select>
+
+                            {regimeTributario === 'ME' && (
+                                <div className="mt-2">
+                                    <Label htmlFor="impostos">Impostos (%)</Label>
+                                    <Input
+                                        id="impostos"
+                                        type="number"
+                                        step="0.1"
+                                        value={dados.impostos}
+                                        onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
+                                    />
+                                </div>
+                            )}
+
                             <p className="text-xs text-gray-500 mt-1">
-                              Imposto aplicado:{" "}
+                              Imposto a ser calculado:{" "}
                               <strong>
-                                {regimeTributario === "MEI" ? formatarMoeda(80) : `${dados.impostos}%`}
+                                {regimeTributario === 'MEI' ? formatarMoeda(80) : `${dados.impostos}% sobre o faturamento`}
                               </strong>
                             </p>
                           </div>
