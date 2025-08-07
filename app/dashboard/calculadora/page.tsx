@@ -159,6 +159,7 @@ function ServiceQuoteGeneratorContent() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [regimeTributario, setRegimeTributario] = useState<'MEI' | 'ME'>('ME');
 
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
@@ -698,6 +699,15 @@ function ServiceQuoteGeneratorContent() {
       })
       return { ...prev, itens: novosItens }
     })
+  }, [])
+
+  const handleRegimeTributarioChange = useCallback((value: "MEI" | "ME") => {
+    setRegimeTributario(value)
+    const impostoRate = value === "MEI" ? 5 : 8 // 5% for MEI, 8% for ME
+    setDados((prev) => ({
+      ...prev,
+      impostos: impostoRate,
+    }))
   }, [])
 
   // Financial Calculations with salary inclusion logic - Memoizadas para performance
@@ -2068,16 +2078,21 @@ function ServiceQuoteGeneratorContent() {
                             />
                           </div>
                           <div>
-                            <TooltipHelper content="Percentual de impostos que incidem sobre o serviço (Simples Nacional, ISS, etc.)">
-                              <Label htmlFor="impostos">Impostos (%)</Label>
+                            <TooltipHelper content="Selecione o regime tributário da sua empresa. Isso ajustará a alíquota de imposto automaticamente.">
+                              <Label htmlFor="regime-tributario">Regime Tributário</Label>
                             </TooltipHelper>
-                            <Input
-                              id="impostos"
-                              type="number"
-                              step="0.1"
-                              value={dados.impostos}
-                              onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
-                            />
+                            <Select value={regimeTributario} onValueChange={handleRegimeTributarioChange}>
+                              <SelectTrigger id="regime-tributario">
+                                <SelectValue placeholder="Selecione o regime" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="MEI">MEI (Microempreendedor Individual) - 5%</SelectItem>
+                                <SelectItem value="ME">ME (Simples Nacional) - 8%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Imposto aplicado: <strong>{dados.impostos}%</strong>
+                            </p>
                           </div>
                         </div>
                       </CardContent>
