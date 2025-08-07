@@ -37,8 +37,13 @@ interface ServiceItem {
 }
 
 interface VariableCost {
-    categoria: string;
-    valor: number;
+  id: string
+  categoria: string
+  descricao: string
+  valor: number
+  unidade: string
+  quantidade: number
+  observacoes: string
 }
 
 interface FixedCost {
@@ -255,14 +260,14 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                         );
                       })}
                       {/* Custos Variáveis Detalhados */}
-                      {dados.custosVariaveis.map((custo, index) => (
-                        <tr key={`variavel-${index}`} className="text-xs bg-gray-50">
-                          <td className="p-2 border border-gray-300"></td>
-                          <td className="p-2 border border-gray-300 italic">{custo.categoria} (Custo Variável)</td>
-                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
-                          <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
-                        </tr>
-                      ))}
+                        {dados.custosVariaveis.map((custo, index) => (
+                          <tr key={`variavel-${index}`} className="text-xs bg-gray-50">
+                            <td className="p-2 border border-gray-300">{custo.quantidade} {custo.unidade}</td>
+                            <td className="p-2 border border-gray-300 italic">{custo.descricao} ({custo.categoria})</td>
+                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
+                            <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor * custo.quantidade)}</td>
+                          </tr>
+                        ))}
                     </>
                   ) : (
                     <>

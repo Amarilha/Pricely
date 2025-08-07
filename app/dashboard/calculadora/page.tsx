@@ -1203,28 +1203,18 @@ function ServiceQuoteGeneratorContent() {
             `,
               )
               .join("")}
-            ${
-              calcularCustoOperacional > 0
-                ? `
-              <tr>
-                <td>1</td>
-                <td>
-                  Custo Operacional (${dados.tempoExecucao}h)
-                  ${!dados.incluirSalarios ? '<div class="variable-costs-detail">*Salários não incluídos</div>' : ""}
-                  ${
-                    dados.custosVariaveis.length > 0
-                      ? `<div class="variable-costs-detail">Inclui: ${dados.custosVariaveis
-                          .map((c) => `${c.categoria} (${formatarMoeda(c.valor)})`)
-                          .join(", ")}</div>`
-                      : ""
-                  }
-                </td>
-                <td class="text-right">${formatarMoeda(calcularCustoOperacional)}</td>
-                <td class="text-right">${formatarMoeda(calcularCustoOperacional)}</td>
+            ${dados.custosVariaveis
+              .map(
+                (custo) => `
+              <tr class="text-xs bg-gray-50">
+                <td>${custo.quantidade} ${custo.unidade}</td>
+                <td class="italic">${custo.descricao} (${custo.categoria})</td>
+                <td class="text-right">${formatarMoeda(custo.valor)}</td>
+                <td class="text-right">${formatarMoeda(custo.valor * custo.quantidade)}</td>
               </tr>
-            `
-                : ""
-            }
+            `,
+              )
+              .join("")}
             ${Array.from({
               length: Math.max(0, 4 - dados.itens.length - (calcularCustoOperacional > 0 ? 1 : 0)),
             })
