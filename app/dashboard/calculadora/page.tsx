@@ -122,7 +122,7 @@ interface QuoteData {
   custosVariaveis: VariableCost[]
   margemLucro: number
   impostos: number
-  totalHours: number
+  tempoExecucao: number
   incluirSalarios: boolean
   itens: ServiceItem[]
   formaPagamento: string
@@ -231,7 +231,7 @@ function ServiceQuoteGeneratorContent() {
     hoursPerDay: 8,
     dataInicio: '',
     dataFim: '',
-    totalHours: 0,
+    tempoExecucao: 160,
     custosFixos: [
       { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
       { id: '2', descricao: 'Internet/Telefone', valor: 0 },
@@ -724,10 +724,10 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularCustoOperacional = useMemo(() => {
     const custoHora = calcularCustoHora
-    const custoTempo = custoHora * (dados.totalHours || 0)
+    const custoTempo = custoHora * (dados.tempoExecucao || 0)
     const custoVariaveis = calcularTotalCustosVariaveis
-    return custoTempo + custoVariaveis + calcularTotalCustosFixos 
-  }, [calcularCustoHora, dados.totalHours, calcularTotalCustosVariaveis])
+    return custoTempo + custoVariaveis
+  }, [calcularCustoHora, dados.tempoExecucao, calcularTotalCustosVariaveis])
 
   const calcularSubtotalItens = useMemo(() => {
     return dados.itens.reduce((total, item) => total + (item.totalItem || 0), 0)
@@ -1203,28 +1203,18 @@ function ServiceQuoteGeneratorContent() {
             `,
               )
               .join("")}
-            ${
-              calcularCustoOperacional > 0
-                ? `
-              <tr>
-                <td>1</td>
-                <td>
-                  Custo Operacional (${dados.totalHours}h)
-                  ${!dados.incluirSalarios ? '<div class="variable-costs-detail">*Salários não incluídos</div>' : ""}
-                  ${
-                    dados.custosVariaveis.length > 0
-                      ? `<div class="variable-costs-detail">Inclui: ${dados.custosVariaveis
-                          .map((c) => `${c.categoria} (${formatarMoeda(c.valor)})`)
-                          .join(", ")}</div>`
-                      : ""
-                  }
-                </td>
-                <td class="text-right">${formatarMoeda(calcularCustoOperacional)}</td>
-                <td class="text-right">${formatarMoeda(calcularCustoOperacional)}</td>
+            ${dados.custosVariaveis
+              .map(
+                (custo) => `
+              <tr class="text-xs bg-gray-50">
+                <td>${custo.quantidade} ${custo.unidade}</td>
+                <td class="italic">${custo.descricao} (${custo.categoria})</td>
+                <td class="text-right">${formatarMoeda(custo.valor)}</td>
+                <td class="text-right">${formatarMoeda(custo.valor * custo.quantidade)}</td>
               </tr>
-            `
-                : ""
-            }
+            `,
+              )
+              .join("")}
             ${Array.from({
               length: Math.max(0, 4 - dados.itens.length - (calcularCustoOperacional > 0 ? 1 : 0)),
             })
