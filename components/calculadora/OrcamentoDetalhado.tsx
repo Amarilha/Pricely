@@ -170,42 +170,13 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="border border-gray-300 rounded-md">
-                <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
-                  Endereço de cobrança
-                </div>
-                <div className="p-3 text-sm text-gray-700">
-                  <p>{dados.enderecoCobranca || "Endereço de cobrança"}</p>
-                </div>
-              </div>
-            </section>
-
-            {/* Service Description and Location */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              
               <div className="border border-gray-300 rounded-md">
                 <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
                   Descrição do serviço
                 </div>
                 <div className="p-3 text-sm text-gray-700">
                   <p>{dados.descricaoServico || "Descrição do serviço"}</p>
-                </div>
-              </div>
-              <div className="border border-gray-300 rounded-md">
-                <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Local de prestação</div>
-                <div className="p-3 text-sm text-gray-700">
-                  <p>
-                    <strong>Nome:</strong> {dados.localPrestacao?.nome || "Local de Prestação"}
-                  </p>
-                  <p>
-                    <strong>{dados.localPrestacao?.tipoDocumento}:</strong>{" "}
-                    {dados.localPrestacao?.documento || "000.000.000-00"}
-                  </p>
-                  <p>
-                    <strong>Endereço:</strong> {dados.localPrestacao?.endereco?.rua || "Rua"},{" "}
-                    {dados.localPrestacao?.endereco?.numero || "Número"} -{" "}
-                    {dados.localPrestacao?.endereco?.cidade || "Cidade"},{" "}
-                    {dados.localPrestacao?.endereco?.estado || "Estado"}
-                  </p>
                 </div>
               </div>
             </section>
@@ -284,10 +255,7 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                   <span className="font-semibold text-gray-600">Subtotal</span>
                   <span className="text-gray-800 font-semibold">{formatarMoeda(calcularSubtotalGeral)}</span>
                 </div>
-                <div className="flex justify-between items-center p-2">
-                  <span className="font-semibold text-gray-600">Impostos ({dados.impostos}%)</span>
-                  <span className="text-red-600">+{formatarMoeda(calcularImpostos)}</span>
-                </div>
+                
                 {dados.desconto > 0 && (
                   <div className="flex justify-between items-center p-2">
                     <span className="font-semibold text-gray-600">Desconto</span>
