@@ -122,7 +122,7 @@ interface QuoteData {
   custosVariaveis: VariableCost[]
   margemLucro: number
   impostos: number
-  tempoExecucao: number
+  totalHours: number
   incluirSalarios: boolean
   itens: ServiceItem[]
   formaPagamento: string
@@ -231,7 +231,7 @@ function ServiceQuoteGeneratorContent() {
     hoursPerDay: 8,
     dataInicio: '',
     dataFim: '',
-    tempoExecucao: 160,
+    totalHours: 0,
     custosFixos: [
       { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
       { id: '2', descricao: 'Internet/Telefone', valor: 0 },
@@ -264,7 +264,7 @@ function ServiceQuoteGeneratorContent() {
     localStorage.setItem('calculadoraDados', JSON.stringify(dados));
   }, [dados]);
   
-  const [workDays, setWorkDays] = useState([true, true, true, true, true, false, false]); // Seg-Sex
+  const [workDays, setWorkDays] = useState([false, true, true, true, true, true, false]); // Seg-Sex
   const [hoursPerDay, setHoursPerDay] = useState(8);
 
   useEffect(() => {
@@ -724,10 +724,10 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularCustoOperacional = useMemo(() => {
     const custoHora = calcularCustoHora
-    const custoTempo = custoHora * (dados.tempoExecucao || 0)
+    const custoTempo = custoHora * (dados.totalHours || 0)
     const custoVariaveis = calcularTotalCustosVariaveis
-    return custoTempo + custoVariaveis
-  }, [calcularCustoHora, dados.tempoExecucao, calcularTotalCustosVariaveis])
+    return custoTempo + custoVariaveis + calcularTotalCustosFixos 
+  }, [calcularCustoHora, dados.totalHours, calcularTotalCustosVariaveis])
 
   const calcularSubtotalItens = useMemo(() => {
     return dados.itens.reduce((total, item) => total + (item.totalItem || 0), 0)
@@ -1209,7 +1209,7 @@ function ServiceQuoteGeneratorContent() {
               <tr>
                 <td>1</td>
                 <td>
-                  Custo Operacional (${dados.tempoExecucao}h)
+                  Custo Operacional (${dados.totalHours}h)
                   ${!dados.incluirSalarios ? '<div class="variable-costs-detail">*Salários não incluídos</div>' : ""}
                   ${
                     dados.custosVariaveis.length > 0
