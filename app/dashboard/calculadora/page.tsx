@@ -264,7 +264,7 @@ function ServiceQuoteGeneratorContent() {
     localStorage.setItem('calculadoraDados', JSON.stringify(dados));
   }, [dados]);
   
-  const [workDays, setWorkDays] = useState([true, true, true, true, true, false, false]); // Seg-Sex
+  const [workDays, setWorkDays] = useState([false, true, true, true, true, true, false]); // Seg-Sex
   const [hoursPerDay, setHoursPerDay] = useState(8);
 
   useEffect(() => {
