@@ -729,15 +729,17 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularCustoHora = useMemo(() => {
     const { totalHours } = dateRange;
-    return totalHours > 0 ? calcularTotalCustosFixos / totalHours : 0;
+    return totalHours > 0 ? calcularTotalCustosFixos / 160 : 0;
   }, [calcularTotalCustosFixos, dateRange]);
 
   const calcularCustoOperacional = useMemo(() => {
+    const { totalHours } = dateRange;
     const custoHora = calcularCustoHora
-    const custoTempo = custoHora * (dados.totalHours || 0)
     const custoVariaveis = calcularTotalCustosVariaveis
-    return custoTempo + custoVariaveis + calcularTotalCustosFixos 
-  }, [calcularCustoHora, dados.totalHours, calcularTotalCustosVariaveis])
+    const custoTempo = custoHora * (totalHours || 0)
+
+    return custoVariaveis + (calcularCustoHora * totalHours )
+  }, [calcularCustoHora, dateRange, calcularTotalCustosVariaveis])
 
   const calcularSubtotalItens = useMemo(() => {
     return dados.itens.reduce((total, item) => total + (item.totalItem || 0), 0)
