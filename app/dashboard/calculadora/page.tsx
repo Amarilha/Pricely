@@ -1482,21 +1482,7 @@ function ServiceQuoteGeneratorContent() {
         <p className="text-muted-foreground mt-2 text-lg">
               Crie orçamentos precisos com cálculo inteligente de custos e exportação profissional em PDF
         </p>
-        <div className="flex justify-center gap-4 mt-4">
-              <Badge variant="outline" className="text-sm">
-                <TrendingUp className="h-4 w-4 mr-1" />
-                Smart Pricing
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                <DollarSign className="h-4 w-4 mr-1" />
-                Profit Optimization
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                <FileText className="h-4 w-4 mr-1" />
-                Professional PDF
-              </Badge>
-              <ThemeToggle />
-        </div>
+        
 
         {/* bory */}
         <div className="grid grid-cols-1 gap-6 mt-6">
