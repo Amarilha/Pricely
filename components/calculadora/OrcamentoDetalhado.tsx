@@ -104,7 +104,6 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
   formatarMoeda,
   formatarData,
   gerarPDF,
-  imprimirOrcamento,
   handleSaveOrcamento,
 }) => {
   return (
@@ -292,10 +291,6 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
         <Button onClick={gerarPDF} className="bg-purple-600 hover:bg-purple-700">
           <Download className="h-4 w-4 mr-2" />
           Gerar PDF
-        </Button>
-        <Button onClick={imprimirOrcamento} variant="outline">
-          <FileText className="h-4 w-4 mr-2" />
-          Imprimir Orçamento
         </Button>
         <Button onClick={handleSaveOrcamento} variant="outline" className="bg-green-600 hover:bg-green-700 text-white">
           <Download className="h-4 w-4 mr-2" />
