@@ -123,6 +123,7 @@ export async function createClient(clientData) {
       id_user,
       nome,
       cpf,
+      cnpj,
       telefone,
       email,
       endereco_rua,
@@ -135,8 +136,8 @@ export async function createClient(clientData) {
       
     } = clientData;
 
-    if (!id_user || !nome || !cpf || !email) {
-      throw new Error('Campos obrigatórios (id_user, nome, cpf, email) não fornecidos');
+    if (!id_user || !nome || !email) {
+      throw new Error('Campos obrigatórios (id_user, nome,  email) não fornecidos');
     }
 
     console.log("Executando query com valores:", {
@@ -144,6 +145,7 @@ export async function createClient(clientData) {
       id_user,
       nome,
       cpf,
+      cnpj,
       telefone,
       email,
       endereco_rua,
@@ -158,14 +160,15 @@ export async function createClient(clientData) {
     // Executa a query para inserir a empresa
     const [result] = await pool.query(
       `INSERT INTO Client (
-        id_client, id_user, nome, cpf, telefone, email, endereco_rua, endereco_numero, endereco_cidade, 
+        id_client, id_user, nome, cpf, cnpj, telefone, email, endereco_rua, endereco_numero, endereco_cidade, 
         endereco_estado, endereco_cep, observacoes
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id_client,
         id_user,
         nome,
-        cpf,
+        cpf || null,
+        cnpj || null,
         telefone || null,
         email || null,
         endereco_rua || null,
