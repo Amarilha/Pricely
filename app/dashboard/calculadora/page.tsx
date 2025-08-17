@@ -545,7 +545,7 @@ function ServiceQuoteGeneratorContent() {
 
         const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
         
-        let observacoes = formDataClient.observacoes;
+        
 
         
 
@@ -553,7 +553,7 @@ function ServiceQuoteGeneratorContent() {
           const cpf = formDataClient.cpf.replace(/\D/g, '');
         
           const cnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
-          observacoes = JSON.stringify({ personType: 'juridica', cnpj: cnpj });
+          
           
         
 
@@ -574,7 +574,7 @@ function ServiceQuoteGeneratorContent() {
             endereco_cidade: formDataClient.endereco_cidade,
             endereco_estado: formDataClient.endereco_estado,
             endereco_cep: formDataClient.endereco_cep.replace(/\D/g, ''),
-            observacoes: observacoes,
+            observacoes: formDataClient.observacoes,
           }),
         });
   
