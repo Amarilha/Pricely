@@ -175,6 +175,8 @@ function ServiceQuoteGeneratorContent() {
     cep: ''
   })
   const [personType, setPersonType] = useState<'fisica' | 'juridica'>('fisica');
+  const [formErrorsEmpresas, setFormErrorsEmpresas] = useState<Partial<typeof formDataEmpresas>>({});
+  const [formErrorsClient, setFormErrorsClient] = useState<Partial<typeof formDataClient>>({});
   const [formDataClient, setFormDataClient] = useState<Omit<Client, 'id_client'> & { cnpj?: string }>({
     nome: '',
     cpf: '',
@@ -337,7 +339,65 @@ function ServiceQuoteGeneratorContent() {
   }, [])
 
   //cadastro de empresas
+  const validateCompanyForm = () => {
+    const errors: Partial<typeof formDataEmpresas> = {};
+    if (!formDataEmpresas.name.trim()) {
+      errors.name = 'O nome da empresa é obrigatório.';
+    }
+    if (!formDataEmpresas.email.trim()) {
+      errors.email = 'O email é obrigatório.';
+    } else if (!/\S+@\S+\.\S+/.test(formDataEmpresas.email)) {
+      errors.email = 'O formato do email é inválido.';
+    }
+    const cleanedCnpj = formDataEmpresas.cnpj.replace(/\D/g, '');
+    if (cleanedCnpj.length !== 14) {
+      errors.cnpj = 'O CNPJ deve conter 14 dígitos.';
+    }
+    const cleanedPhone = formDataEmpresas.phone.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      errors.phone = 'O telefone deve ter no mínimo 10 dígitos.';
+    }
+    return errors;
+  };
+
+  const validateClientForm = () => {
+    const errors: Partial<typeof formDataClient> = {};
+    if (!formDataClient.nome.trim()) {
+      errors.nome = 'O nome do cliente é obrigatório.';
+    }
+    if (!formDataClient.email.trim()) {
+      errors.email = 'O email é obrigatório.';
+    } else if (!/\S+@\S+\.\S+/.test(formDataClient.email)) {
+      errors.email = 'O formato do email é inválido.';
+    }
+    const cleanedPhone = formDataClient.telefone.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      errors.telefone = 'O telefone deve ter no mínimo 10 dígitos.';
+    }
+    if (personType === 'fisica') {
+      const cleanedCpf = formDataClient.cpf.replace(/\D/g, '');
+      if (cleanedCpf.length !== 11) {
+        errors.cpf = 'O CPF deve conter 11 dígitos.';
+      }
+    } else {
+      const cleanedCnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
+      if (cleanedCnpj.length !== 14) {
+        errors.cnpj = 'O CNPJ deve conter 14 dígitos.';
+      }
+    }
+    return errors;
+  };
+
   const handleSaveEmpresas = async () => {
+    const validationErrors = validateCompanyForm();
+    setFormErrorsEmpresas(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setError("Por favor, corrija os erros no formulário.");
+      return;
+    }
+    setError(null);
+
     try {
       console.log("handleSaveEmpresas")
       setIsLoading(true);
@@ -348,21 +408,8 @@ function ServiceQuoteGeneratorContent() {
       }
 
       const cleanedCnpj = formDataEmpresas.cnpj.replace(/\D/g, '');
-      console.log("CNPJ enviado:", cleanedCnpj);
-      if (cleanedCnpj.length !== 14) {
-        throw new Error('CNPJ inválido: deve conter exatamente 14 dígitos');
-      }
-
       const cleanedCep = formDataEmpresas.cep.replace(/\D/g,'');
-        console.log("CEP enviado", cleanedCep)
-
-      // Limpa e valida telefone (remove tudo que não for dígito)
       const cleanedTelefone = formDataEmpresas.phone.replace(/\D/g, '');
-      console.log("Telefone enviado:", cleanedTelefone);
-
-      if (!formDataEmpresas.name || !formDataEmpresas.email) {
-        throw new Error('Campos obrigatórios (nome, email) não preenchidos');
-      }
 
       const response = await fetch('/dashboard/api/empresas', {
         method: 'POST',
@@ -480,6 +527,15 @@ function ServiceQuoteGeneratorContent() {
 
   // Nova função para salvar cliente
   const handleSaveClient = async () => {
+    const validationErrors = validateClientForm();
+    setFormErrorsClient(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setError("Por favor, corrija os erros no formulário.");
+      return;
+    }
+    setError(null);
+
       try {
         setIsLoading(true);
         const userId = await stateAuth();
@@ -488,23 +544,13 @@ function ServiceQuoteGeneratorContent() {
         }
 
         const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
-        if (cleanedTelefone.length < 10 || cleanedTelefone.length > 11) {
-          throw new Error('Telefone inválido: deve conter 10 ou 11 dígitos (com DDD)');
-        }
-
         let cpf = '';
         let observacoes = formDataClient.observacoes;
 
         if (personType === 'fisica') {
           cpf = formDataClient.cpf.replace(/\D/g, '');
-          if (cpf.length !== 11) {
-            throw new Error('CPF inválido: deve conter exatamente 11 dígitos');
-          }
         } else {
-          const cnpj = formDataClient.cnpj.replace(/\D/g, '');
-          if (cnpj.length !== 14) {
-            throw new Error('CNPJ inválido: deve conter exatamente 14 dígitos');
-          }
+          const cnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
           observacoes = JSON.stringify({ personType: 'juridica', cnpj: cnpj });
           cpf = cnpj; // Using cnpj as a placeholder for cpf
         }
@@ -573,19 +619,20 @@ function ServiceQuoteGeneratorContent() {
   )
 
   const handleCancelCliente = () => {
-    setFormDataEmpresas({
-      name: '',
+    setFormDataClient({
+      nome: '',
+      cpf: '',
       cnpj: '',
+      telefone: '',
       email: '',
-      phone: '',
-      street: '',
-      number: '',
-      neighborhood: '',
-      city: '',
-      state: '',
-      cep: '',
+      endereco_rua: '',
+      endereco_numero: '',
+      endereco_cidade: '',
+      endereco_estado: '',
+      endereco_cep: '',
+      observacoes: '',
     });
-     
+    setFormErrorsClient({});
     setShowNewClientDialog(false)
   }
 
@@ -1406,19 +1453,23 @@ function ServiceQuoteGeneratorContent() {
                               <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-name" className="text-right">
-                                    Nome da Empresa
+                                    Nome da Empresa <span className="text-red-500">*</span>
                                   </Label>
-                                  <Input
-                                    id="company-name"
-                                    value={formDataEmpresas.name}
-                                    onChange={handleChange}
-                                    className="col-span-3"
-                                  />
+                                  <div className="col-span-3">
+                                    <Input
+                                      id="company-name"
+                                      value={formDataEmpresas.name}
+                                      onChange={handleChange}
+                                      className={formErrorsEmpresas.name ? "border-red-500" : ""}
+                                    />
+                                    {formErrorsEmpresas.name && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.name}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-cnpj" className="text-right">
-                                    CNPJ
+                                    CNPJ <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="company-cnpj"
                                     value={formDataEmpresas.cnpj}
@@ -1433,23 +1484,29 @@ function ServiceQuoteGeneratorContent() {
                                       if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
                                       setFormDataEmpresas(prev => ({ ...prev, cnpj: formattedValue }));
                                     }}
-                                    className="col-span-3"
+                                    className={formErrorsEmpresas.cnpj ? "border-red-500" : ""}
                                   />
+                                    {formErrorsEmpresas.cnpj && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.cnpj}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="company-email" className="text-right">Email</Label>
+                                  <Label htmlFor="company-email" className="text-right">Email <span className="text-red-500">*</span></Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="company-email"
                                     type="email"
                                     value={formDataEmpresas.email}
                                     onChange={handleChange}
-                                    className="col-span-3"
+                                    className={formErrorsEmpresas.email ? "border-red-500" : ""}
                                   />
+                                  {formErrorsEmpresas.email && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.email}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-phone" className="text-right">
-                                    Telefone
+                                    Telefone <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="company-phone"
                                     type="tel"
@@ -1478,8 +1535,10 @@ function ServiceQuoteGeneratorContent() {
 
                                       setFormDataEmpresas(prev => ({ ...prev, phone: value }));
                                     }}
-                                    className="col-span-3"
+                                    className={formErrorsEmpresas.phone ? "border-red-500" : ""}
                                   />
+                                  {formErrorsEmpresas.phone && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.phone}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-street" className="text-right">
@@ -1670,15 +1729,18 @@ function ServiceQuoteGeneratorContent() {
                               <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-name" className="text-right">
-                                    Nome Completo
+                                    Nome Completo <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="client-name"
                                     type="text"
                                     value={formDataClient.nome}
                                     onChange={handleChangeClient}
-                                    className="col-span-3"
+                                    className={formErrorsClient.nome ? "border-red-500" : ""}
                                   />
+                                  {formErrorsClient.nome && <p className="text-red-500 text-xs mt-1">{formErrorsClient.nome}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label className="text-right">Tipo de Pessoa</Label>
@@ -1704,8 +1766,9 @@ function ServiceQuoteGeneratorContent() {
                                 {personType === 'fisica' ? (
                                   <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="client-cpf" className="text-right">
-                                      CPF
+                                      CPF <span className="text-red-500">*</span>
                                     </Label>
+                                    <div className="col-span-3">
                                     <Input
                                       id="client-cpf"
                                       value={formDataClient.cpf}
@@ -1723,16 +1786,19 @@ function ServiceQuoteGeneratorContent() {
                                           }
                                         } as React.ChangeEvent<HTMLInputElement>);
                                       }}
-                                      className="col-span-3"
+                                      className={formErrorsClient.cpf ? "border-red-500" : ""}
                                       placeholder="000.000.000-00"
                                       required
                                     />
+                                    {formErrorsClient.cpf && <p className="text-red-500 text-xs mt-1">{formErrorsClient.cpf}</p>}
+                                    </div>
                                   </div>
                                 ) : (
                                   <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="client-cnpj" className="text-right">
-                                      CNPJ
+                                      CNPJ <span className="text-red-500">*</span>
                                     </Label>
+                                    <div className="col-span-3">
                                     <Input
                                       id="client-cnpj"
                                       value={formDataClient.cnpj}
@@ -1751,26 +1817,32 @@ function ServiceQuoteGeneratorContent() {
                                           }
                                         } as React.ChangeEvent<HTMLInputElement>);
                                       }}
-                                      className="col-span-3"
+                                      className={formErrorsClient.cnpj ? "border-red-500" : ""}
                                       placeholder="00.000.000/0000-00"
                                       required
                                     />
+                                    {formErrorsClient.cnpj && <p className="text-red-500 text-xs mt-1">{formErrorsClient.cnpj}</p>}
+                                    </div>
                                   </div>
                                 )}
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="client-email" className="text-right">Email</Label>
+                                  <Label htmlFor="client-email" className="text-right">Email <span className="text-red-500">*</span></Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="client-email"
                                     type="email"
                                     value={formDataClient.email}
                                     onChange={handleChangeClient}
-                                    className="col-span-3"
+                                    className={formErrorsClient.email ? "border-red-500" : ""}
                                   />
+                                  {formErrorsClient.email && <p className="text-red-500 text-xs mt-1">{formErrorsClient.email}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-phone" className="text-right">
-                                    Telefone
+                                    Telefone <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="client-phone"
                                     type="tel"
@@ -1798,9 +1870,11 @@ function ServiceQuoteGeneratorContent() {
 
                                       setFormDataClient(prev => ({ ...prev, telefone: formattedValue }));
                                     }}
-                                    className="col-span-3"
+                                    className={formErrorsClient.telefone ? "border-red-500" : ""}
                                     placeholder="(00) 00000-0000"
                                   />
+                                  {formErrorsClient.telefone && <p className="text-red-500 text-xs mt-1">{formErrorsClient.telefone}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-street" className="text-right">
