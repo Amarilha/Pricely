@@ -545,18 +545,13 @@ function ServiceQuoteGeneratorContent() {
 
         const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
         
-        
 
-        
 
-        
           const cpf = formDataClient.cpf.replace(/\D/g, '');
-        
+
           const cnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
           
           
-        
-
         const response = await fetch('/dashboard/api/client', {
           method: 'POST',
           headers: {
@@ -566,7 +561,6 @@ function ServiceQuoteGeneratorContent() {
             id_user: userId,
             nome: formDataClient.nome,
             cpf: cpf,
-            cnpj: cnpj,
             telefone: cleanedTelefone,
             email: formDataClient.email,
             endereco_rua: formDataClient.endereco_rua,
