@@ -544,18 +544,16 @@ function ServiceQuoteGeneratorContent() {
         }
 
         const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
-        
-        
+        let cpf = '';
+        let observacoes = formDataClient.observacoes;
 
-        
-
-        
-          const cpf = formDataClient.cpf.replace(/\D/g, '');
-        
+        if (personType === 'fisica') {
+          cpf = formDataClient.cpf.replace(/\D/g, '');
+        } else {
           const cnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
-          
-          
-        
+          observacoes = JSON.stringify({ personType: 'juridica', cnpj: cnpj });
+          cpf = cnpj; // Using cnpj as a placeholder for cpf
+        }
 
         const response = await fetch('/dashboard/api/client', {
           method: 'POST',
@@ -566,7 +564,6 @@ function ServiceQuoteGeneratorContent() {
             id_user: userId,
             nome: formDataClient.nome,
             cpf: cpf,
-            cnpj: cnpj,
             telefone: cleanedTelefone,
             email: formDataClient.email,
             endereco_rua: formDataClient.endereco_rua,
@@ -574,7 +571,7 @@ function ServiceQuoteGeneratorContent() {
             endereco_cidade: formDataClient.endereco_cidade,
             endereco_estado: formDataClient.endereco_estado,
             endereco_cep: formDataClient.endereco_cep.replace(/\D/g, ''),
-            observacoes: formDataClient.observacoes,
+            observacoes: observacoes,
           }),
         });
   
