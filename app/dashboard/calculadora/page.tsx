@@ -87,6 +87,7 @@ interface Client {
   id_client: string
   nome: string
   cpf: string
+  cnpj: string
   telefone: string
   email: string
   endereco_rua: string
@@ -545,13 +546,18 @@ function ServiceQuoteGeneratorContent() {
 
         const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
         
+        
 
+        
 
+        
           const cpf = formDataClient.cpf.replace(/\D/g, '');
-
+        
           const cnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
           
           
+        
+
         const response = await fetch('/dashboard/api/client', {
           method: 'POST',
           headers: {
@@ -561,6 +567,7 @@ function ServiceQuoteGeneratorContent() {
             id_user: userId,
             nome: formDataClient.nome,
             cpf: cpf,
+            cnpj: cnpj,
             telefone: cleanedTelefone,
             email: formDataClient.email,
             endereco_rua: formDataClient.endereco_rua,
@@ -1198,16 +1205,18 @@ function ServiceQuoteGeneratorContent() {
     </div>
 
     <!-- Client and Billing Information -->
-    <div class="info-grid">
-      <div class="info-card">
-        <div class="info-card-header">Cliente</div>
-        <div class="info-card-content">
-          <p><strong>Nome:</strong> ${dados.cliente.nome || "Nome do Cliente"}</p>
-          <p><strong>CPF:</strong> ${dados.cliente.cpf || "000.000.000-00"}</p>
-          <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Rua"}, ${dados.cliente.endereco_numero || "Número"} - ${dados.cliente.endereco_cidade || "Cidade"}, ${dados.cliente.endereco_estado || "Estado"}</p>
-          <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-header">Cliente</div>
+          <div class="info-card-content">
+            <p><strong>Nome:</strong> ${dados.cliente.nome || "Nome do Cliente"}</p>
+            <p><strong>${dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> ${dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")}</p>
+            <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Rua"}, ${dados.cliente.endereco_numero || "Número"} - ${dados.cliente.endereco_cidade || "Cidade"}, ${dados.cliente.endereco_estado || "Estado"}</p>
+            <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
+          </div>
         </div>
       </div>
+    </div>
       
       <div class="info-card">
         <div class="info-card-header">Descrição do serviço</div>
@@ -1990,7 +1999,7 @@ function ServiceQuoteGeneratorContent() {
                                   <div className="flex items-center gap-2">
                                     <div className="font-medium">{cliente.nome}</div>
                                     <div className="text-xs text-gray-500">
-                                     <strong>CNPJ:</strong>{cliente.cpf} • <strong>Telefone:</strong>{cliente.telefone}
+                                      <strong>{cliente.cpf ? "CPF" : "CNPJ"}:</strong> {cliente.cpf || cliente.cnpj || (cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")} • <strong>Telefone:</strong> {cliente.telefone}
                                     </div>
                                     {cliente.observacoes && <div className="text-xs text-blue-600">{cliente.observacoes}</div>}
                                   </div>
@@ -2004,12 +2013,12 @@ function ServiceQuoteGeneratorContent() {
                           <div className="bg-muted p-4 rounded-lg">
                             <h4 className="font-semibold mb-2">Detalhes do Cliente Selecionado:</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div className="text-left" >
+                              <div className="text-left">
                                 <p>
                                   <strong>Nome:</strong> {dados.cliente.nome}
                                 </p>
                                 <p>
-                                  <strong>CPF:</strong> {dados.cliente.cpf}
+                                  <strong>{dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> {dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "000.000.000-00" : "00.000.000/0000-00")}
                                 </p>
                                 <p>
                                   <strong>Telefone:</strong> {dados.cliente.telefone}
@@ -2018,12 +2027,12 @@ function ServiceQuoteGeneratorContent() {
                                   <strong>Email:</strong> {dados.cliente.email}
                                 </p>
                               </div>
-                              <div className="text-left" >
+                              <div className="text-left">
                                 <p>
                                   <strong>Endereço:</strong> {dados.cliente.endereco_rua}, {dados.cliente.endereco_numero}                            
                                 </p>
                                 <p>
-                                  <strong>Cidade:</strong>{dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
+                                  <strong>Cidade:</strong> {dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
                                 </p>
                                 <p>CEP: {dados.cliente.endereco_cep}</p>
                                 {dados.cliente.observacoes && (
