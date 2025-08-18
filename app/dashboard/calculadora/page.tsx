@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState, useCallback, useMemo, useEffect } from "react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -86,6 +87,7 @@ interface Client {
   id_client: string
   nome: string
   cpf: string
+  cnpj: string
   telefone: string
   email: string
   endereco_rua: string
@@ -159,6 +161,7 @@ function ServiceQuoteGeneratorContent() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [regimeTributario, setRegimeTributario] = useState<'MEI' | 'ME'>('ME');
 
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
@@ -172,9 +175,13 @@ function ServiceQuoteGeneratorContent() {
     state: '',
     cep: ''
   })
-  const [formDataClient, setFormDataClient] = useState<Omit<Client, 'id_client'>>({
+  const [personType, setPersonType] = useState<'fisica' | 'juridica'>('fisica');
+  const [formErrorsEmpresas, setFormErrorsEmpresas] = useState<Partial<typeof formDataEmpresas>>({});
+  const [formErrorsClient, setFormErrorsClient] = useState<Partial<typeof formDataClient>>({});
+  const [formDataClient, setFormDataClient] = useState<Omit<Client, 'id_client'> & { cnpj?: string }>({
     nome: '',
     cpf: '',
+    cnpj: '',
     telefone: '',
     email: '',
     endereco_rua: '',
@@ -333,7 +340,65 @@ function ServiceQuoteGeneratorContent() {
   }, [])
 
   //cadastro de empresas
+  const validateCompanyForm = () => {
+    const errors: Partial<typeof formDataEmpresas> = {};
+    if (!formDataEmpresas.name.trim()) {
+      errors.name = 'O nome da empresa é obrigatório.';
+    }
+    if (!formDataEmpresas.email.trim()) {
+      errors.email = 'O email é obrigatório.';
+    } else if (!/\S+@\S+\.\S+/.test(formDataEmpresas.email)) {
+      errors.email = 'O formato do email é inválido.';
+    }
+    const cleanedCnpj = formDataEmpresas.cnpj.replace(/\D/g, '');
+    if (cleanedCnpj.length !== 14) {
+      errors.cnpj = 'O CNPJ deve conter 14 dígitos.';
+    }
+    const cleanedPhone = formDataEmpresas.phone.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      errors.phone = 'O telefone deve ter no mínimo 10 dígitos.';
+    }
+    return errors;
+  };
+
+  const validateClientForm = () => {
+    const errors: Partial<typeof formDataClient> = {};
+    if (!formDataClient.nome.trim()) {
+      errors.nome = 'O nome do cliente é obrigatório.';
+    }
+    if (!formDataClient.email.trim()) {
+      errors.email = 'O email é obrigatório.';
+    } else if (!/\S+@\S+\.\S+/.test(formDataClient.email)) {
+      errors.email = 'O formato do email é inválido.';
+    }
+    const cleanedPhone = formDataClient.telefone.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      errors.telefone = 'O telefone deve ter no mínimo 10 dígitos.';
+    }
+    if (personType === 'fisica') {
+      const cleanedCpf = formDataClient.cpf.replace(/\D/g, '');
+      if (cleanedCpf.length !== 11) {
+        errors.cpf = 'O CPF deve conter 11 dígitos.';
+      }
+    } else {
+      const cleanedCnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
+      if (cleanedCnpj.length !== 14) {
+        errors.cnpj = 'O CNPJ deve conter 14 dígitos.';
+      }
+    }
+    return errors;
+  };
+
   const handleSaveEmpresas = async () => {
+    const validationErrors = validateCompanyForm();
+    setFormErrorsEmpresas(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setError("Por favor, corrija os erros no formulário.");
+      return;
+    }
+    setError(null);
+
     try {
       console.log("handleSaveEmpresas")
       setIsLoading(true);
@@ -344,21 +409,8 @@ function ServiceQuoteGeneratorContent() {
       }
 
       const cleanedCnpj = formDataEmpresas.cnpj.replace(/\D/g, '');
-      console.log("CNPJ enviado:", cleanedCnpj);
-      if (cleanedCnpj.length !== 14) {
-        throw new Error('CNPJ inválido: deve conter exatamente 14 dígitos');
-      }
-
       const cleanedCep = formDataEmpresas.cep.replace(/\D/g,'');
-        console.log("CEP enviado", cleanedCep)
-
-      // Limpa e valida telefone (remove tudo que não for dígito)
       const cleanedTelefone = formDataEmpresas.phone.replace(/\D/g, '');
-      console.log("Telefone enviado:", cleanedTelefone);
-
-      if (!formDataEmpresas.name || !formDataEmpresas.email) {
-        throw new Error('Campos obrigatórios (nome, email) não preenchidos');
-      }
 
       const response = await fetch('/dashboard/api/empresas', {
         method: 'POST',
@@ -476,33 +528,35 @@ function ServiceQuoteGeneratorContent() {
 
   // Nova função para salvar cliente
   const handleSaveClient = async () => {
+    const validationErrors = validateClientForm();
+    setFormErrorsClient(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setError("Por favor, corrija os erros no formulário.");
+      return;
+    }
+    setError(null);
+
       try {
         setIsLoading(true);
         const userId = await stateAuth();
-        console.log("userId retornado por stateAuth:", userId);
         if (!userId) {
           throw new Error('Usuário não autenticado');
         }
 
-        // Limpa e valida CPF (remove tudo que não for dígito)
-        const cleanedCpf = formDataClient.cpf.replace(/\D/g, '');
-        console.log("CPF enviado:", cleanedCpf);
-
-        const cleanedCep = formDataClient.endereco_cep.replace(/\D/g,'');
-        console.log("CEP enviado", cleanedCep)
+        const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
+        
         
 
-        if (cleanedCpf.length !== 11) {
-          throw new Error('CPF inválido: deve conter exatamente 11 dígitos');
-        }
+        
 
-        // Limpa e valida telefone (remove tudo que não for dígito)
-        const cleanedTelefone = formDataClient.telefone.replace(/\D/g, '');
-        console.log("Telefone enviado:", cleanedTelefone);
-
-        if (cleanedTelefone.length < 10 || cleanedTelefone.length > 11) {
-          throw new Error('Telefone inválido: deve conter 10 ou 11 dígitos (com DDD)');
-        }
+        
+          const cpf = formDataClient.cpf.replace(/\D/g, '');
+        
+          const cnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
+          
+          
+        
 
         const response = await fetch('/dashboard/api/client', {
           method: 'POST',
@@ -511,29 +565,28 @@ function ServiceQuoteGeneratorContent() {
           },
           body: JSON.stringify({
             id_user: userId,
-            nome: formDataClient.nome, // Assumindo que você terá um formDataClient similar ao formData para empresas
-            cpf: cleanedCpf,
+            nome: formDataClient.nome,
+            cpf: cpf,
+            cnpj: cnpj,
             telefone: cleanedTelefone,
             email: formDataClient.email,
             endereco_rua: formDataClient.endereco_rua,
             endereco_numero: formDataClient.endereco_numero,
             endereco_cidade: formDataClient.endereco_cidade,
             endereco_estado: formDataClient.endereco_estado,
-            endereco_cep: cleanedCep,
-            observacoes: formDataClient.observacoes // Se existir no seu formulário de cliente
+            endereco_cep: formDataClient.endereco_cep.replace(/\D/g, ''),
+            observacoes: formDataClient.observacoes,
           }),
         });
   
         if (!response.ok) {
           const errorData = await response.json();
-          console.log("Erro retornado pelo servidor:", errorData);
           throw new Error(errorData.error || 'Falha ao salvar client');
         }
   
         const newClient: Client = await response.json()
         setClientesCadastrados(prev => [...prev, newClient])
-        // Limpar o formulário do cliente após salvar (adapte conforme seu estado de formulário de cliente)
-        setFormDataClient({ 
+        setFormDataClient({
           nome: '',
           cpf: '',
           telefone: '',
@@ -545,7 +598,7 @@ function ServiceQuoteGeneratorContent() {
           endereco_cep: '',
           observacoes: '',
         })
-        setShowNewClientDialog(false) // Se você tiver um modal para clientes
+        setShowNewClientDialog(false)
       } catch (err) {
         console.error('Erro ao salvar cliente:', err)
         setError('Falha ao salvar cliente.')
@@ -570,19 +623,20 @@ function ServiceQuoteGeneratorContent() {
   )
 
   const handleCancelCliente = () => {
-    setFormDataEmpresas({
-      name: '',
+    setFormDataClient({
+      nome: '',
+      cpf: '',
       cnpj: '',
+      telefone: '',
       email: '',
-      phone: '',
-      street: '',
-      number: '',
-      neighborhood: '',
-      city: '',
-      state: '',
-      cep: '',
+      endereco_rua: '',
+      endereco_numero: '',
+      endereco_cidade: '',
+      endereco_estado: '',
+      endereco_cep: '',
+      observacoes: '',
     });
-     
+    setFormErrorsClient({});
     setShowNewClientDialog(false)
   }
 
@@ -593,6 +647,7 @@ function ServiceQuoteGeneratorContent() {
     const fieldMap: Record<string, string> = {
       'client-name': 'nome',
       'client-cpf': 'cpf',
+      'client-cnpj': 'cnpj',
       'client-email': 'email',
       'client-phone': 'telefone',
       'client-street': 'endereco_rua',
@@ -700,6 +755,15 @@ function ServiceQuoteGeneratorContent() {
     })
   }, [])
 
+  const handleRegimeTributarioChange = useCallback((value: "MEI" | "ME") => {
+    setRegimeTributario(value)
+    const impostoRate = value === "MEI" ? 0 : 8 // 0 for MEI (fixed), 8% for ME
+    setDados((prev) => ({
+      ...prev,
+      impostos: impostoRate,
+    }))
+  }, [])
+
   // Financial Calculations with salary inclusion logic - Memoizadas para performance
   const calcularTotalCustosFixos = useMemo(() => {
     return dados.custosFixos.reduce((total, custo) => {
@@ -719,15 +783,18 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularCustoHora = useMemo(() => {
     const { totalHours } = dateRange;
-    return totalHours > 0 ? calcularTotalCustosFixos / totalHours : 0;
+    return totalHours > 0 ? calcularTotalCustosFixos / 160 : 0;
   }, [calcularTotalCustosFixos, dateRange]);
 
   const calcularCustoOperacional = useMemo(() => {
+    const { totalHours } = dateRange;
     const custoHora = calcularCustoHora
     const custoTempo = custoHora * (dados.totalHours || 0)
     const custoVariaveis = calcularTotalCustosVariaveis
-    return custoTempo + custoVariaveis + calcularTotalCustosFixos 
-  }, [calcularCustoHora, dados.totalHours, calcularTotalCustosVariaveis])
+
+
+    return custoVariaveis + (calcularCustoHora * totalHours )
+  }, [calcularCustoHora, dateRange, calcularTotalCustosVariaveis])
 
   const calcularSubtotalItens = useMemo(() => {
     return dados.itens.reduce((total, item) => total + (item.totalItem || 0), 0)
@@ -743,9 +810,12 @@ function ServiceQuoteGeneratorContent() {
   }, [calcularSubtotalGeral, dados.margemLucro])
 
   const calcularImpostos = useMemo(() => {
+    if (regimeTributario === 'MEI') {
+      return 80;
+    }
     const subtotalComLucro = calcularSubtotalGeral + calcularLucro
     return subtotalComLucro * ((dados.impostos || 0) / 100)
-  }, [calcularSubtotalGeral, calcularLucro, dados.impostos])
+  }, [regimeTributario, calcularSubtotalGeral, calcularLucro, dados.impostos])
 
   const calcularTotalFinal = useMemo(() => {
     const subtotal = calcularSubtotalGeral
@@ -808,541 +878,417 @@ function ServiceQuoteGeneratorContent() {
 
     // Create optimized PDF content
   const pdfContent = `
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Orçamento - ${dados.numeroOrdem}</title>
-      <style>
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        
-        body {
-          font-family: Arial, Helvetica, sans-serif !important;
-          line-height: 1.4;
-          color: #000;
-          background: white !important;
-          padding: 20px;
-        }
-        
-        .pdf-container {
-          max-width: 800px;
-          margin: 0 auto;
-          background: white;
-        }
-        
-        .pdf-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #d1d5db;
-          margin-bottom: 16px;
-        }
-        
-        .company-info {
-          display: flex;
-          align-items: center;
-        }
-        
-        .company-logo {
-          background-color: #9333ea !important;
-          color: white !important;
-          font-weight: bold;
-          font-size: 24px;
-          width: 80px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-          margin-right: 16px;
-        }
-        
-        .company-details h2 {
-          font-size: 20px;
-          font-weight: bold;
-          color: #1f2937;
-          margin-bottom: 4px;
-        }
-        
-        .company-details p {
-          font-size: 14px;
-          color: #6b7280;
-          margin-bottom: 2px;
-        }
-        
-        .order-info {
-          text-align: right;
-        }
-        
-        .order-info h1 {
-          font-size: 28px;
-          font-weight: bold;
-          color: #1f2937;
-          margin-bottom: 8px;
-        }
-        
-        .order-details {
-          border: 1px solid #d1d5db;
-          border-radius: 4px;
-          padding: 8px;
-          background: #f9fafb;
-        }
-        
-        .order-details p {
-          font-size: 14px;
-          margin-bottom: 4px;
-        }
-        
-        .info-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin: 16px 0;
-        }
-        
-        .info-card {
-          border: 1px solid #d1d5db;
-          border-radius: 4px;
-          overflow: hidden;
-        }
-        
-        .info-card-header {
-          background-color: #9333ea !important;
-          color: white !important;
-          padding: 8px;
-          font-weight: 600;
-          font-size: 14px;
-        }
-        
-        .info-card-content {
-          padding: 12px;
-          font-size: 14px;
-          color: #374151;
-        }
-        
-        .info-card-content p {
-          margin-bottom: 4px;
-        }
-        
-        .items-table {
-          width: 100%;
-          border-collapse: collapse !important;
-          margin: 24px 0;
-        }
-        
-        .items-table th,
-        .items-table td {
-          border: 1px solid #d1d5db !important;
-          padding: 8px !important;
-          text-align: left;
-        }
-        
-        .items-table th {
-          background-color: #9333ea !important;
-          color: white !important;
-          font-weight: 600;
-          font-size: 14px;
-        }
-        
-        .items-table td {
-          font-size: 14px;
-          color: #374151;
-        }
-        
-        .items-table .text-right {
-          text-align: right;
-        }
-        
-        .totals-section {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin: 16px 0;
-          align-items: start;
-        }
-        
-        .payment-info {
-          border: 1px solid #d1d5db;
-          border-radius: 4px;
-          height: fit-content;
-        }
-        
-        .totals-breakdown {
-          space-y: 8px;
-        }
-        
-        .total-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 8px;
-          border-radius: 4px;
-        }
-        
-        .total-row.subtotal {
-          background-color: #f3f4f6;
-        }
-        
-        .total-row.final {
-          background-color: #e5e7eb;
-          font-weight: bold;
-          font-size: 18px;
-        }
-        
-        .total-row .label {
-          font-weight: 600;
-          color: #6b7280;
-        }
-        
-        .total-row .value {
-          font-weight: 600;
-        }
-        
-        .value.positive {
-          color: #16a34a;
-        }
-        
-        .value.negative {
-          color: #dc2626;
-        }
-        
-        .value.final {
-          color: #16a34a;
-          font-size: 18px;
-        }
-        
-        .signatures {
-          margin-top: 32px;
-          padding-top: 16px;
-        }
-        
-        .signatures-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 32px;
-          margin-top: 32px;
-        }
-        
-        .signature-line {
-          text-align: center;
-          border-top: 1px solid #9ca3af;
-          padding-top: 8px;
-          font-weight: 600;
-        }
-        
-        .footer-brand {
-          text-align: center;
-          margin-top: 32px;
-        }
-        
-        .footer-brand p {
-          background-color: #9333ea !important;
-          color: white !important;
-          font-weight: bold;
-          padding: 8px 16px;
-          border-radius: 4px;
-          display: inline-block;
-        }
-        
-        .variable-costs-detail {
-          font-size: 12px;
-          color: #6b7280;
-          margin-top: 4px;
-        }
-        
-        .controls {
-          text-align: center;
-          margin: 20px 0;
-          padding: 20px;
-          border-top: 2px solid #e5e7eb;
-        }
-        
-        .btn {
-          background: #9333ea;
-          color: white;
-          padding: 12px 24px;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 16px;
-          margin: 0 8px;
-          font-family: Arial, sans-serif;
-        }
-        
-        .btn:hover {
-          background: #7c3aed;
-        }
-        
-        .btn-secondary {
-          background: #6b7280;
-        }
-        
-        .btn-secondary:hover {
-          background: #4b5563;
-        }
-        
-        @media print {
-          .controls {
-            display: none !important;
-          }
-          
-          body {
-            padding: 0 !important;
-          }
-          
-          .pdf-container {
-            max-width: none !important;
-          }
-        }
-        
-        @page {
-          size: A4;
-          margin: 0.5in;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="pdf-container">
-        <!-- Header -->
-        <div class="pdf-header">
-          <div class="company-info">
-            <div class="company-logo">
-              ${dados.empresa.logoChar || "XX"}
-            </div>
-            <div class="company-details">
-              <h2>${dados.empresa.nome || "Company Name"}</h2>
-              <p>CNPJ ${dados.empresa.cnpj || "00.000.000/0000-00"}</p>
-              <p>${dados.empresa.endereco_rua || "Street"}, ${dados.empresa.endereco_numero || "Number"}</p>
-              <p>${dados.empresa.endereco_cidade || "City"}, ${dados.empresa.endereco_estado || "State"}</p>
-              <p>Telefone ${dados.empresa.telefone || "(00) 0000-0000"}</p>
-            </div>
-          </div>
-          <div class="order-info">
-            <h1>Orçamentos</h1>
-            <div class="order-details">
-              <p><strong>Ordem nº:</strong> ${dados.numeroOrdem}</p>
-              <p><strong>Data:</strong> ${formatarData(dados.data)}</p>
-            </div>
-          </div>
+  <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orçamento - ${dados.numeroOrdem}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif !important;
+      line-height: 1.4;
+      color: #000;
+      background: white !important;
+      padding: 20px;
+    }
+
+    .pdf-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+    }
+    
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #d1d5db;
+      margin-bottom: 16px;
+    }
+    .company-info {
+      display: flex;
+      align-items: center;
+    }
+    .company-logo {
+      background-color: #9333ea !important;
+      color: white !important;
+      font-weight: bold;
+      font-size: 24px;
+      width: 80px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      margin-right: 16px;
+    }
+    .company-details h2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+    .company-details p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+    .order-info {
+      text-align: right;
+    }
+    .order-info h1 {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    .order-details {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 8px;
+      background: #f9fafb;
+    }
+    .order-details p {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .info-card {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .info-card-header {
+      background-color: #9333ea !important;
+      color: white !important;
+      padding: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .info-card-content {
+      padding: 12px;
+      font-size: 14px;
+      color: #374151;
+    }
+    .info-card-content p {
+      margin-bottom: 4px;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse !important;
+      margin: 24px 0;
+    }
+    .items-table th,
+    .items-table td {
+      border: 1px solid #d1d5db !important;
+      padding: 8px !important;
+      text-align: left;
+    }
+    .items-table th {
+      background-color: #9333ea !important;
+      color: white !important;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .items-table td {
+      font-size: 14px;
+      color: #374151;
+    }
+    .items-table .text-right {
+      text-align: right;
+    }
+    .totals-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+      align-items: start;
+    }
+    .payment-info {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      height: fit-content;
+    }
+    .totals-breakdown {
+      space-y: 8px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .total-row.subtotal {
+      background-color: #f3f4f6;
+    }
+    .total-row.final {
+      background-color: #e5e7eb;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .total-row .label {
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .total-row .value {
+      font-weight: 600;
+    }
+    .value.positive {
+      color: #16a34a;
+    }
+    .value.negative {
+      color: #dc2626;
+    }
+    .value.final {
+      color: #16a34a;
+      font-size: 18px;
+    }
+    .signatures {
+      margin-top: 32px;
+      padding-top: 16px;
+    }
+    .signatures-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 32px;
+    }
+    .signature-line {
+      text-align: center;
+      border-top: 1px solid #9ca3af;
+      padding-top: 8px;
+      font-weight: 600;
+    }
+    .footer-brand {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .footer-brand p {
+      background-color: #9333ea !important;
+      color: white !important;
+      font-weight: bold;
+      padding: 8px 16px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .variable-costs-detail {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .controls {
+      text-align: center;
+      margin: 20px 0;
+      padding: 20px;
+      border-top: 2px solid #e5e7eb;
+    }
+    .btn {
+      background: #9333ea;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 0 8px;
+      font-family: Arial, sans-serif;
+    }
+    .btn:hover {
+      background: #7c3aed;
+    }
+    .btn-secondary {
+      background: #6b7280;
+    }
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+    @media print {
+      .controls {
+        display: none !important;
+      }
+      body {
+        padding: 0 !important;
+      }
+      .pdf-container {
+        max-width: none !important;
+      }
+    }
+    @page {
+      size: A4;
+      margin: 0.5in;
+    }
+  </style>
+</head>
+<body>
+  <div class="pdf-container">
+    <!-- Header -->
+    <div class="pdf-header">
+      <div class="company-info">
+        <div class="company-logo">
+          ${dados.empresa.logoChar || "XX"}
         </div>
-
-        <!-- Client and Billing Information -->
-        <div class="info-grid">
-          <div class="info-card">
-            <div class="info-card-header">Cliente</div>
-            <div class="info-card-content">
-              <p><strong>Nome:</strong> ${dados.cliente.nome || "Client Name"}</p>
-              <p><strong>CPF:</strong> ${dados.cliente.cpf || "000.000.000-00"}</p>
-              <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Street"}, ${
-                dados.cliente.endereco_numero || "Number"
-              } - ${dados.cliente.endereco_cidade || "City"}, ${dados.cliente.endereco_estado || "State"}</p>
-              <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
-            </div>
-          </div>
-          <div class="info-card">
-            <div class="info-card-header">Endereço de cobrança</div>
-            <div class="info-card-content">
-              <p>${dados.enderecoCobranca || "Billing address"}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Service Description and Location -->
-        <div class="info-grid">
-          <div class="info-card">
-            <div class="info-card-header">Descrição do serviço</div>
-            <div class="info-card-content">
-              <p>${dados.descricaoServico || "Service description"}</p>
-            </div>
-          </div>
-          <div class="info-card">
-            <div class="info-card-header">Local de prestação</div>
-            <div class="info-card-content">
-              <p><strong>Nome:</strong> ${dados.localPrestacao.nome || "Service Location"}</p>
-              <p><strong>${dados.localPrestacao.tipoDocumento}:</strong> ${
-                dados.localPrestacao.documento || "000.000.000-00"
-              }</p>
-              <p><strong>Endereço:</strong> ${dados.localPrestacao.endereco.rua || "Street"}, ${
-                dados.localPrestacao.endereco.numero || "Number"
-              } - ${dados.localPrestacao.endereco.cidade || "City"}, ${
-                dados.localPrestacao.endereco.estado || "State"
-              }</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Items Table -->
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th>Quantidade</th>
-              <th>Produto utilizado ou Serviço Prestado</th>
-              <th class="text-right">Preço Unitário</th>
-              <th class="text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${dados.itens
-              .map(
-                (item) => `
-              <tr>
-                <td>${item.quantidade}</td>
-                <td>${item.descricao}</td>
-                <td class="text-right">${formatarMoeda(item.precoUnitario)}</td>
-                <td class="text-right">${formatarMoeda(item.totalItem)}</td>
-              </tr>
-            `,
-              )
-              .join("")}
-            ${
-              calcularCustoOperacional > 0
-                ? `
-              <tr>
-                <td>1</td>
-                <td>
-                  Custo Operacional (${dados.totalHours}h)
-                  ${!dados.incluirSalarios ? '<div class="variable-costs-detail">*Salários não incluídos</div>' : ""}
-                  ${
-                    dados.custosVariaveis.length > 0
-                      ? `<div class="variable-costs-detail">Inclui: ${dados.custosVariaveis
-                          .map((c) => `${c.categoria} (${formatarMoeda(c.valor)})`)
-                          .join(", ")}</div>`
-                      : ""
-                  }
-                </td>
-                <td class="text-right">${formatarMoeda(calcularCustoOperacional)}</td>
-                <td class="text-right">${formatarMoeda(calcularCustoOperacional)}</td>
-              </tr>
-            `
-                : ""
-            }
-            ${Array.from({
-              length: Math.max(0, 4 - dados.itens.length - (calcularCustoOperacional > 0 ? 1 : 0)),
-            })
-              .map(
-                () => `
-              <tr style="height: 32px;">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            `,
-              )
-              .join("")}
-          </tbody>
-        </table>
-
-        <!-- Payment and Totals -->
-        <div class="totals-section">
-          <div class="payment-info">
-            <div class="info-card-header">Forma de pagamento</div>
-            <div class="info-card-content">
-              <p>${dados.formaPagamento || "Payment method"}</p>
-            </div>
-          </div>
-
-          <div class="totals-breakdown">
-            <div class="total-row subtotal">
-              <span class="label">Subtotal</span>
-              <span class="value">${formatarMoeda(calcularSubtotalGeral)}</span>
-            </div>
-            <div class="total-row">
-              <span class="label">Lucro (${dados.margemLucro}%)</span>
-              <span class="value positive">+${formatarMoeda(calcularLucro)}</span>
-            </div>
-            <div class="total-row">
-              <span class="label">Impostos (${dados.impostos}%)</span>
-              <span class="value negative">+${formatarMoeda(calcularImpostos)}</span>
-            </div>
-            ${
-              dados.desconto > 0
-                ? `
-              <div class="total-row">
-                <span class="label">Desconto</span>
-                <span class="value negative">-${formatarMoeda(dados.desconto)}</span>
-              </div>
-            `
-                : ""
-            }
-            ${
-              dados.acrescimos > 0
-                ? `
-              <div class="total-row">
-                <span class="label">Acréscimos</span>
-                <span class="value positive">+${formatarMoeda(dados.acrescimos)}</span>
-              </div>
-            `
-                : ""
-            }
-            <div class="total-row final">
-              <span class="label">TOTAL</span>
-              <span class="value final">${formatarMoeda(calcularTotalFinal)}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="signatures">
-          <p style="text-align: center; font-size: 14px; color: #6b7280; margin-bottom: 32px;">
-            Confirmo que o serviço foi prestado de acordo com o combinado.
-          </p>
-          <div class="signatures-grid">
-            <div class="signature-line">
-              <p>Assinatura do Cliente</p>
-            </div>
-            <div class="signature-line">
-              <p>Data de entrega do serviço: ${formatarData(dados.dataEntrega)}</p>
-            </div>
-            <div class="signature-line" style="margin-top: 32px;">
-              <p>Assinatura do Técnico</p>
-            </div>
-            <div class="footer-brand" style="margin-top: 32px;">
-              <p>nexprice.com.br</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Controls (hidden in print) -->
-        <div class="controls">
-          <button class="btn" onclick="window.print()">
-            🖨️ Imprimir / Salvar como PDF
-          </button>
-          <button class="btn btn-secondary" onclick="window.close()">
-            ✖️ Fechar
-          </button>
+        <div class="company-details">
+          <h2>${dados.empresa.nome || "Nome da Empresa"}</h2>
+          <p>CNPJ ${dados.empresa.cnpj || "00.000.000/0000-00"}</p>
+          <p>${dados.empresa.endereco_rua || "Rua"}, ${dados.empresa.endereco_numero || "Número"}</p>
+          <p>${dados.empresa.endereco_cidade || "Cidade"}, ${dados.empresa.endereco_estado || "Estado"}</p>
+          <p>Telefone ${dados.empresa.telefone || "(00) 0000-0000"}</p>
         </div>
       </div>
+      <div class="order-info">
+        <h1>ORÇAMENTO</h 1>
+        <div class="order-details">
+          <p><strong>Ordem nº:</strong> ${dados.numeroOrdem}</p>
+          <p><strong>Data:</strong> ${formatarData(dados.data || '')}</p>
+        </div>
+      </div>
+    </div>
 
-      <script>
-        // Auto-focus for better UX
-        window.onload = function() {
-          document.body.focus();
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-          if (e.ctrlKey && e.key === 'p') {
-            e.preventDefault();
-            window.print();
-          }
-          if (e.key === 'Escape') {
-            window.close();
-          }
-        });
-      </script>
-    </body>
-    </html>
-    `
+    <!-- Client and Billing Information -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-header">Cliente</div>
+        <div class="info-card-content">
+          <p><strong>Nome:</strong> ${dados.cliente.nome || "Nome do Cliente"}</p>
+          <p><strong>${dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> ${dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "000.000.000-00" : "00.000.000/0000-00")}</p>
+          <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Rua"}, ${dados.cliente.endereco_numero || "Número"} - ${dados.cliente.endereco_cidade || "Cidade"}, ${dados.cliente.endereco_estado || "Estado"}</p>
+          <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-header">Descrição do serviço</div>
+        <div class="info-card-content">
+          <p>${dados.descricaoServico || "Descrição do serviço"}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Quantidade</th>
+          <th>Produto utilizado ou Serviço Prestado</th>
+          <th class="text-right">Preço Unitário</th>
+          <th class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${dados.itens.map((item, index) => `
+          <tr key="item-${index}">
+            <td>${item.quantidade}</td>
+            <td>${item.descricao}</td>
+            <td class="text-right">${formatarMoeda(item.precoUnitario)}</td>
+            <td class="text-right">${formatarMoeda(item.totalItem)}</td>
+          </tr>
+        `).join('')}
+        ${dados.custosFixos.map((custo, index) => {
+          const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
+          if (!dados.incluirSalarios && isSalario) return '';
+          return `
+            <tr key="fixo-${index}" class="text-xs bg-gray-50">
+              <td></td>
+              <td class="italic">${custo.descricao} (Custo Fixo)</td>
+              <td class="text-right">${formatarMoeda(custo.valor)}</td>
+              <td class="text-right">${formatarMoeda(custo.valor)}</td>
+            </tr>
+          `;
+        }).join('')}
+        ${dados.custosVariaveis.map((custo, index) => `
+          <tr key="variavel-${index}" class="text-xs bg-gray-50">
+            <td>${custo.quantidade} ${custo.unidade}</td>
+            <td class="italic">${custo.descricao} (${custo.categoria})</td>
+            <td class="text-right">${formatarMoeda(custo.valor)}</td>
+            <td class="text-right">${formatarMoeda(custo.valor * custo.quantidade)}</td>
+          </tr>
+        `).join('')}
+        ${Array.from({
+          length: Math.max(0, 4 - dados.itens.length - (dados.custosFixos.length + dados.custosVariaveis.length)),
+        }).map((_, index) => `
+          <tr key="empty-${index}" style="height: 32px;">
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <!-- Payment and Totals -->
+    <div class="totals-section">
+      <div class="payment-info">
+        <div class="info-card-header">Forma de pagamento</div>
+        <div class="info-card-content">
+          <p>${dados.formaPagamento || "Forma de pagamento"}</p>
+        </div>
+      </div>
+      <div class="totals-breakdown">
+        <div class="total-row subtotal">
+          <span class="label">Subtotal</span>
+          <span class="value">${formatarMoeda(calcularSubtotalGeral)}</span>
+        </div>
+        ${dados.desconto > 0 ? `
+        <div class="total-row">
+          <span class="label">Desconto</span>
+          <span class="value negative">-${formatarMoeda(dados.desconto)}</span>
+        </div>
+        ` : ''}
+        ${dados.acrescimos > 0 ? `
+        <div class="total-row">
+          <span class="label">Acréscimos</span>
+          <span class="value positive">+${formatarMoeda(dados.acrescimos)}</span>
+        </div>
+        ` : ''}
+        <div class="total-row final">
+          <span class="label">TOTAL</span>
+          <span class="value final">${formatarMoeda(calcularTotalFinal)}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-brand">
+      <p>nexprice.com.br</p>
+    </div>
+  </div>
+
+  <script>
+    // Auto-focus for better UX
+    window.onload = function() {
+      document.body.focus();
+    }
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        window.print();
+      }
+      if (e.key === 'Escape') {
+        window.close();
+      }
+    });
+  </script>
+</body>
+</html>
+  `
 
     // Open new window with PDF content
     const pdfWindow = window.open("", "_blank", "width=900,height=700,scrollbars=yes,resizable=yes")
@@ -1406,70 +1352,7 @@ function ServiceQuoteGeneratorContent() {
     }
   };
 
-  // Enhanced print function
-  const imprimirOrcamento = useCallback(() => {
-    const conteudoOrcamento = document.getElementById("service-quote-pdf")
-    if (!conteudoOrcamento) {
-      alert("Erro: Conteúdo do orçamento não encontrado")
-      return
-    }
 
-    // Create print-optimized content
-    const printContent = conteudoOrcamento.innerHTML
-    const printWindow = window.open("", "_blank", "width=800,height=600")
-
-    if (printWindow) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Impressão - ${dados.numeroOrdem}</title>
-          <meta charset="UTF-8">
-          <style>
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            body { 
-              font-family: Arial, Helvetica, sans-serif !important; 
-              margin: 0; 
-              padding: 20px; 
-              background: white !important;
-            }
-            .bg-purple-600 { background-color: #9333ea !important; color: white !important; }
-            .bg-gray-100 { background-color: #f3f4f6 !important; }
-            .bg-gray-200 { background-color: #e5e7eb !important; }
-            .text-purple-600 { color: #9333ea !important; }
-            .text-green-600 { color: #16a34a !important; }
-            .text-red-600 { color: #dc2626 !important; }
-            table { border-collapse: collapse !important; width: 100% !important; }
-            th, td { border: 1px solid #d1d5db !important; padding: 8px !important; }
-            th { background-color: #9333ea !important; color: white !important; }
-            @page { size: A4; margin: 0.5in; }
-            @media print {
-              body { -webkit-print-color-adjust: exact !important; }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent}
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-                window.close();
-              }, 500);
-            }
-          </script>
-        </body>
-        </html>
-      `)
-      printWindow.document.close()
-    } else {
-      alert("Por favor, permita pop-ups para imprimir")
-    }
-  }, [dados.numeroOrdem])
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -1495,7 +1378,7 @@ function ServiceQuoteGeneratorContent() {
                     <TabsTrigger value="costs">💰 Custos</TabsTrigger>
                     <TabsTrigger value="service">🔧 Serviço</TabsTrigger>
                     {/*<TabsTrigger value="taxes">📊 Impostos</TabsTrigger>*/}
-                    <TabsTrigger value="analytics">📈 Análises</TabsTrigger>
+                    {/*<TabsTrigger value="analytics">📈 Análises</TabsTrigger>*/}
                     {/*<TabsTrigger value="boletos">💳 Boletos</TabsTrigger>*/}
                     <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
                   </TabsList>
@@ -1525,19 +1408,23 @@ function ServiceQuoteGeneratorContent() {
                               <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-name" className="text-right">
-                                    Nome da Empresa
+                                    Nome da Empresa <span className="text-red-500">*</span>
                                   </Label>
-                                  <Input
-                                    id="company-name"
-                                    value={formDataEmpresas.name}
-                                    onChange={handleChange}
-                                    className="col-span-3"
-                                  />
+                                  <div className="col-span-3">
+                                    <Input
+                                      id="company-name"
+                                      value={formDataEmpresas.name}
+                                      onChange={handleChange}
+                                      className={formErrorsEmpresas.name ? "border-red-500" : ""}
+                                    />
+                                    {formErrorsEmpresas.name && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.name}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-cnpj" className="text-right">
-                                    CNPJ
+                                    CNPJ <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="company-cnpj"
                                     value={formDataEmpresas.cnpj}
@@ -1552,23 +1439,29 @@ function ServiceQuoteGeneratorContent() {
                                       if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
                                       setFormDataEmpresas(prev => ({ ...prev, cnpj: formattedValue }));
                                     }}
-                                    className="col-span-3"
+                                    className={formErrorsEmpresas.cnpj ? "border-red-500" : ""}
                                   />
+                                    {formErrorsEmpresas.cnpj && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.cnpj}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="company-email" className="text-right">Email</Label>
+                                  <Label htmlFor="company-email" className="text-right">Email <span className="text-red-500">*</span></Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="company-email"
                                     type="email"
                                     value={formDataEmpresas.email}
                                     onChange={handleChange}
-                                    className="col-span-3"
+                                    className={formErrorsEmpresas.email ? "border-red-500" : ""}
                                   />
+                                  {formErrorsEmpresas.email && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.email}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-phone" className="text-right">
-                                    Telefone
+                                    Telefone <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="company-phone"
                                     type="tel"
@@ -1597,8 +1490,10 @@ function ServiceQuoteGeneratorContent() {
 
                                       setFormDataEmpresas(prev => ({ ...prev, phone: value }));
                                     }}
-                                    className="col-span-3"
+                                    className={formErrorsEmpresas.phone ? "border-red-500" : ""}
                                   />
+                                  {formErrorsEmpresas.phone && <p className="text-red-500 text-xs mt-1">{formErrorsEmpresas.phone}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-street" className="text-right">
@@ -1789,55 +1684,120 @@ function ServiceQuoteGeneratorContent() {
                               <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-name" className="text-right">
-                                    Nome Completo
+                                    Nome Completo <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="client-name"
                                     type="text"
                                     value={formDataClient.nome}
                                     onChange={handleChangeClient}
-                                    className="col-span-3"
+                                    className={formErrorsClient.nome ? "border-red-500" : ""}
                                   />
+                                  {formErrorsClient.nome && <p className="text-red-500 text-xs mt-1">{formErrorsClient.nome}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="client-cpf" className="text-right">
-                                    CPF
-                                  </Label>
-                                  <Input
-                                    id="client-cpf"
-                                    value={formDataClient.cpf}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/\D/g, '');
-                                      if (value.length > 11) value = value.slice(0, 11);
-                                      let formattedValue = value;
-                                      if (value.length > 3) formattedValue = value.replace(/^(\d{3})(\d)/, '$1.$2');
-                                      if (value.length > 6) formattedValue = formattedValue.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
-                                      if (value.length > 9) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1-$2');
-                                      handleChangeClient({ 
-                                        target: { 
-                                          id: 'client-cpf', 
-                                          value: formattedValue 
-                                        } 
-                                      } as React.ChangeEvent<HTMLInputElement>);
+                                  <Label className="text-right">Tipo de Pessoa</Label>
+                                  <RadioGroup
+                                    value={personType}
+                                    onValueChange={(value: 'fisica' | 'juridica') => {
+                                      setPersonType(value);
+                                      setFormDataClient(prev => ({ ...prev, personType: value }));
                                     }}
-                                    className="col-span-3"
-                                    placeholder="000.000.000-00"
-                                  />
+                                    className="col-span-3 flex space-x-4"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="fisica" id="fisica" />
+                                      <Label htmlFor="fisica">Pessoa Física</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="juridica" id="juridica" />
+                                      <Label htmlFor="juridica">Pessoa Jurídica</Label>
+                                    </div>
+                                  </RadioGroup>
                                 </div>
+
+                                {personType === 'fisica' ? (
+                                  <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="client-cpf" className="text-right">
+                                      CPF <span className="text-red-500">*</span>
+                                    </Label>
+                                    <div className="col-span-3">
+                                    <Input
+                                      id="client-cpf"
+                                      value={formDataClient.cpf}
+                                      onChange={(e) => {
+                                        let value = e.target.value.replace(/\D/g, '');
+                                        if (value.length > 11) value = value.slice(0, 11);
+                                        let formattedValue = value;
+                                        if (value.length > 3) formattedValue = value.replace(/^(\d{3})(\d)/, '$1.$2');
+                                        if (value.length > 6) formattedValue = formattedValue.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+                                        if (value.length > 9) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1-$2');
+                                        handleChangeClient({
+                                          target: {
+                                            id: 'client-cpf',
+                                            value: formattedValue
+                                          }
+                                        } as React.ChangeEvent<HTMLInputElement>);
+                                      }}
+                                      className={formErrorsClient.cpf ? "border-red-500" : ""}
+                                      placeholder="000.000.000-00"
+                                      required
+                                    />
+                                    {formErrorsClient.cpf && <p className="text-red-500 text-xs mt-1">{formErrorsClient.cpf}</p>}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="client-cnpj" className="text-right">
+                                      CNPJ <span className="text-red-500">*</span>
+                                    </Label>
+                                    <div className="col-span-3">
+                                    <Input
+                                      id="client-cnpj"
+                                      value={formDataClient.cnpj}
+                                      onChange={(e) => {
+                                        let value = e.target.value.replace(/\D/g, '');
+                                        if (value.length > 14) value = value.slice(0, 14);
+                                        let formattedValue = value;
+                                        if (value.length > 2) formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                                        if (value.length > 5) formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                                        if (value.length > 8) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                                        if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
+                                        handleChangeClient({
+                                          target: {
+                                            id: 'client-cnpj',
+                                            value: formattedValue
+                                          }
+                                        } as React.ChangeEvent<HTMLInputElement>);
+                                      }}
+                                      className={formErrorsClient.cnpj ? "border-red-500" : ""}
+                                      placeholder="00.000.000/0000-00"
+                                      required
+                                    />
+                                    {formErrorsClient.cnpj && <p className="text-red-500 text-xs mt-1">{formErrorsClient.cnpj}</p>}
+                                    </div>
+                                  </div>
+                                )}
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="client-email" className="text-right">Email</Label>
+                                  <Label htmlFor="client-email" className="text-right">Email <span className="text-red-500">*</span></Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="client-email"
                                     type="email"
                                     value={formDataClient.email}
                                     onChange={handleChangeClient}
-                                    className="col-span-3"
+                                    className={formErrorsClient.email ? "border-red-500" : ""}
                                   />
+                                  {formErrorsClient.email && <p className="text-red-500 text-xs mt-1">{formErrorsClient.email}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-phone" className="text-right">
-                                    Telefone
+                                    Telefone <span className="text-red-500">*</span>
                                   </Label>
+                                  <div className="col-span-3">
                                   <Input
                                     id="client-phone"
                                     type="tel"
@@ -1865,9 +1825,11 @@ function ServiceQuoteGeneratorContent() {
 
                                       setFormDataClient(prev => ({ ...prev, telefone: formattedValue }));
                                     }}
-                                    className="col-span-3"
+                                    className={formErrorsClient.telefone ? "border-red-500" : ""}
                                     placeholder="(00) 00000-0000"
                                   />
+                                  {formErrorsClient.telefone && <p className="text-red-500 text-xs mt-1">{formErrorsClient.telefone}</p>}
+                                  </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-street" className="text-right">
@@ -1986,7 +1948,7 @@ function ServiceQuoteGeneratorContent() {
                                   <div className="flex items-center gap-2">
                                     <div className="font-medium">{cliente.nome}</div>
                                     <div className="text-xs text-gray-500">
-                                     <strong>CNPJ:</strong>{cliente.cpf} • <strong>Telefone:</strong>{cliente.telefone}
+                                      <strong>{cliente.cpf ? "CPF" : "CNPJ"}:</strong> {cliente.cpf || cliente.cnpj || (cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")} • <strong>Telefone:</strong> {cliente.telefone}
                                     </div>
                                     {cliente.observacoes && <div className="text-xs text-blue-600">{cliente.observacoes}</div>}
                                   </div>
@@ -2000,12 +1962,12 @@ function ServiceQuoteGeneratorContent() {
                           <div className="bg-muted p-4 rounded-lg">
                             <h4 className="font-semibold mb-2">Detalhes do Cliente Selecionado:</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div className="text-left" >
+                              <div className="text-left">
                                 <p>
                                   <strong>Nome:</strong> {dados.cliente.nome}
                                 </p>
                                 <p>
-                                  <strong>CPF:</strong> {dados.cliente.cpf}
+                                  <strong>{dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> {dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "000.000.000-00" : "00.000.000/0000-00")}
                                 </p>
                                 <p>
                                   <strong>Telefone:</strong> {dados.cliente.telefone}
@@ -2014,12 +1976,12 @@ function ServiceQuoteGeneratorContent() {
                                   <strong>Email:</strong> {dados.cliente.email}
                                 </p>
                               </div>
-                              <div className="text-left" >
+                              <div className="text-left">
                                 <p>
                                   <strong>Endereço:</strong> {dados.cliente.endereco_rua}, {dados.cliente.endereco_numero}                            
                                 </p>
                                 <p>
-                                  <strong>Cidade:</strong>{dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
+                                  <strong>Cidade:</strong> {dados.cliente.endereco_cidade}, {dados.cliente.endereco_estado}
                                 </p>
                                 <p>CEP: {dados.cliente.endereco_cep}</p>
                                 {dados.cliente.observacoes && (
@@ -2054,16 +2016,38 @@ function ServiceQuoteGeneratorContent() {
                             />
                           </div>
                           <div>
-                            <TooltipHelper content="Percentual de impostos que incidem sobre o serviço (Simples Nacional, ISS, etc.)">
-                              <Label htmlFor="impostos">Impostos (%)</Label>
+                            <TooltipHelper content="Selecione o regime tributário da sua empresa. Isso ajustará a alíquota de imposto automaticamente.">
+                              <Label htmlFor="regime-tributario">Regime Tributário</Label>
                             </TooltipHelper>
-                            <Input
-                              id="impostos"
-                              type="number"
-                              step="0.1"
-                              value={dados.impostos}
-                              onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
-                            />
+                            <Select value={regimeTributario} onValueChange={handleRegimeTributarioChange}>
+                              <SelectTrigger id="regime-tributario">
+                                <SelectValue placeholder="Selecione o regime" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="MEI">MEI (Taxa Fixa)</SelectItem>
+                                <SelectItem value="ME">ME (Simples Nacional)</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            {regimeTributario === 'ME' && (
+                                <div className="mt-2">
+                                    <Label htmlFor="impostos">Impostos (%)</Label>
+                                    <Input
+                                        id="impostos"
+                                        type="number"
+                                        step="0.1"
+                                        value={dados.impostos}
+                                        onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
+                                    />
+                                </div>
+                            )}
+
+                            <p className="text-xs text-gray-500 mt-1">
+                              Imposto a ser calculado:{" "}
+                              <strong>
+                                {regimeTributario === 'MEI' ? formatarMoeda(80) : `${dados.impostos}% sobre o faturamento`}
+                              </strong>
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -2541,7 +2525,7 @@ function ServiceQuoteGeneratorContent() {
                       formatarMoeda={formatarMoeda}
                       formatarData={formatarData}
                       gerarPDF={gerarPDF}
-                      imprimirOrcamento={imprimirOrcamento}
+                      
                       handleSaveOrcamento={handleSaveOrcamento}
                       custosFixos={dados.custosFixos}
                     />

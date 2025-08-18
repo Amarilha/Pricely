@@ -22,6 +22,7 @@ interface Company {
 interface Client {
   nome?: string;
   cpf?: string;
+  cnpj?: string;
   endereco_rua?: string;
   endereco_numero?: string;
   endereco_cidade?: string;
@@ -104,7 +105,6 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
   formatarMoeda,
   formatarData,
   gerarPDF,
-  imprimirOrcamento,
   handleSaveOrcamento,
 }) => {
   return (
@@ -158,8 +158,8 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                     <strong>Nome:</strong> {dados.cliente.nome || "Nome do Cliente"}
                   </p>
                   <p>
-                    <strong>CPF:</strong> {dados.cliente.cpf || "000.000.000-00"}
-                  </p>
+                    <strong>{dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> {dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")}
+                    </p>
                   <p>
                     <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Rua"},{" "}
                     {dados.cliente.endereco_numero || "Número"} - {dados.cliente.endereco_cidade || "Cidade"},{" "}
@@ -170,42 +170,13 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="border border-gray-300 rounded-md">
-                <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
-                  Endereço de cobrança
-                </div>
-                <div className="p-3 text-sm text-gray-700">
-                  <p>{dados.enderecoCobranca || "Endereço de cobrança"}</p>
-                </div>
-              </div>
-            </section>
-
-            {/* Service Description and Location */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              
               <div className="border border-gray-300 rounded-md">
                 <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
                   Descrição do serviço
                 </div>
                 <div className="p-3 text-sm text-gray-700">
                   <p>{dados.descricaoServico || "Descrição do serviço"}</p>
-                </div>
-              </div>
-              <div className="border border-gray-300 rounded-md">
-                <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Local de prestação</div>
-                <div className="p-3 text-sm text-gray-700">
-                  <p>
-                    <strong>Nome:</strong> {dados.localPrestacao?.nome || "Local de Prestação"}
-                  </p>
-                  <p>
-                    <strong>{dados.localPrestacao?.tipoDocumento}:</strong>{" "}
-                    {dados.localPrestacao?.documento || "000.000.000-00"}
-                  </p>
-                  <p>
-                    <strong>Endereço:</strong> {dados.localPrestacao?.endereco?.rua || "Rua"},{" "}
-                    {dados.localPrestacao?.endereco?.numero || "Número"} -{" "}
-                    {dados.localPrestacao?.endereco?.cidade || "Cidade"},{" "}
-                    {dados.localPrestacao?.endereco?.estado || "Estado"}
-                  </p>
                 </div>
               </div>
             </section>
@@ -284,10 +255,7 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                   <span className="font-semibold text-gray-600">Subtotal</span>
                   <span className="text-gray-800 font-semibold">{formatarMoeda(calcularSubtotalGeral)}</span>
                 </div>
-                <div className="flex justify-between items-center p-2">
-                  <span className="font-semibold text-gray-600">Impostos ({dados.impostos}%)</span>
-                  <span className="text-red-600">+{formatarMoeda(calcularImpostos)}</span>
-                </div>
+                
                 {dados.desconto > 0 && (
                   <div className="flex justify-between items-center p-2">
                     <span className="font-semibold text-gray-600">Desconto</span>
@@ -324,10 +292,6 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
         <Button onClick={gerarPDF} className="bg-purple-600 hover:bg-purple-700">
           <Download className="h-4 w-4 mr-2" />
           Gerar PDF
-        </Button>
-        <Button onClick={imprimirOrcamento} variant="outline">
-          <FileText className="h-4 w-4 mr-2" />
-          Imprimir Orçamento
         </Button>
         <Button onClick={handleSaveOrcamento} variant="outline" className="bg-green-600 hover:bg-green-700 text-white">
           <Download className="h-4 w-4 mr-2" />
