@@ -22,6 +22,7 @@ interface Company {
 interface Client {
   nome?: string;
   cpf?: string;
+  cnpj?: string;
   endereco_rua?: string;
   endereco_numero?: string;
   endereco_cidade?: string;
@@ -157,8 +158,8 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                     <strong>Nome:</strong> {dados.cliente.nome || "Nome do Cliente"}
                   </p>
                   <p>
-                    <strong>CPF:</strong> {dados.cliente.cpf || "000.000.000-00"}
-                  </p>
+                    <strong>{dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> {dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")}
+                    </p>
                   <p>
                     <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Rua"},{" "}
                     {dados.cliente.endereco_numero || "Número"} - {dados.cliente.endereco_cidade || "Cidade"},{" "}

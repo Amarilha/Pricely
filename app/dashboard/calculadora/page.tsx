@@ -877,7 +877,8 @@ function ServiceQuoteGeneratorContent() {
     }
 
     // Create optimized PDF content
-  const pdfContent = `<!DOCTYPE html>
+  const pdfContent = `
+  <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -892,7 +893,7 @@ function ServiceQuoteGeneratorContent() {
       color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
-    
+
     body {
       font-family: Arial, Helvetica, sans-serif !important;
       line-height: 1.4;
@@ -900,7 +901,7 @@ function ServiceQuoteGeneratorContent() {
       background: white !important;
       padding: 20px;
     }
-    
+
     .pdf-container {
       max-width: 800px;
       margin: 0 auto;
@@ -915,12 +916,10 @@ function ServiceQuoteGeneratorContent() {
       border-bottom: 1px solid #d1d5db;
       margin-bottom: 16px;
     }
-    
     .company-info {
       display: flex;
       align-items: center;
     }
-    
     .company-logo {
       background-color: #9333ea !important;
       color: white !important;
@@ -934,56 +933,47 @@ function ServiceQuoteGeneratorContent() {
       border-radius: 4px;
       margin-right: 16px;
     }
-    
     .company-details h2 {
       font-size: 20px;
       font-weight: bold;
       color: #1f2937;
       margin-bottom: 4px;
     }
-    
     .company-details p {
       font-size: 14px;
       color: #6b7280;
       margin-bottom: 2px;
     }
-    
     .order-info {
       text-align: right;
     }
-    
     .order-info h1 {
       font-size: 28px;
       font-weight: bold;
       color: #1f2937;
       margin-bottom: 8px;
     }
-    
     .order-details {
       border: 1px solid #d1d5db;
       border-radius: 4px;
       padding: 8px;
       background: #f9fafb;
     }
-    
     .order-details p {
       font-size: 14px;
       margin-bottom: 4px;
     }
-    
     .info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
       margin: 16px 0;
     }
-    
     .info-card {
       border: 1px solid #d1d5db;
       border-radius: 4px;
       overflow: hidden;
     }
-    
     .info-card-header {
       background-color: #9333ea !important;
       color: white !important;
@@ -991,46 +981,38 @@ function ServiceQuoteGeneratorContent() {
       font-weight: 600;
       font-size: 14px;
     }
-    
     .info-card-content {
       padding: 12px;
       font-size: 14px;
       color: #374151;
     }
-    
     .info-card-content p {
       margin-bottom: 4px;
     }
-    
     .items-table {
       width: 100%;
       border-collapse: collapse !important;
       margin: 24px 0;
     }
-    
     .items-table th,
     .items-table td {
       border: 1px solid #d1d5db !important;
       padding: 8px !important;
       text-align: left;
     }
-    
     .items-table th {
       background-color: #9333ea !important;
       color: white !important;
       font-weight: 600;
       font-size: 14px;
     }
-    
     .items-table td {
       font-size: 14px;
       color: #374151;
     }
-    
     .items-table .text-right {
       text-align: right;
     }
-    
     .totals-section {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1038,17 +1020,14 @@ function ServiceQuoteGeneratorContent() {
       margin: 16px 0;
       align-items: start;
     }
-    
     .payment-info {
       border: 1px solid #d1d5db;
       border-radius: 4px;
       height: fit-content;
     }
-    
     .totals-breakdown {
       space-y: 8px;
     }
-    
     .total-row {
       display: flex;
       justify-content: space-between;
@@ -1056,63 +1035,51 @@ function ServiceQuoteGeneratorContent() {
       padding: 8px;
       border-radius: 4px;
     }
-    
     .total-row.subtotal {
       background-color: #f3f4f6;
     }
-    
     .total-row.final {
       background-color: #e5e7eb;
       font-weight: bold;
       font-size: 18px;
     }
-    
     .total-row .label {
       font-weight: 600;
       color: #6b7280;
     }
-    
     .total-row .value {
       font-weight: 600;
     }
-    
     .value.positive {
       color: #16a34a;
     }
-    
     .value.negative {
       color: #dc2626;
     }
-    
     .value.final {
       color: #16a34a;
       font-size: 18px;
     }
-    
     .signatures {
       margin-top: 32px;
       padding-top: 16px;
     }
-    
     .signatures-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 32px;
       margin-top: 32px;
     }
-    
     .signature-line {
       text-align: center;
       border-top: 1px solid #9ca3af;
       padding-top: 8px;
       font-weight: 600;
     }
-    
     .footer-brand {
       text-align: center;
       margin-top: 32px;
     }
-    
     .footer-brand p {
       background-color: #9333ea !important;
       color: white !important;
@@ -1121,20 +1088,17 @@ function ServiceQuoteGeneratorContent() {
       border-radius: 4px;
       display: inline-block;
     }
-    
     .variable-costs-detail {
       font-size: 12px;
       color: #6b7280;
       margin-top: 4px;
     }
-    
     .controls {
       text-align: center;
       margin: 20px 0;
       padding: 20px;
       border-top: 2px solid #e5e7eb;
     }
-    
     .btn {
       background: #9333ea;
       color: white;
@@ -1146,33 +1110,26 @@ function ServiceQuoteGeneratorContent() {
       margin: 0 8px;
       font-family: Arial, sans-serif;
     }
-    
     .btn:hover {
       background: #7c3aed;
     }
-    
     .btn-secondary {
       background: #6b7280;
     }
-    
     .btn-secondary:hover {
       background: #4b5563;
     }
-    
     @media print {
       .controls {
         display: none !important;
       }
-      
       body {
         padding: 0 !important;
       }
-      
       .pdf-container {
         max-width: none !important;
       }
     }
-    
     @page {
       size: A4;
       margin: 0.5in;
@@ -1196,7 +1153,7 @@ function ServiceQuoteGeneratorContent() {
         </div>
       </div>
       <div class="order-info">
-        <h1>ORÇAMENTO</h1>
+        <h1>ORÇAMENTO</h 1>
         <div class="order-details">
           <p><strong>Ordem nº:</strong> ${dados.numeroOrdem}</p>
           <p><strong>Data:</strong> ${formatarData(dados.data || '')}</p>
@@ -1205,19 +1162,16 @@ function ServiceQuoteGeneratorContent() {
     </div>
 
     <!-- Client and Billing Information -->
-      <div class="info-grid">
-        <div class="info-card">
-          <div class="info-card-header">Cliente</div>
-          <div class="info-card-content">
-            <p><strong>Nome:</strong> ${dados.cliente.nome || "Nome do Cliente"}</p>
-            <p><strong>${dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> ${dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")}</p>
-            <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Rua"}, ${dados.cliente.endereco_numero || "Número"} - ${dados.cliente.endereco_cidade || "Cidade"}, ${dados.cliente.endereco_estado || "Estado"}</p>
-            <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
-          </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-header">Cliente</div>
+        <div class="info-card-content">
+          <p><strong>Nome:</strong> ${dados.cliente.nome || "Nome do Cliente"}</p>
+          <p><strong>${dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> ${dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "000.000.000-00" : "00.000.000/0000-00")}</p>
+          <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Rua"}, ${dados.cliente.endereco_numero || "Número"} - ${dados.cliente.endereco_cidade || "Cidade"}, ${dados.cliente.endereco_estado || "Estado"}</p>
+          <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
         </div>
       </div>
-    </div>
-      
       <div class="info-card">
         <div class="info-card-header">Descrição do serviço</div>
         <div class="info-card-content">
@@ -1245,7 +1199,6 @@ function ServiceQuoteGeneratorContent() {
             <td class="text-right">${formatarMoeda(item.totalItem)}</td>
           </tr>
         `).join('')}
-        
         ${dados.custosFixos.map((custo, index) => {
           const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
           if (!dados.incluirSalarios && isSalario) return '';
@@ -1258,7 +1211,6 @@ function ServiceQuoteGeneratorContent() {
             </tr>
           `;
         }).join('')}
-        
         ${dados.custosVariaveis.map((custo, index) => `
           <tr key="variavel-${index}" class="text-xs bg-gray-50">
             <td>${custo.quantidade} ${custo.unidade}</td>
@@ -1267,7 +1219,6 @@ function ServiceQuoteGeneratorContent() {
             <td class="text-right">${formatarMoeda(custo.valor * custo.quantidade)}</td>
           </tr>
         `).join('')}
-        
         ${Array.from({
           length: Math.max(0, 4 - dados.itens.length - (dados.custosFixos.length + dados.custosVariaveis.length)),
         }).map((_, index) => `
@@ -1289,7 +1240,6 @@ function ServiceQuoteGeneratorContent() {
           <p>${dados.formaPagamento || "Forma de pagamento"}</p>
         </div>
       </div>
-
       <div class="totals-breakdown">
         <div class="total-row subtotal">
           <span class="label">Subtotal</span>
@@ -1318,7 +1268,6 @@ function ServiceQuoteGeneratorContent() {
     <div class="footer-brand">
       <p>nexprice.com.br</p>
     </div>
-
   </div>
 
   <script>
@@ -1326,7 +1275,6 @@ function ServiceQuoteGeneratorContent() {
     window.onload = function() {
       document.body.focus();
     }
-    
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
       if (e.ctrlKey && e.key === 'p') {
@@ -1339,7 +1287,8 @@ function ServiceQuoteGeneratorContent() {
     });
   </script>
 </body>
-</html>`
+</html>
+  `
 
     // Open new window with PDF content
     const pdfWindow = window.open("", "_blank", "width=900,height=700,scrollbars=yes,resizable=yes")
