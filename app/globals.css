@@ -78,3 +78,52 @@ html {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
+
+.mascot {
+  position: fixed;
+  z-index: 1000;
+  transition: all 1s ease-in-out;
+}
+
+.speech-bubble {
+  position: absolute;
+  bottom: 120px; /* Increased distance from mascot */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f0f0f0; /* Light gray background */
+  border: 1px solid #ccc;
+  border-radius: 15px; /* More rounded corners */
+  padding: 15px;
+  min-width: 200px; /* Wider bubble */
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nicer font */
+  font-size: 14px;
+  color: #333;
+  opacity: 0; /* Start hidden */
+  animation: fadeIn 0.5s forwards; /* Fade in animation */
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: #f0f0f0 transparent transparent transparent;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.mascot-sprite {
+  width: 100px;
+  height: 100px;
+  background-image: url('/mascote_02.png');
+  background-repeat: no-repeat;
+}

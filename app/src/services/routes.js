@@ -111,18 +111,14 @@ export async function getClient(userId) {
 }
 
 export async function createClient(clientData) {
-
   console.log("Dados recebidos em createClient:", clientData);
   try {
-   
-    // Gera um UUID para id_client
     const id_client = uuidv4();
-
-    // Desestrutura os dados da empresa vindos do frontend
     const {
       id_user,
       nome,
       cpf,
+      cnpj,
       telefone,
       email,
       endereco_rua,
@@ -131,63 +127,47 @@ export async function createClient(clientData) {
       endereco_estado,
       endereco_cep,
       observacoes,
-      
-      
     } = clientData;
 
-    if (!id_user || !nome || !cpf || !email) {
-      throw new Error('Campos obrigatórios (id_user, nome, cpf, email) não fornecidos');
+    if (!id_user || !nome || !email) {
+      throw new Error('Campos obrigatórios (id_user, nome, email) não fornecidos');
     }
 
-    console.log("Executando query com valores:", {
-      id_client,
-      id_user,
-      nome,
-      cpf,
-      telefone,
-      email,
-      endereco_rua,
-      endereco_numero,
-      endereco_cidade,
-      endereco_estado,
-      endereco_cep,
-      observacoes,
-      
-    });
+    console.log("Executando query com valores:", { id_client, ...clientData });
 
-    // Executa a query para inserir a empresa
+    // Corrigido: A query agora inclui a coluna `cnpj` e passa 13 valores,
+    // correspondendo às 13 colunas na instrução INSERT.
     const [result] = await pool.query(
       `INSERT INTO Client (
-        id_client, id_user, nome, cpf, telefone, email, endereco_rua, endereco_numero, endereco_cidade, 
-        endereco_estado, endereco_cep, observacoes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        id_client, id_user, nome, cpf, cnpj, telefone, email,
+        endereco_rua, endereco_numero, endereco_cidade, endereco_estado, endereco_cep, observacoes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id_client,
         id_user,
         nome,
-        cpf,
+        cpf || null,
+        clientData.cnpj || null, // Acessa diretamente para garantir que não seja undefined
         telefone || null,
-        email || null,
+        email,
         endereco_rua || null,
         endereco_numero || null,
         endereco_cidade || null,
         endereco_estado || null,
         endereco_cep || null,
         observacoes || null,
-
       ]
     );
 
-    // Retorna a empresa recém-criada
     const [newClient] = await pool.query(
       'SELECT * FROM Client WHERE id_client = ?',
       [id_client]
     );
     
-    console.log("empresa criada",newClient[0]);
-    return newClient[0]; // Retorna a empresa recém-criada
+    console.log("Cliente criado:", newClient[0]);
+    return newClient[0];
   } catch (err) {
-    console.error('❌ Erro ao criar empresa:', err);
+    console.error('❌ Erro ao criar cliente:', err);
     throw err;
   }
 }
