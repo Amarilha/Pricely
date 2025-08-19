@@ -2510,7 +2510,7 @@ function ServiceQuoteGeneratorContent() {
                                 <Label>Período de Execução</Label>
                               </TooltipHelper>
                               <DateRangeSelector 
-                                workDays={[true, true, true, true, true, false, false]}
+                                workDays={[false, true, true, true, true, true, false]}
                                 hoursPerDay={8}
                               />
                             </div>
