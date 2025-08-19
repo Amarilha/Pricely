@@ -2233,7 +2233,6 @@ function ServiceQuoteGeneratorContent() {
                                         <SelectItem value="Material">📦 Material</SelectItem>
                                         <SelectItem value="Transporte">🚗 Transporte</SelectItem>
                                         <SelectItem value="Ferramenta">🔧 Ferramentas</SelectItem>
-                                        <SelectItem value="Terceirizado">👥 Terceirizado</SelectItem>
                                         <SelectItem value="Equipe">👥 Equipe</SelectItem>
                                         <SelectItem value="Equipamento">⚙️ Equipamento</SelectItem>
                                         <SelectItem value="Outros">📋 Outros</SelectItem>
