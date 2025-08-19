@@ -35,7 +35,7 @@ import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-import {WorkHoursCalendar, DateRangeSelector, MilhaHoraCalculator} from "@/components/calculadora-01/calendario"
+import {WorkHoursCalendar, DateRangeSelector} from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
@@ -165,6 +165,24 @@ function ServiceQuoteGeneratorContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [regimeTributario, setRegimeTributario] = useState<'MEI' | 'ME'>('ME');
+
+  const [salarioDesejado, setSalarioDesejado] = useState(5000);
+  const [dadosPadrao, setDadosPadrao] = useState({
+    horasTrabalhadasMes: 160,
+    selectedDays: [true, true, true, true, true, false, false],
+    hoursPerDay: 8,
+  });
+
+  const valorHoraPadrao = useMemo(() => {
+    if (dadosPadrao.horasTrabalhadasMes > 0) {
+      return salarioDesejado / dadosPadrao.horasTrabalhadasMes;
+    }
+    return 0;
+  }, [salarioDesejado, dadosPadrao.horasTrabalhadasMes]);
+
+  const valorTotalProjeto = useMemo(() => {
+    return valorHoraPadrao * (dateRange.totalHours || 0);
+  }, [valorHoraPadrao, dateRange.totalHours]);
 
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
@@ -2529,6 +2547,42 @@ function ServiceQuoteGeneratorContent() {
                             placeholder="Descrição detalhada do serviço a ser prestado..."
                             rows={4}
                           />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Cálculo de Valor/Hora</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div>
+                          <Label htmlFor="salario-desejado">Quanto você quer ganhar por mês?</Label>
+                          <Input
+                            id="salario-desejado"
+                            type="number"
+                            value={salarioDesejado}
+                            onChange={(e) => setSalarioDesejado(Number(e.target.value))}
+                            className="mt-2"
+                          />
+                        </div>
+
+                        <div>
+                          <WorkHoursCalendar dados={dadosPadrao} setDados={setDadosPadrao} />
+                        </div>
+
+                        <div className="bg-muted p-4 rounded-lg space-y-4">
+                          <h3 className="text-lg font-semibold text-center">Resultado</h3>
+                          <div className="flex justify-around text-center">
+                            <div>
+                              <p className="text-sm text-gray-600">Seu valor/hora padrão é</p>
+                              <p className="text-2xl font-bold text-purple-600">{formatarMoeda(valorHoraPadrao)}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Custo total do projeto</p>
+                              <p className="text-2xl font-bold text-green-600">{formatarMoeda(valorTotalProjeto)}</p>
+                            </div>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
