@@ -1,7 +1,7 @@
 // components/calculadora-01/calendario.tsx
 'use client';
 
-import { useState, Fragment, useEffect } from 'react';
+import { useState, Fragment, useEffect, useMemo } from 'react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
@@ -10,6 +10,7 @@ import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { CalendarIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DateRangeSelectorProps {
   onDateRangeChange?: (startDate: Date | null, endDate: Date | null, totalHours: number) => void;
@@ -218,6 +219,84 @@ const StandardWorkDaysSelector = ({
         </span>
       </div>
     </div>
+  );
+};
+
+export const MilhaHoraCalculator = () => {
+  const [salarioDesejado, setSalarioDesejado] = useState(5000);
+  const [duracaoProjeto, setDuracaoProjeto] = useState(40);
+  const [dadosCalendario, setDadosCalendario] = useState({
+    horasTrabalhadasMes: 160,
+    selectedDays: [true, true, true, true, true, false, false],
+    hoursPerDay: 8,
+  });
+
+  const valorHora = useMemo(() => {
+    if (dadosCalendario.horasTrabalhadasMes > 0) {
+      return salarioDesejado / dadosCalendario.horasTrabalhadasMes;
+    }
+    return 0;
+  }, [salarioDesejado, dadosCalendario.horasTrabalhadasMes]);
+
+  const custoProjeto = useMemo(() => {
+    return valorHora * duracaoProjeto;
+  }, [valorHora, duracaoProjeto]);
+
+  const formatarMoeda = (valor: number) => {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Calculadora de Valor/Hora</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="salario-desejado">Quanto você quer ganhar por mês?</Label>
+            <Input
+              id="salario-desejado"
+              type="number"
+              value={salarioDesejado}
+              onChange={(e) => setSalarioDesejado(Number(e.target.value))}
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label htmlFor="duracao-projeto">Quantas horas vai durar o projeto?</Label>
+            <Input
+              id="duracao-projeto"
+              type="number"
+              value={duracaoProjeto}
+              onChange={(e) => setDuracaoProjeto(Number(e.target.value))}
+              className="mt-2"
+            />
+          </div>
+        </div>
+
+        <div>
+          <WorkHoursCalendar dados={dadosCalendario} setDados={setDadosCalendario} />
+        </div>
+
+        <div className="bg-muted p-4 rounded-lg space-y-4">
+          <h3 className="text-lg font-semibold text-center">Resultado</h3>
+          <div className="flex justify-around text-center">
+            <div>
+              <p className="text-sm text-gray-600">Seu valor/hora é</p>
+              <p className="text-2xl font-bold text-purple-600">{formatarMoeda(valorHora)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Custo total do projeto</p>
+              <p className="text-2xl font-bold text-green-600">{formatarMoeda(custoProjeto)}</p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

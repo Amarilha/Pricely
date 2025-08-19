@@ -35,7 +35,7 @@ import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-import {WorkHoursCalendar, DateRangeSelector} from "@/components/calculadora-01/calendario"
+import {WorkHoursCalendar, DateRangeSelector, MilhaHoraCalculator} from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
@@ -1416,6 +1416,7 @@ function ServiceQuoteGeneratorContent() {
                     {/*<TabsTrigger value="analytics">📈 Análises</TabsTrigger>*/}
                     {/*<TabsTrigger value="boletos">💳 Boletos</TabsTrigger>*/}
                     <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
+                    <TabsTrigger value="milha_hora">⏰ Calculadora de Hora</TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -2651,6 +2652,9 @@ function ServiceQuoteGeneratorContent() {
                         {!dados.incluirSalarios && <div className="text-xs text-gray-500 mt-2">*Salários excluídos</div>}
                       </AlertDescription>
                     </Alert>
+                  </TabsContent>
+                  <TabsContent value="milha_hora">
+                    <MilhaHoraCalculator />
                   </TabsContent>
             </Tabs>
 
