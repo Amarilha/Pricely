@@ -1416,7 +1416,6 @@ function ServiceQuoteGeneratorContent() {
                     {/*<TabsTrigger value="analytics">📈 Análises</TabsTrigger>*/}
                     {/*<TabsTrigger value="boletos">💳 Boletos</TabsTrigger>*/}
                     <TabsTrigger value="quote">📋 Orçamento</TabsTrigger>
-                    <TabsTrigger value="milha_hora">⏰ Calculadora de Hora</TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -2516,6 +2515,9 @@ function ServiceQuoteGeneratorContent() {
                               />
                             </div>
                         </div>
+                        <div className="mt-6">
+                          <MilhaHoraCalculator />
+                        </div>
                         <div>
                           <TooltipHelper content="Descrição detalhada do que será feito no serviço">
                             <Label htmlFor="descricao-servico">Descrição do Serviço</Label>
@@ -2652,9 +2654,6 @@ function ServiceQuoteGeneratorContent() {
                         {!dados.incluirSalarios && <div className="text-xs text-gray-500 mt-2">*Salários excluídos</div>}
                       </AlertDescription>
                     </Alert>
-                  </TabsContent>
-                  <TabsContent value="milha_hora">
-                    <MilhaHoraCalculator />
                   </TabsContent>
             </Tabs>
 
