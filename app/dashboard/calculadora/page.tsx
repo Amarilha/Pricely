@@ -64,6 +64,9 @@ interface VariableCost {
   unidade: string
   quantidade:number
   observacoes: string
+  pessoas?: number
+  horas?: number
+  valorHora?: number
 }
 
 interface Company {
@@ -719,8 +722,40 @@ function ServiceQuoteGeneratorContent() {
   const atualizarCustoVariavel = useCallback((id: string, campo: keyof VariableCost, valor: any) => {
     setDados((prev) => ({
       ...prev,
-      custosVariaveis: prev.custosVariaveis.map((custo) => (custo.id === id ? { ...custo, [campo]: valor } : custo)),
-    }))
+      custosVariaveis: prev.custosVariaveis.map((custo) => {
+        if (custo.id !== id) {
+          return custo;
+        }
+
+        const custoAtualizado = { ...custo, [campo]: valor };
+
+        if (campo === 'categoria') {
+          if (valor === 'Equipe') {
+            custoAtualizado.pessoas = custoAtualizado.pessoas || 1;
+            custoAtualizado.horas = custoAtualizado.horas || 1;
+            custoAtualizado.valorHora = custoAtualizado.valorHora || 0;
+            custoAtualizado.unidade = 'equipe';
+            custoAtualizado.quantidade = 1;
+          } else {
+            custoAtualizado.unidade = 'unidade';
+            custoAtualizado.quantidade = 0;
+            delete custoAtualizado.pessoas;
+            delete custoAtualizado.horas;
+            delete custoAtualizado.valorHora;
+          }
+        }
+
+        if (custoAtualizado.categoria === 'Equipe') {
+          const pessoas = Number(custoAtualizado.pessoas || 0);
+          const horas = Number(custoAtualizado.horas || 0);
+          const valorHora = Number(custoAtualizado.valorHora || 0);
+          custoAtualizado.valor = pessoas * horas * valorHora;
+          custoAtualizado.quantidade = 1;
+        }
+
+        return custoAtualizado;
+      }),
+    }));
   }, [])
 
   // Service Items Management
@@ -2198,7 +2233,7 @@ function ServiceQuoteGeneratorContent() {
                                         <SelectItem value="Material">📦 Material</SelectItem>
                                         <SelectItem value="Transporte">🚗 Transporte</SelectItem>
                                         <SelectItem value="Ferramenta">🔧 Ferramentas</SelectItem>
-                                        <SelectItem value="Terceirizado">👥 Terceirizado</SelectItem>
+                                        <SelectItem value="Equipe">👥 Equipe</SelectItem>
                                         <SelectItem value="Equipamento">⚙️ Equipamento</SelectItem>
                                         <SelectItem value="Outros">📋 Outros</SelectItem>
                                       </SelectContent>
@@ -2219,68 +2254,130 @@ function ServiceQuoteGeneratorContent() {
                                   </div>
                                   
                                   {/* valores QT e unidade */}
-                                  <div className="grid grid-cols-1 md:grid-cols-[auto_auto_25%] gap-2">
-                                    <div>
-                                      <TooltipHelper content="Valor unitário ou total do custo">
-                                        <Label className="text-xs">Valor (R$)</Label>
-                                      </TooltipHelper>
-                                      <Input
-                                        className="h-8"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="0,00"
-                                        value={custo.valor}
-                                        onChange={(e) => {
-                                          const value = Number(e.target.value);
-                                          if (value >= 0) {
-                                            atualizarCustoVariavel(custo.id, "valor", value);
-                                          }
-                                        }}
-                                      />
+                                  {custo.categoria === 'Equipe' ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                      <div>
+                                        <TooltipHelper content="Número de pessoas na equipe">
+                                          <Label className="text-xs">Nº Pessoas</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="1"
+                                          min="1"
+                                          placeholder="1"
+                                          value={custo.pessoas}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <TooltipHelper content="Total de horas trabalhadas pela equipe">
+                                          <Label className="text-xs">Horas</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="1"
+                                          min="0"
+                                          placeholder="0"
+                                          value={custo.horas}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <TooltipHelper content="Valor por hora de cada membro da equipe">
+                                          <Label className="text-xs">Valor/Hora (R$)</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          placeholder="0,00"
+                                          value={custo.valorHora}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
                                     </div>
-                                    <div>
-                                      <TooltipHelper content="Quantidade total">
-                                        <Label className="text-xs">QT</Label>
-                                      </TooltipHelper>
-                                      <Input
-                                        className="h-8"
-                                        type="number"
-                                        step="1"
-                                        min="0"
-                                        placeholder="0,00"
-                                        value={custo.quantidade}
-                                        onChange={(e) => {
-                                          const value = Number(e.target.value);
-                                          if (value >= 0) {
-                                            atualizarCustoVariavel(custo.id, "quantidade", value);
-                                          }
-                                        }}
-                                      />
+                                  ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-[auto_auto_25%] gap-2">
+                                      <div>
+                                        <TooltipHelper content="Valor unitário ou total do custo">
+                                          <Label className="text-xs">Valor (R$)</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          placeholder="0,00"
+                                          value={custo.valor}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "valor", value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <TooltipHelper content="Quantidade total">
+                                          <Label className="text-xs">QT</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="1"
+                                          min="0"
+                                          placeholder="0,00"
+                                          value={custo.quantidade}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "quantidade", value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
+                                          <Label className="text-xs">Unidade</Label>
+                                        </TooltipHelper>
+                                        <Select
+                                          value={custo.unidade}
+                                          onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
+                                        >
+                                          <SelectTrigger className="h-8">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="unidade">un</SelectItem>
+                                            <SelectItem value="kg">kg</SelectItem>
+                                            <SelectItem value="litros">L</SelectItem>
+                                            <SelectItem value="metros">m</SelectItem>
+                                            <SelectItem value="horas">h</SelectItem>
+                                            <SelectItem value="dias">dias</SelectItem>
+                                            <SelectItem value="pacote">pacote</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
-                                        <Label className="text-xs">Unidade</Label>
-                                      </TooltipHelper>
-                                      <Select
-                                        value={custo.unidade}
-                                        onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
-                                      >
-                                        <SelectTrigger className="h-8">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="unidade">un</SelectItem>
-                                          <SelectItem value="kg">kg</SelectItem>
-                                          <SelectItem value="litros">L</SelectItem>
-                                          <SelectItem value="metros">m</SelectItem>
-                                          <SelectItem value="horas">h</SelectItem>
-                                          <SelectItem value="dias">dias</SelectItem>
-                                          <SelectItem value="pacote">pacote</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  </div>
+                                  )}
 
                                   {/* botão de lixo */}
                                   <div className="flex items-end w-10">
