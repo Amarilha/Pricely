@@ -35,7 +35,7 @@ import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-import {WorkHoursCalendar, DateRangeSelector} from "@/components/calculadora-01/calendario"
+import {WorkHoursCalendar, DateRangeSelector, MilhaHoraCalculator} from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
@@ -165,24 +165,6 @@ function ServiceQuoteGeneratorContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [regimeTributario, setRegimeTributario] = useState<'MEI' | 'ME'>('ME');
-
-  const [salarioDesejado, setSalarioDesejado] = useState(5000);
-  const [dadosPadrao, setDadosPadrao] = useState({
-    horasTrabalhadasMes: 160,
-    selectedDays: [true, true, true, true, true, false, false],
-    hoursPerDay: 8,
-  });
-
-  const valorHoraPadrao = useMemo(() => {
-    if (dadosPadrao.horasTrabalhadasMes > 0) {
-      return salarioDesejado / dadosPadrao.horasTrabalhadasMes;
-    }
-    return 0;
-  }, [salarioDesejado, dadosPadrao.horasTrabalhadasMes]);
-
-  const valorTotalProjeto = useMemo(() => {
-    return valorHoraPadrao * (dateRange.totalHours || 0);
-  }, [valorHoraPadrao, dateRange.totalHours]);
 
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
