@@ -251,10 +251,6 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
-                  <span className="font-semibold text-gray-600">Subtotal</span>
-                  <span className="text-gray-800 font-semibold">{formatarMoeda(calcularSubtotalGeral)}</span>
-                </div>
                 
                 {dados.desconto > 0 && (
                   <div className="flex justify-between items-center p-2">

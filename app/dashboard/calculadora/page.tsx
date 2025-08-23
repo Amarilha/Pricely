@@ -1241,10 +1241,6 @@ function ServiceQuoteGeneratorContent() {
         </div>
       </div>
       <div class="totals-breakdown">
-        <div class="total-row subtotal">
-          <span class="label">Subtotal</span>
-          <span class="value">${formatarMoeda(calcularSubtotalGeral)}</span>
-        </div>
         ${dados.desconto > 0 ? `
         <div class="total-row">
           <span class="label">Desconto</span>
