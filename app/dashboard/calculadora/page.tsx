@@ -2551,7 +2551,7 @@ function ServiceQuoteGeneratorContent() {
                            {/*Tempo de Execução */}
                            <div>
                               <TooltipHelper content="A duração do projeto é definida no seletor de período na seção 'Cálculo de Valor/Hora'">
-                                <Label htmlFor="duracao-projeto">Quantas horas vai durar o projeto?</Label>
+                                <Label htmlFor="duracao-projeto">Período de Execução</Label>
                               </TooltipHelper>
                               <DateRangeSelector
                             onDateRangeChange={handleDateChange}
