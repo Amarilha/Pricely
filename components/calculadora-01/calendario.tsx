@@ -24,186 +24,11 @@ interface DateRangeSelectorProps {
   hoursPerDay?: number;
 }
 
-export const WorkHoursCalendar = ({
-  dados,
-  setDados,
-  startDay = 'Monday',
-  daysInMonth = 30,
-}: any) => {
-  const [showDateRangeSelector, setShowDateRangeSelector] = useState(false);
-
-  return (
-    <Tooltip.Provider>
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Label>Horas Trabalhadas/Mês</Label>
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
-              <span>
-                <Info className="h-4 w-4 text-gray-500 cursor-help" />
-              </span>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content
-                className="bg-gray-800 text-white text-xs rounded py-2 px-3 max-w-xs"
-                sideOffset={5}
-              >
-                Escolha entre definir dias da semana padrão ou selecionar um período específico.
-                <Tooltip.Arrow className="fill-gray-800" />
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip.Root>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={() => setShowDateRangeSelector(!showDateRangeSelector)}
-          className="w-full"
-        >
-          {showDateRangeSelector ? 'Usar dias da semana padrão' : 'Selecionar período específico'}
-        </Button>
-
-        {showDateRangeSelector ? (
-          <DateRangeSelector
-            onDateRangeChange={(_, __, hours) => {
-              setDados((prev: any) => ({
-                ...prev,
-                horasTrabalhadasMes: hours
-              }));
-            }}
-            workDays={dados.selectedDays || [true, true, true, true, true, false, false]}
-            hoursPerDay={dados.hoursPerDay || 8}
-          />
-        ) : (
-          <StandardWorkDaysSelector
-            dados={dados}
-            setDados={setDados}
-            startDay={startDay}
-            daysInMonth={daysInMonth}
-          />
-        )}
-      </div>
-    </Tooltip.Provider>
-  );
-};
-
-const StandardWorkDaysSelector = ({
-  dados,
-  setDados,
-  startDay = 'Monday',
-  daysInMonth = 30,
-}: any) => {
-  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-  const startDayIndex = {
-    Monday: 0,
-    Tuesday: 1,
-    Wednesday: 2,
-    Thursday: 3,
-    Friday: 4,
-    Saturday: 5,
-    Sunday: 6,
-  }[startDay];
-
-  useEffect(() => {
-    if (!dados.selectedDays || !Array.isArray(dados.selectedDays)) {
-      setDados((prev: any) => ({
-        ...prev,
-        selectedDays: [true, true, true, true, true, false, false], // Padrão: Seg-Sex
-        hoursPerDay: 8,
-        horasTrabalhadasMes: 0,
-      }));
-    }
-  }, [dados, setDados]);
-
-  const weekdayOccurrences = Array(7).fill(0).map((_, index) => {
-    let count = 0;
-    for (let day = 1; day <= daysInMonth; day++) {
-      if ((day - 1 + startDayIndex) % 7 === index) {
-        count++;
-      }
-    }
-    return count;
-  });
-
-  const daysPerWeek = dados.selectedDays?.filter((day: any) => day).length || 0;
-  const totalWorkingDays = dados.selectedDays?.reduce(
-    (sum: any, isSelected: any, index: any) => sum + (isSelected ? weekdayOccurrences[index] : 0),
-    0
-  ) || 0;
-  const totalHours = totalWorkingDays * (dados.hoursPerDay || 0);
-
-  useEffect(() => {
-    if (dados.horasTrabalhadasMes !== totalHours) {
-      setDados((prev: any) => ({
-        ...prev,
-        horasTrabalhadasMes: totalHours,
-        tempoExecucao: totalHours
-      }));
-    }
-  }, [totalHours, dados.horasTrabalhadasMes, setDados]);
-
-  const toggleDay = (index: number) => {
-    setDados((prev: any) => {
-      const newSelectedDays = [...(prev.selectedDays || Array(7).fill(false))];
-      newSelectedDays[index] = !newSelectedDays[index];
-      return { ...prev, selectedDays: newSelectedDays };
-    });
-  };
-
-  const updateHours = (value: string) => {
-    // Garante que o valor seja um número entre 0 e 24
-    const hours = Math.max(0, Math.min(24, Number(value)));
-    setDados((prev: any) => ({ ...prev, hoursPerDay: hours }));
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-7 gap-2">
-        {weekdays.map((day, index) => (
-          <div key={index} className="flex flex-col items-center">
-            <span className="text-center font-semibold text-gray-600">{day}</span>
-            <Checkbox
-              checked={dados.selectedDays ? dados.selectedDays[index] : false}
-              onCheckedChange={() => toggleDay(index)}
-              className="mt-2"
-              title={`Marque para incluir ${day} como dia de trabalho (${weekdayOccurrences[index]} dias no mês)`}
-            />
-          </div>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-4">
-        <Label title="Quantas horas você trabalha por dia nos dias selecionados">
-          Horas por dia:
-        </Label>
-        <Input
-          type="number"
-          min="0"
-          max="24"
-          value={dados.hoursPerDay || 8}
-          onChange={(e) => updateHours(e.target.value)}
-          className="w-20"
-          placeholder="Horas"
-          title="Insira o número de horas trabalhadas por dia (máximo 24h)"
-        />
-      </div>
-
-      <div className="text-sm text-gray-500">
-        Total:{' '}
-        <span className="font-semibold">
-          {daysPerWeek} dias por semana, {totalWorkingDays} dias no mês, {totalHours}h no total
-        </span>
-      </div>
-    </div>
-  );
-};
-
 import { useDateRange } from './data-context';
 
 export const DateRangeSelector = ({ 
   onDateRangeChange,
-  workDays = [true, true, true, true, true, false, false],
+  workDays = [false, true, true, true, true, true, false],
   hoursPerDay = 8,
 }: DateRangeSelectorProps) => {
   const { dateRange, setDateRange } = useDateRange();
@@ -214,6 +39,16 @@ export const DateRangeSelector = ({
   const [workingDaysCount, setWorkingDaysCount] = useState(0);
   const [selectedDays, setSelectedDays] = useState(workDays);
   const [dailyHours, setDailyHours] = useState(hoursPerDay);
+
+  // Sync state with props
+  useEffect(() => {
+    setSelectedDays(workDays);
+  }, [workDays]);
+
+  useEffect(() => {
+    setDailyHours(hoursPerDay);
+  }, [hoursPerDay]);
+
 
   const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
@@ -291,8 +126,6 @@ export const DateRangeSelector = ({
           dailyHours: dailyHours
         });
       } else {
-        setWorkingDaysCount(0);
-        setTotalHours(0);
         onDateRangeChange({
           startDate: null,
           endDate: null,
@@ -322,8 +155,7 @@ export const DateRangeSelector = ({
 
   const applySelection = () => {
     if (selectedStartDate && selectedEndDate) {
-      const { hours } = calculateWorkhours(selectedStartDate, selectedEndDate, selectedDays, dailyHours);
-
+      const { hours } = calculateWorkHours(selectedStartDate, selectedEndDate, selectedDays, dailyHours);
       setDateRange({ startDate: selectedStartDate, endDate: selectedEndDate, totalHours: hours });
       setIsOpen(false);
     }

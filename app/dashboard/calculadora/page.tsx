@@ -307,6 +307,18 @@ function ServiceQuoteGeneratorContent() {
   const [salarioDesejado, setSalarioDesejado] = useState(5000);
   const [duracaoProjeto, setDuracaoProjeto] = useState(40);
   const [valorHora, setValorHora] = useState(0);
+  const [selectedDays, setSelectedDays] = useState([false, true, true, true, true, true, false]); // Mon-Fri
+  const [hoursPerDay, setHoursPerDay] = useState(8);
+
+  useEffect(() => {
+    const weeklyHours = selectedDays.filter(Boolean).length * hoursPerDay;
+    const monthlyHours = weeklyHours * 4; // 4 weeks per month
+    if (monthlyHours > 0) {
+      setValorHora(salarioDesejado / monthlyHours);
+    } else {
+      setValorHora(0);
+    }
+  }, [salarioDesejado, selectedDays, hoursPerDay]);
 
   const valorTotalProjeto = useMemo(() => {
     return valorHora * duracaoProjeto;
@@ -322,13 +334,8 @@ function ServiceQuoteGeneratorContent() {
     if (details.totalHours > 0) {
       setDuracaoProjeto(details.totalHours);
     }
-    const weeklyHours = details.selectedDays.filter(Boolean).length * details.dailyHours;
-    const monthlyHours = weeklyHours * 4; // 4 weeks per month
-    if (monthlyHours > 0) {
-      setValorHora(salarioDesejado / monthlyHours);
-    } else {
-      setValorHora(0);
-    }
+    setSelectedDays(details.selectedDays);
+    setHoursPerDay(details.dailyHours);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2541,9 +2548,6 @@ function ServiceQuoteGeneratorContent() {
                                   value={duracaoProjeto}
                                   onChange={(e) => setDuracaoProjeto(Number(e.target.value))}
                                   className="mt-2"
-                                  readOnly
-                                  // Make it readOnly to avoid confusion, as it's driven by the date selector.
-                                  // The user can still override it if they need to, by enabling it via dev tools or if we add a button.
                               />
                             </div>
                         </div>
@@ -2582,7 +2586,11 @@ function ServiceQuoteGeneratorContent() {
                           <TooltipHelper content="Selecione os dias da semana e horas por dia que você trabalha para calcular seu valor/hora. Isso também definirá a duração do projeto.">
                             <Label>Selecione o Período e a Carga Horária do Projeto</Label>
                           </TooltipHelper>
-                          <DateRangeSelector onDateRangeChange={handleDateChange} />
+                          <DateRangeSelector
+                            onDateRangeChange={handleDateChange}
+                            workDays={selectedDays}
+                            hoursPerDay={hoursPerDay}
+                          />
                         </div>
 
                         <div className="bg-muted p-4 rounded-lg space-y-4">
