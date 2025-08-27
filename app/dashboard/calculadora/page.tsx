@@ -35,8 +35,9 @@ import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-import {WorkHoursCalendar, DateRangeSelector, MilhaHoraCalculator} from "@/components/calculadora-01/calendario"
+import { DateRangeSelector } from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
+import { Checkbox } from "@/components/ui/checkbox";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
@@ -303,7 +304,32 @@ function ServiceQuoteGeneratorContent() {
     },
   })
 
- 
+  const [salarioDesejado, setSalarioDesejado] = useState(5000);
+  const [duracaoProjeto, setDuracaoProjeto] = useState(40);
+  const [valorHora, setValorHora] = useState(0);
+
+  const valorTotalProjeto = useMemo(() => {
+    return valorHora * duracaoProjeto;
+  }, [valorHora, duracaoProjeto]);
+
+  const handleDateChange = (details: {
+    startDate: Date | null;
+    endDate: Date | null;
+    totalHours: number;
+    selectedDays: boolean[];
+    dailyHours: number;
+  }) => {
+    if (details.totalHours > 0) {
+      setDuracaoProjeto(details.totalHours);
+    }
+    const weeklyHours = details.selectedDays.filter(Boolean).length * details.dailyHours;
+    const monthlyHours = weeklyHours * 4; // 4 weeks per month
+    if (monthlyHours > 0) {
+      setValorHora(salarioDesejado / monthlyHours);
+    } else {
+      setValorHora(0);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -2506,17 +2532,20 @@ function ServiceQuoteGeneratorContent() {
                           </div>
                            {/*Tempo de Execução */}
                            <div>
-                              <TooltipHelper content="Selecione o período de execução do projeto">
-                                <Label>Período de Execução</Label>
+                              <TooltipHelper content="A duração do projeto é definida no seletor de período na seção 'Cálculo de Valor/Hora'">
+                                <Label htmlFor="duracao-projeto">Quantas horas vai durar o projeto?</Label>
                               </TooltipHelper>
-                              <DateRangeSelector 
-                                workDays={[false, true, true, true, true, true, false]}
-                                hoursPerDay={8}
+                              <Input
+                                  id="duracao-projeto"
+                                  type="number"
+                                  value={duracaoProjeto}
+                                  onChange={(e) => setDuracaoProjeto(Number(e.target.value))}
+                                  className="mt-2"
+                                  readOnly
+                                  // Make it readOnly to avoid confusion, as it's driven by the date selector.
+                                  // The user can still override it if they need to, by enabling it via dev tools or if we add a button.
                               />
                             </div>
-                        </div>
-                        <div className="mt-6">
-                          <MilhaHoraCalculator />
                         </div>
                         <div>
                           <TooltipHelper content="Descrição detalhada do que será feito no serviço">
@@ -2550,15 +2579,18 @@ function ServiceQuoteGeneratorContent() {
                         </div>
 
                         <div>
-                          <WorkHoursCalendar dados={dadosPadrao} setDados={setDadosPadrao} />
+                          <TooltipHelper content="Selecione os dias da semana e horas por dia que você trabalha para calcular seu valor/hora. Isso também definirá a duração do projeto.">
+                            <Label>Selecione o Período e a Carga Horária do Projeto</Label>
+                          </TooltipHelper>
+                          <DateRangeSelector onDateRangeChange={handleDateChange} />
                         </div>
 
                         <div className="bg-muted p-4 rounded-lg space-y-4">
                           <h3 className="text-lg font-semibold text-center">Resultado</h3>
                           <div className="flex justify-around text-center">
                             <div>
-                              <p className="text-sm text-gray-600">Seu valor/hora padrão é</p>
-                              <p className="text-2xl font-bold text-purple-600">{formatarMoeda(valorHoraPadrao)}</p>
+                              <p className="text-sm text-gray-600">Seu valor/hora é</p>
+                              <p className="text-2xl font-bold text-purple-600">{formatarMoeda(valorHora)}</p>
                             </div>
                             <div>
                               <p className="text-sm text-gray-600">Custo total do projeto</p>
