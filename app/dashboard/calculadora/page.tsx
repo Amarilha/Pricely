@@ -2477,44 +2477,6 @@ function ServiceQuoteGeneratorContent() {
                         </CardContent>
                       </Card>
 
-                      {/* Cost Analysis */}
-                      <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 gap-4">
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
-                              <p className="text-sm text-gray-600">Custo Operacional</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-blue-600">{formatarMoeda(calcularCustoOperacional)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Valor do lucro baseado na margem definida">
-                              <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Valor dos impostos sobre o serviço">
-                              <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Preço base antes de descontos e acréscimos">
-                              <p className="text-sm text-gray-600">Preço Base</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-purple-600">
-                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </div>
-
                   </TabsContent>
                     
                   <TabsContent value="service" className="space-y-6">
@@ -2573,6 +2535,7 @@ function ServiceQuoteGeneratorContent() {
                           />
                         </div>
                       </CardContent>
+                      
                     </Card>
 
                     {/* Payment and Adjustments */}
@@ -2628,6 +2591,44 @@ function ServiceQuoteGeneratorContent() {
                       </Card>
                       */}
                     </div>
+
+                    {/* Cost Analysis */}
+                    <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 gap-4">
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
+                              <p className="text-sm text-gray-600">Custo Operacional</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-blue-600">{formatarMoeda(calcularCustoOperacional)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Valor do lucro baseado na margem definida">
+                              <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Valor dos impostos sobre o serviço">
+                              <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Preço base antes de descontos e acréscimos">
+                              <p className="text-sm text-gray-600">Preço Base</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-purple-600">
+                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
                   </TabsContent>
 
                   <TabsContent value="taxes" className="space-y-6">
@@ -2642,6 +2643,8 @@ function ServiceQuoteGeneratorContent() {
                       receitaLiquida={calcularTotalFinal}
                       impostos={impostosDetalhados.total}
                     />
+
+                    
                   </TabsContent>
 {/* boletos 
                   <TabsContent value="boletos" className="space-y-6">
