@@ -2544,7 +2544,6 @@ function ServiceQuoteGeneratorContent() {
                                   type="number"
                                   value={duracaoProjeto}
                                   onChange={(e) => setDuracaoProjeto(Number(e.target.value))}
-                                  className="mt-2"
                               />
                             </div>
                         </div>
