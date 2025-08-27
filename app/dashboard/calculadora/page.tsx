@@ -35,8 +35,9 @@ import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
 import {stateAuth} from "@/app/src/services/estadoAuth"
-import {WorkHoursCalendar, DateRangeSelector} from "@/components/calculadora-01/calendario"
+import { DateRangeSelector } from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
+import { Checkbox } from "@/components/ui/checkbox";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
@@ -64,6 +65,9 @@ interface VariableCost {
   unidade: string
   quantidade:number
   observacoes: string
+  pessoas?: number
+  horas?: number
+  valorHora?: number
 }
 
 interface Company {
@@ -271,9 +275,6 @@ function ServiceQuoteGeneratorContent() {
     localStorage.setItem('calculadoraDados', JSON.stringify(dados));
   }, [dados]);
   
-  const [workDays, setWorkDays] = useState([false, true, true, true, true, true, false]); // Seg-Sex
-  const [hoursPerDay, setHoursPerDay] = useState(8);
-
   useEffect(() => {
     const saved = localStorage.getItem('calculadoraDados');
     if (saved) {
@@ -300,7 +301,39 @@ function ServiceQuoteGeneratorContent() {
     },
   })
 
- 
+  const [salarioDesejado, setSalarioDesejado] = useState(5000);
+  const [duracaoProjeto, setDuracaoProjeto] = useState(40);
+  const [valorHora, setValorHora] = useState(0);
+  const [selectedDays, setSelectedDays] = useState([false, true, true, true, true, true, false]); // Mon-Fri
+  const [hoursPerDay, setHoursPerDay] = useState(8);
+
+  useEffect(() => {
+    const weeklyHours = selectedDays.filter(Boolean).length * hoursPerDay;
+    const monthlyHours = weeklyHours * 4; // 4 weeks per month
+    if (monthlyHours > 0) {
+      setValorHora(salarioDesejado / monthlyHours);
+    } else {
+      setValorHora(0);
+    }
+  }, [salarioDesejado, selectedDays, hoursPerDay]);
+
+  const valorTotalProjeto = useMemo(() => {
+    return valorHora * duracaoProjeto;
+  }, [valorHora, duracaoProjeto]);
+
+  const handleDateChange = (details: {
+    startDate: Date | null;
+    endDate: Date | null;
+    totalHours: number;
+    selectedDays: boolean[];
+    dailyHours: number;
+  }) => {
+    if (details.totalHours > 0) {
+      setDuracaoProjeto(details.totalHours);
+    }
+    setSelectedDays(details.selectedDays);
+    setHoursPerDay(details.dailyHours);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -719,8 +752,40 @@ function ServiceQuoteGeneratorContent() {
   const atualizarCustoVariavel = useCallback((id: string, campo: keyof VariableCost, valor: any) => {
     setDados((prev) => ({
       ...prev,
-      custosVariaveis: prev.custosVariaveis.map((custo) => (custo.id === id ? { ...custo, [campo]: valor } : custo)),
-    }))
+      custosVariaveis: prev.custosVariaveis.map((custo) => {
+        if (custo.id !== id) {
+          return custo;
+        }
+
+        const custoAtualizado = { ...custo, [campo]: valor };
+
+        if (campo === 'categoria') {
+          if (valor === 'Equipe') {
+            custoAtualizado.pessoas = custoAtualizado.pessoas || 1;
+            custoAtualizado.horas = custoAtualizado.horas || 1;
+            custoAtualizado.valorHora = custoAtualizado.valorHora || 0;
+            custoAtualizado.unidade = 'equipe';
+            custoAtualizado.quantidade = 1;
+          } else {
+            custoAtualizado.unidade = 'unidade';
+            custoAtualizado.quantidade = 0;
+            delete custoAtualizado.pessoas;
+            delete custoAtualizado.horas;
+            delete custoAtualizado.valorHora;
+          }
+        }
+
+        if (custoAtualizado.categoria === 'Equipe') {
+          const pessoas = Number(custoAtualizado.pessoas || 0);
+          const horas = Number(custoAtualizado.horas || 0);
+          const valorHora = Number(custoAtualizado.valorHora || 0);
+          custoAtualizado.valor = pessoas * horas * valorHora;
+          custoAtualizado.quantidade = 1;
+        }
+
+        return custoAtualizado;
+      }),
+    }));
   }, [])
 
   // Service Items Management
@@ -782,18 +847,32 @@ function ServiceQuoteGeneratorContent() {
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
-    const { totalHours } = dateRange;
-    return totalHours > 0 ? calcularTotalCustosFixos / 160 : 0;
-  }, [calcularTotalCustosFixos, dateRange]);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    // Days in current month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    let workingDaysInMonth = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, month, day);
+      const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, ...
+      if (selectedDays[dayOfWeek]) {
+        workingDaysInMonth++;
+      }
+    }
+
+    const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
+
+    return monthlyTotalHours > 0 ? calcularTotalCustosFixos / monthlyTotalHours : 0;
+  }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
 
   const calcularCustoOperacional = useMemo(() => {
-    const { totalHours } = dateRange;
-    const custoHora = calcularCustoHora
-    const custoTempo = custoHora * (dados.totalHours || 0)
+    
+    const custoHora = calcularCustoHora * duracaoProjeto;
     const custoVariaveis = calcularTotalCustosVariaveis
 
-
-    return custoVariaveis + (calcularCustoHora * totalHours )
+    return custoVariaveis + custoHora
   }, [calcularCustoHora, dateRange, calcularTotalCustosVariaveis])
 
   const calcularSubtotalItens = useMemo(() => {
@@ -1199,18 +1278,6 @@ function ServiceQuoteGeneratorContent() {
             <td class="text-right">${formatarMoeda(item.totalItem)}</td>
           </tr>
         `).join('')}
-        ${dados.custosFixos.map((custo, index) => {
-          const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
-          if (!dados.incluirSalarios && isSalario) return '';
-          return `
-            <tr key="fixo-${index}" class="text-xs bg-gray-50">
-              <td></td>
-              <td class="italic">${custo.descricao} (Custo Fixo)</td>
-              <td class="text-right">${formatarMoeda(custo.valor)}</td>
-              <td class="text-right">${formatarMoeda(custo.valor)}</td>
-            </tr>
-          `;
-        }).join('')}
         ${dados.custosVariaveis.map((custo, index) => `
           <tr key="variavel-${index}" class="text-xs bg-gray-50">
             <td>${custo.quantidade} ${custo.unidade}</td>
@@ -1241,6 +1308,7 @@ function ServiceQuoteGeneratorContent() {
         </div>
       </div>
       <div class="totals-breakdown">
+        
         ${dados.desconto > 0 ? `
         <div class="total-row">
           <span class="label">Desconto</span>
@@ -2194,7 +2262,7 @@ function ServiceQuoteGeneratorContent() {
                                         <SelectItem value="Material">📦 Material</SelectItem>
                                         <SelectItem value="Transporte">🚗 Transporte</SelectItem>
                                         <SelectItem value="Ferramenta">🔧 Ferramentas</SelectItem>
-                                        <SelectItem value="Terceirizado">👥 Terceirizado</SelectItem>
+                                        <SelectItem value="Equipe">👥 Equipe</SelectItem>
                                         <SelectItem value="Equipamento">⚙️ Equipamento</SelectItem>
                                         <SelectItem value="Outros">📋 Outros</SelectItem>
                                       </SelectContent>
@@ -2215,68 +2283,145 @@ function ServiceQuoteGeneratorContent() {
                                   </div>
                                   
                                   {/* valores QT e unidade */}
-                                  <div className="grid grid-cols-1 md:grid-cols-[auto_auto_25%] gap-2">
-                                    <div>
-                                      <TooltipHelper content="Valor unitário ou total do custo">
-                                        <Label className="text-xs">Valor (R$)</Label>
-                                      </TooltipHelper>
-                                      <Input
-                                        className="h-8"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="0,00"
-                                        value={custo.valor}
-                                        onChange={(e) => {
-                                          const value = Number(e.target.value);
-                                          if (value >= 0) {
-                                            atualizarCustoVariavel(custo.id, "valor", value);
-                                          }
-                                        }}
-                                      />
-                                    </div>
-                                    <div>
-                                      <TooltipHelper content="Quantidade total">
-                                        <Label className="text-xs">QT</Label>
+                                  {custo.categoria === 'Equipe' ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                      <div>
+                                        <TooltipHelper content="Número de pessoas na equipe">
+                                          <Label className="text-xs">Nº Pessoas</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="1"
+                                          min="1"
+                                          placeholder="1"
+                                          value={custo.pessoas}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                      <TooltipHelper content="Total de horas trabalhadas pela equipe">
+                                        <Label className="text-xs">Horas</Label>
                                       </TooltipHelper>
                                       <Input
                                         className="h-8"
                                         type="number"
                                         step="1"
                                         min="0"
-                                        placeholder="0,00"
-                                        value={custo.quantidade}
+                                        max="24"
+                                        placeholder="0"
+                                        value={custo.horas}
                                         onChange={(e) => {
                                           const value = Number(e.target.value);
-                                          if (value >= 0) {
-                                            atualizarCustoVariavel(custo.id, "quantidade", value);
+                                          // Valida se o valor está entre 0 e 24
+                                          if (value >= 0 && value <= 24) {
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, value);
+                                          } else if (value > 24) {
+                                            // Se for maior que 24, define como 24
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
+                                          }
+                                          // Se for negativo, não faz nada (mantém o valor anterior)
+                                        }}
+                                        onBlur={(e) => {
+                                          // Garante que ao sair do campo, o valor esteja válido
+                                          const value = Number(e.target.value);
+                                          if (value < 0 || isNaN(value)) {
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 0);
+                                          } else if (value > 24) {
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
                                           }
                                         }}
                                       />
+                                      </div>
+                                      <div>
+                                        <TooltipHelper content="Valor por hora de cada membro da equipe">
+                                          <Label className="text-xs">Valor/Hora (R$)</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          placeholder="0,00"
+                                          value={custo.valorHora}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
                                     </div>
-                                    <div>
-                                      <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
-                                        <Label className="text-xs">Unidade</Label>
-                                      </TooltipHelper>
-                                      <Select
-                                        value={custo.unidade}
-                                        onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
-                                      >
-                                        <SelectTrigger className="h-8">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="unidade">un</SelectItem>
-                                          <SelectItem value="kg">kg</SelectItem>
-                                          <SelectItem value="litros">L</SelectItem>
-                                          <SelectItem value="metros">m</SelectItem>
-                                          <SelectItem value="horas">h</SelectItem>
-                                          <SelectItem value="dias">dias</SelectItem>
-                                          <SelectItem value="pacote">pacote</SelectItem>
-                                        </SelectContent>
-                                      </Select>
+                                  ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-[auto_auto_25%] gap-2">
+                                      <div>
+                                        <TooltipHelper content="Valor unitário ou total do custo">
+                                          <Label className="text-xs">Valor (R$)</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          placeholder="0,00"
+                                          value={custo.valor}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "valor", value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <TooltipHelper content="Quantidade total">
+                                          <Label className="text-xs">QT</Label>
+                                        </TooltipHelper>
+                                        <Input
+                                          className="h-8"
+                                          type="number"
+                                          step="1"
+                                          min="0"
+                                          placeholder="0,00"
+                                          value={custo.quantidade}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value >= 0) {
+                                              atualizarCustoVariavel(custo.id, "quantidade", value);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <TooltipHelper content="Unidade de medida (kg, litros, unidades, etc.)">
+                                          <Label className="text-xs">Unidade</Label>
+                                        </TooltipHelper>
+                                        <Select
+                                          value={custo.unidade}
+                                          onValueChange={(value) => atualizarCustoVariavel(custo.id, "unidade", value)}
+                                        >
+                                          <SelectTrigger className="h-8">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="unidade">un</SelectItem>
+                                            <SelectItem value="kg">kg</SelectItem>
+                                            <SelectItem value="litros">L</SelectItem>
+                                            <SelectItem value="metros">m</SelectItem>
+                                            <SelectItem value="horas">h</SelectItem>
+                                            <SelectItem value="dias">dias</SelectItem>
+                                            <SelectItem value="pacote">pacote</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
                                     </div>
-                                  </div>
+                                  )}
 
                                   {/* botão de lixo */}
                                   <div className="flex items-end w-10">
@@ -2332,44 +2477,6 @@ function ServiceQuoteGeneratorContent() {
                         </CardContent>
                       </Card>
 
-                      {/* Cost Analysis */}
-                      <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 gap-4">
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
-                              <p className="text-sm text-gray-600">Custo Operacional</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-blue-600">{formatarMoeda(calcularCustoOperacional)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Valor do lucro baseado na margem definida">
-                              <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Valor dos impostos sobre o serviço">
-                              <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4 text-center">
-                            <TooltipHelper content="Preço base antes de descontos e acréscimos">
-                              <p className="text-sm text-gray-600">Preço Base</p>
-                            </TooltipHelper>
-                            <p className="text-xl font-bold text-purple-600">
-                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </div>
-
                   </TabsContent>
                     
                   <TabsContent value="service" className="space-y-6">
@@ -2405,13 +2512,14 @@ function ServiceQuoteGeneratorContent() {
                           </div>
                            {/*Tempo de Execução */}
                            <div>
-                              <TooltipHelper content="Selecione o período de execução do projeto">
-                                <Label>Período de Execução</Label>
+                              <TooltipHelper content="A duração do projeto é definida no seletor de período na seção 'Cálculo de Valor/Hora'">
+                                <Label htmlFor="duracao-projeto">Período de Execução</Label>
                               </TooltipHelper>
-                              <DateRangeSelector 
-                                workDays={[true, true, true, true, true, false, false]}
-                                hoursPerDay={8}
-                              />
+                              <DateRangeSelector
+                            onDateRangeChange={handleDateChange}
+                            workDays={selectedDays}
+                            hoursPerDay={hoursPerDay}
+                          />
                             </div>
                         </div>
                         <div>
@@ -2427,8 +2535,47 @@ function ServiceQuoteGeneratorContent() {
                           />
                         </div>
                       </CardContent>
+                      
                     </Card>
 
+                    {/* Cost Analysis */}
+                    <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 gap-4">
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Custo total para executar este serviço (fixos + variáveis)">
+                              <p className="text-sm text-gray-600">Custo Operacional</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-blue-600">{formatarMoeda(calcularCustoOperacional)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Valor do lucro baseado na margem definida">
+                              <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Valor dos impostos sobre o serviço">
+                              <p className="text-sm text-gray-600">Impostos ({dados.impostos}%)</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-red-600">{formatarMoeda(calcularImpostos)}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TooltipHelper content="Preço base antes de descontos e acréscimos">
+                              <p className="text-sm text-gray-600">Preço Base</p>
+                            </TooltipHelper>
+                            <p className="text-xl font-bold text-purple-600">
+                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      
                     {/* Payment and Adjustments */}
                     <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                       <Card>
@@ -2482,6 +2629,7 @@ function ServiceQuoteGeneratorContent() {
                       </Card>
                       */}
                     </div>
+
                   </TabsContent>
 
                   <TabsContent value="taxes" className="space-y-6">
@@ -2496,6 +2644,8 @@ function ServiceQuoteGeneratorContent() {
                       receitaLiquida={calcularTotalFinal}
                       impostos={impostosDetalhados.total}
                     />
+
+                    
                   </TabsContent>
 {/* boletos 
                   <TabsContent value="boletos" className="space-y-6">

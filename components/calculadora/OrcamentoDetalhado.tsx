@@ -203,7 +203,7 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                     </tr>
                   ))}
 
-                  {/* Custos Fixos Detalhados */}
+                  {/* Custos Fixos Detalhados 
                   {dados.custosFixos.map((custo, index) => {
                     const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
                     if (!dados.incluirSalarios && isSalario) return null;
@@ -215,7 +215,7 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                         <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
                       </tr>
                     );
-                  })}
+                  })}*/}
                   {/* Custos Variáveis Detalhados */}
                     {dados.custosVariaveis.map((custo, index) => (
                       <tr key={`variavel-${index}`} className="text-xs bg-gray-50">
