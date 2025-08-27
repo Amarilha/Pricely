@@ -1278,18 +1278,6 @@ function ServiceQuoteGeneratorContent() {
             <td class="text-right">${formatarMoeda(item.totalItem)}</td>
           </tr>
         `).join('')}
-        ${dados.custosFixos.map((custo, index) => {
-          const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
-          if (!dados.incluirSalarios && isSalario) return '';
-          return `
-            <tr key="fixo-${index}" class="text-xs bg-gray-50">
-              <td></td>
-              <td class="italic">${custo.descricao} (Custo Fixo)</td>
-              <td class="text-right">${formatarMoeda(custo.valor)}</td>
-              <td class="text-right">${formatarMoeda(custo.valor)}</td>
-            </tr>
-          `;
-        }).join('')}
         ${dados.custosVariaveis.map((custo, index) => `
           <tr key="variavel-${index}" class="text-xs bg-gray-50">
             <td>${custo.quantidade} ${custo.unidade}</td>
@@ -1320,10 +1308,7 @@ function ServiceQuoteGeneratorContent() {
         </div>
       </div>
       <div class="totals-breakdown">
-        <div class="total-row subtotal">
-          <span class="label">Subtotal</span>
-          <span class="value">${formatarMoeda(calcularSubtotalGeral)}</span>
-        </div>
+        
         ${dados.desconto > 0 ? `
         <div class="total-row">
           <span class="label">Desconto</span>
