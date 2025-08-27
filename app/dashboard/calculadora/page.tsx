@@ -847,18 +847,32 @@ function ServiceQuoteGeneratorContent() {
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
-    const { totalHours } = dateRange;
-    return totalHours > 0 ? calcularTotalCustosFixos / 160 : 0;
-  }, [calcularTotalCustosFixos, dateRange]);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    // Days in current month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    let workingDaysInMonth = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, month, day);
+      const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, ...
+      if (selectedDays[dayOfWeek]) {
+        workingDaysInMonth++;
+      }
+    }
+
+    const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
+
+    return monthlyTotalHours > 0 ? calcularTotalCustosFixos / monthlyTotalHours : 0;
+  }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
 
   const calcularCustoOperacional = useMemo(() => {
-    const { totalHours } = dateRange;
-    const custoHora = calcularCustoHora
-    const custoTempo = custoHora * (dados.totalHours || 0)
+    
+    const custoHora = calcularCustoHora * duracaoProjeto;
     const custoVariaveis = calcularTotalCustosVariaveis
 
-
-    return custoVariaveis + (calcularCustoHora * totalHours )
+    return custoVariaveis + custoHora
   }, [calcularCustoHora, dateRange, calcularTotalCustosVariaveis])
 
   const calcularSubtotalItens = useMemo(() => {
@@ -2306,23 +2320,38 @@ function ServiceQuoteGeneratorContent() {
                                         />
                                       </div>
                                       <div>
-                                        <TooltipHelper content="Total de horas trabalhadas pela equipe">
-                                          <Label className="text-xs">Horas</Label>
-                                        </TooltipHelper>
-                                        <Input
-                                          className="h-8"
-                                          type="number"
-                                          step="1"
-                                          min="0"
-                                          placeholder="0"
-                                          value={custo.horas}
-                                          onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, value);
-                                            }
-                                          }}
-                                        />
+                                      <TooltipHelper content="Total de horas trabalhadas pela equipe">
+                                        <Label className="text-xs">Horas</Label>
+                                      </TooltipHelper>
+                                      <Input
+                                        className="h-8"
+                                        type="number"
+                                        step="1"
+                                        min="0"
+                                        max="24"
+                                        placeholder="0"
+                                        value={custo.horas}
+                                        onChange={(e) => {
+                                          const value = Number(e.target.value);
+                                          // Valida se o valor está entre 0 e 24
+                                          if (value >= 0 && value <= 24) {
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, value);
+                                          } else if (value > 24) {
+                                            // Se for maior que 24, define como 24
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
+                                          }
+                                          // Se for negativo, não faz nada (mantém o valor anterior)
+                                        }}
+                                        onBlur={(e) => {
+                                          // Garante que ao sair do campo, o valor esteja válido
+                                          const value = Number(e.target.value);
+                                          if (value < 0 || isNaN(value)) {
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 0);
+                                          } else if (value > 24) {
+                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
+                                          }
+                                        }}
+                                      />
                                       </div>
                                       <div>
                                         <TooltipHelper content="Valor por hora de cada membro da equipe">
@@ -2539,12 +2568,11 @@ function ServiceQuoteGeneratorContent() {
                               <TooltipHelper content="A duração do projeto é definida no seletor de período na seção 'Cálculo de Valor/Hora'">
                                 <Label htmlFor="duracao-projeto">Quantas horas vai durar o projeto?</Label>
                               </TooltipHelper>
-                              <Input
-                                  id="duracao-projeto"
-                                  type="number"
-                                  value={duracaoProjeto}
-                                  onChange={(e) => setDuracaoProjeto(Number(e.target.value))}
-                              />
+                              <DateRangeSelector
+                            onDateRangeChange={handleDateChange}
+                            workDays={selectedDays}
+                            hoursPerDay={hoursPerDay}
+                          />
                             </div>
                         </div>
                         <div>
@@ -2558,49 +2586,6 @@ function ServiceQuoteGeneratorContent() {
                             placeholder="Descrição detalhada do serviço a ser prestado..."
                             rows={4}
                           />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Cálculo de Valor/Hora</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <div>
-                          <Label htmlFor="salario-desejado">Quanto você quer ganhar por mês?</Label>
-                          <Input
-                            id="salario-desejado"
-                            type="number"
-                            value={salarioDesejado}
-                            onChange={(e) => setSalarioDesejado(Number(e.target.value))}
-                            className="mt-2"
-                          />
-                        </div>
-
-                        <div>
-                          <TooltipHelper content="Selecione os dias da semana e horas por dia que você trabalha para calcular seu valor/hora. Isso também definirá a duração do projeto.">
-                            <Label>Selecione o Período e a Carga Horária do Projeto</Label>
-                          </TooltipHelper>
-                          <DateRangeSelector
-                            onDateRangeChange={handleDateChange}
-                            workDays={selectedDays}
-                            hoursPerDay={hoursPerDay}
-                          />
-                        </div>
-
-                        <div className="bg-muted p-4 rounded-lg space-y-4">
-                          <h3 className="text-lg font-semibold text-center">Resultado</h3>
-                          <div className="flex justify-around text-center">
-                            <div>
-                              <p className="text-sm text-gray-600">Seu valor/hora é</p>
-                              <p className="text-2xl font-bold text-purple-600">{formatarMoeda(valorHora)}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-600">Custo total do projeto</p>
-                              <p className="text-2xl font-bold text-green-600">{formatarMoeda(valorTotalProjeto)}</p>
-                            </div>
-                          </div>
                         </div>
                       </CardContent>
                     </Card>
