@@ -22,6 +22,7 @@ interface Company {
 interface Client {
   nome?: string;
   cpf?: string;
+  cnpj?: string;
   endereco_rua?: string;
   endereco_numero?: string;
   endereco_cidade?: string;
@@ -157,8 +158,8 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                     <strong>Nome:</strong> {dados.cliente.nome || "Nome do Cliente"}
                   </p>
                   <p>
-                    <strong>CPF:</strong> {dados.cliente.cpf || "000.000.000-00"}
-                  </p>
+                    <strong>{dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> {dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")}
+                    </p>
                   <p>
                     <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Rua"},{" "}
                     {dados.cliente.endereco_numero || "Número"} - {dados.cliente.endereco_cidade || "Cidade"},{" "}
@@ -202,7 +203,7 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                     </tr>
                   ))}
 
-                  {/* Custos Fixos Detalhados */}
+                  {/* Custos Fixos Detalhados 
                   {dados.custosFixos.map((custo, index) => {
                     const isSalario = custo.descricao.toLowerCase().includes("salário") || custo.descricao.toLowerCase().includes("pró-labore");
                     if (!dados.incluirSalarios && isSalario) return null;
@@ -214,7 +215,7 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                         <td className="p-2 text-right border border-gray-300">{formatarMoeda(custo.valor)}</td>
                       </tr>
                     );
-                  })}
+                  })}*/}
                   {/* Custos Variáveis Detalhados */}
                     {dados.custosVariaveis.map((custo, index) => (
                       <tr key={`variavel-${index}`} className="text-xs bg-gray-50">
@@ -250,10 +251,6 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
-                  <span className="font-semibold text-gray-600">Subtotal</span>
-                  <span className="text-gray-800 font-semibold">{formatarMoeda(calcularSubtotalGeral)}</span>
-                </div>
                 
                 {dados.desconto > 0 && (
                   <div className="flex justify-between items-center p-2">
