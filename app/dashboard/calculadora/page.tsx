@@ -868,12 +868,11 @@ function ServiceQuoteGeneratorContent() {
   }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
 
   const calcularCustoOperacional = useMemo(() => {
-    
-    const custoHora = calcularCustoHora * duracaoProjeto;
+    const custoHora = calcularCustoHora * duracaoProjeto
     const custoVariaveis = calcularTotalCustosVariaveis
 
     return custoVariaveis + custoHora
-  }, [calcularCustoHora, dateRange, calcularTotalCustosVariaveis])
+  }, [calcularCustoHora, duracaoProjeto, calcularTotalCustosVariaveis])
 
   const calcularSubtotalItens = useMemo(() => {
     return dados.itens.reduce((total, item) => total + (item.totalItem || 0), 0)
