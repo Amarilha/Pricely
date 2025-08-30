@@ -864,7 +864,9 @@ function ServiceQuoteGeneratorContent() {
 
     const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
 
-    return monthlyTotalHours > 0 ? calcularTotalCustosFixos / monthlyTotalHours : 0;
+    return monthlyTotalHours > 0 
+  ? Number((calcularTotalCustosFixos / monthlyTotalHours).toFixed(2)) 
+  : 0;
   }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
 
   const calcularCustoOperacional = useMemo(() => {
