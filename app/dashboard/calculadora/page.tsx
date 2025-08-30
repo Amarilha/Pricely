@@ -865,7 +865,7 @@ function ServiceQuoteGeneratorContent() {
     const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
 
     return monthlyTotalHours > 0 
-  ? Number((calcularTotalCustosFixos / monthlyTotalHours).toFixed(2)) 
+  ? Number((calcularTotalCustosFixos / 730).toFixed(2)) 
   : 0;
   }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
 
