@@ -1,17 +1,21 @@
 import type { Metadata } from "next"
 import { RegistrationForm } from "@/components/site/registration-form"
-import { SiteHeader } from "@/components/site/site-header"
-import { SiteFooter } from "@/components/site/site-footer"
+import Header from "@/components/site/header"
+import { FooterSection } from "@/components/site/footer-section"
+
 
 export const metadata: Metadata = {
   title: "Cadastro | Nexprice",
   description: "Crie sua conta na plataforma Nexprice e comece a gerenciar seus projetos",
+  icons:{
+    icon:'/nexprice-logo-branco-sem-texto.png',
+     },
 }
 
 export default function CadastroPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <SiteHeader />
+      <Header />
       <main className="flex-1">
         <div className="container max-w-md mx-auto py-16 px-4">
           <div className="text-center mb-8">
@@ -21,7 +25,7 @@ export default function CadastroPage() {
           <RegistrationForm />
         </div>
       </main>
-      <SiteFooter />
+      <FooterSection />
     </div>
   )
 }

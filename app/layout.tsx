@@ -1,23 +1,31 @@
-//layout.tsx
-
 import type React from "react"
-import type { Metadata } from "next/types"
-import { Inter } from "next/font/google"
+import type { Metadata } from "next"
+import { Figtree } from "next/font/google"
+import { GeistMono } from "geist/font/mono"
+import { Instrument_Serif } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
-import {AdSense} from "@/components/AdSense"
-import { Clarity } from "@/components/Clarity"
 
-const inter = Inter({ subsets: ["latin"] })
+const figtree = Figtree({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-figtree",
+  display: "swap",
+})
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "Nexprice - Gestão de Projetos e Precificação",
   description: "Plataforma completa para gestão de projetos e precificação para freelancers e agências",
   icons:{
-    icon:'nexprice.jpeg',
+ icon:'/nexprice-logo-branco-sem-texto.png',
   },
-  
 }
 
 export default function RootLayout({
@@ -26,21 +34,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Clarity />
-        <AdSense pId="6983643349322034" />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange={false}
-          storageKey="Nexprice-theme"
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
-      </body>
+    <html lang="en">
+      <head>
+        <style>{`
+html {
+  font-family: ${figtree.style.fontFamily};
+  --font-sans: ${figtree.variable};
+  --font-mono: ${GeistMono.variable};
+  --font-instrument-serif: ${instrumentSerif.variable};
+}
+        `}</style>
+      </head>
+      <body className={`${figtree.variable} ${instrumentSerif.variable}`}>{children}</body>
     </html>
   )
 }
