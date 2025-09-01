@@ -4,79 +4,65 @@
 
 @layer base {
   :root {
-    --background: 48 24% 96%;  /* #f7f6f2 (convertido para HSL) */
-    --foreground: 240 10% 3.9%;
-    --card: 48 24% 96%;        /* #f7f6f2 */
-    --card-foreground: 240 10% 3.9%;
-    --popover: 48 24% 96%;     /* #f7f6f2 */
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 258 52% 43%;     /* #5635a6 */
+    /* Tema escuro como padrão */
+    --background: 258 35% 8%;   /* Roxo muito escuro */
+    --foreground: 270 40% 90%;  /* Texto lavanda claro */
+    --card: 258 30% 10%;
+    --card-foreground: 270 40% 90%;
+    --primary: 270 70% 65%;     /* Roxo vibrante */
     --primary-foreground: 0 0% 98%;
-    --secondary: 236 51% 39%;   /* #313895 */
+    --secondary: 258 50% 50%;   /* Roxo mais intenso */
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 48 2% 97%;      /* #e9ddf7 */
-    --accent-foreground: 258 52% 43%; /* #5635a6 */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 48 2% 97%;      /* #e9ddf7 */
-    --input: 240 5.9% 90%;
-    --ring: 258 52% 43%;        /* #5635a6 */
+    --muted: 258 25% 15%;
+    --muted-foreground: 270 30% 70%;
+    --accent: 258 40% 20%;
+    --accent-foreground: 270 40% 90%;
+    --border: 258 30% 20%;
+    --input: 258 30% 20%;
+    --ring: 270 70% 65%;
     --radius: 0.5rem;
-    --sidebar-background: 48 24% 96%; /* #f7f6f2 */
-    --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-border: 48 2% 97%;    /* #e9ddf7 */
   }
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 258 52% 43%;     /* #5635a6 */
+  .light {
+    /* Tema claro (opcional) */
+    --background: 48 24% 96%;  /* #f7f6f2 */
+    --foreground: 258 52% 15%;
+    --card: 48 24% 96%;
+    --card-foreground: 258 52% 15%;
+    --primary: 258 52% 43%;    /* #5635a6 */
     --primary-foreground: 0 0% 98%;
-    --secondary: 236 51% 39%;   /* #313895 */
+    --secondary: 258 45% 40%;  /* Roxo mais intenso */
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 258 52% 43%;        /* #5635a6 */
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --muted: 48 20% 92%;
+    --muted-foreground: 258 20% 35%;
+    --accent: 270 60% 92%;     /* #e9ddf7 */
+    --accent-foreground: 258 52% 43%;
+    --border: 270 40% 85%;
+    --input: 270 40% 90%;
+    --ring: 258 52% 43%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-/* Garantir que as transições de tema sejam suaves */
-html.dark {
-  color-scheme: dark;
-}
-
+/* Garantir que o tema escuro seja o padrão */
 html {
-  transition: background-color 0.3s ease;
+  color-scheme: dark;
+  background-color: hsl(var(--background));
 }
 
-.dark body,
-.dark .bg-background {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+/* Estilos para o tema claro (se necessário) */
+html.light {
+  color-scheme: light;
 }
 
 .mascot {
@@ -87,21 +73,21 @@ html {
 
 .speech-bubble {
   position: absolute;
-  bottom: 120px; /* Increased distance from mascot */
+  bottom: 120px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #f0f0f0; /* Light gray background */
-  border: 1px solid #ccc;
-  border-radius: 15px; /* More rounded corners */
+  background-color: hsl(var(--accent));
+  border: 1px solid hsl(var(--border));
+  border-radius: 15px;
   padding: 15px;
-  min-width: 200px; /* Wider bubble */
+  min-width: 200px;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nicer font */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 14px;
-  color: #333;
-  opacity: 0; /* Start hidden */
-  animation: fadeIn 0.5s forwards; /* Fade in animation */
+  color: hsl(var(--accent-foreground));
+  opacity: 0;
+  animation: fadeIn 0.5s forwards;
 }
 
 .speech-bubble::after {
@@ -112,7 +98,7 @@ html {
   transform: translateX(-50%);
   border-width: 10px 10px 0;
   border-style: solid;
-  border-color: #f0f0f0 transparent transparent transparent;
+  border-color: hsl(var(--accent)) transparent transparent transparent;
 }
 
 @keyframes fadeIn {
@@ -126,4 +112,40 @@ html {
   height: 100px;
   background-image: url('/mascote_02.png');
   background-repeat: no-repeat;
+  background-size: contain;
+}
+
+/* Animações CSS */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 40px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -40px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-fadeInDown {
+  animation: fadeInDown 0.6s ease-out;
 }
