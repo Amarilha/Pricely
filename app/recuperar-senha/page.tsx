@@ -1,17 +1,20 @@
 import type { Metadata } from "next"
 import { RecuperarSenhaForm } from "@/components/site/recuperar-senha-form"
-import { SiteHeader } from "@/components/site/site-header"
-import { SiteFooter } from "@/components/site/site-footer"
+import Header from "@/components/site/header"
+import { FooterSection } from "@/components/site/footer-section"
 
 export const metadata: Metadata = {
   title: "Recuperar Senha | Nexprice",
   description: "Recupere o acesso à sua conta Nexprice",
+  icons:{
+    icon:'/nexprice-logo-branco-sem-texto.png',
+     },
 }
 
 export default function RecuperarSenhaPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <SiteHeader />
+      <Header />
       <main className="flex-1">
         <div className="container max-w-md mx-auto py-16 px-4">
           <div className="text-center mb-8">
@@ -23,7 +26,7 @@ export default function RecuperarSenhaPage() {
           <RecuperarSenhaForm />
         </div>
       </main>
-      <SiteFooter />
+      <FooterSection />
     </div>
   )
 }

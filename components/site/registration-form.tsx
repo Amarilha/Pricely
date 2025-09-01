@@ -238,14 +238,15 @@ export function RegistrationForm() {
       <CardFooter className="flex flex-col justify-center border-t p-6 gap-3">
         <p className="text-sm text-muted-foreground">
           Já tem uma conta?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/dashboard/calculadora" className="text-primary hover:underline">
             Faça login
           </Link>
         </p>
 
         <p className="text-xs text-muted-foreground/70">
           Criando uma conta, você concorda com todos os nossos{" "}
-          <Link href="/privacy-policy" className="text-primary hover:underline">
+          <Link href="/Termos-de-Uso" className="text-primary hover:underline" target="_blank"
+              rel="noopener noreferrer">
             termos e condições
           </Link>
         </p>
