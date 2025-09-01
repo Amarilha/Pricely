@@ -38,7 +38,8 @@ import {stateAuth} from "@/app/src/services/estadoAuth"
 import { DateRangeSelector } from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 import { Checkbox } from "@/components/ui/checkbox";
-import { generateQuotePDF } from "@/lib/pdfGenerator";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
@@ -951,8 +952,34 @@ function ServiceQuoteGeneratorContent() {
 
   // Enhanced PDF generation function
   const gerarPDF = useCallback(() => {
-    generateQuotePDF(dados);
-  }, [dados]);
+    const quoteElement = document.getElementById('service-quote-pdf');
+    if (quoteElement) {
+      html2canvas(quoteElement, {
+        scale: 2,
+        useCORS: true,
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const ratio = canvas.width / canvas.height;
+        const width = pdfWidth - 20; // margin
+        const height = width / ratio;
+
+        let finalHeight = height;
+        let finalWidth = width;
+
+        if (height > pdfHeight) {
+          finalHeight = pdfHeight - 20; // margin
+          finalWidth = finalHeight * ratio;
+        }
+
+
+        pdf.addImage(imgData, 'PNG', 10, 10, finalWidth, finalHeight);
+        pdf.save(`Orcamento_${dados.numeroOrdem}.pdf`);
+      });
+    }
+  }, [dados.numeroOrdem]);
 
   const handleSaveOrcamento = async () => {
     if (!dados.empresa.id_company || !dados.cliente.id_client) {
