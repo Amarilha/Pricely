@@ -60,7 +60,7 @@ export function FooterSection() {
               rel="noopener noreferrer">
               Termos de Uso
             </Link>
-            <Link href="/Política-de-Privacidade" className="text-sm text-muted-foreground hover:text-primary" target="_blank"
+            <Link href="/Politica-de-Privacidade" className="text-sm text-muted-foreground hover:text-primary" target="_blank"
               rel="noopener noreferrer">
               Política de Privacidade
             </Link>
