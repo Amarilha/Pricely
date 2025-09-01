@@ -1,108 +1,113 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+"use client"
 
-// Dados das perguntas frequentes organizados por categorias
-const faqCategories = [
+import type React from "react"
+import { useState } from "react"
+import { ChevronDown } from "lucide-react"
+
+const faqData = [
   {
-    id: "geral",
-    name: "Geral",
-    faqs: [
-      {
-        question: "O que é a Nexprice?",
-        answer: "A Nexprice é uma plataforma completa para gestão de projetos e precificação, desenvolvida especialmente para freelancers e agências. Nossa solução ajuda profissionais a gerenciar seus projetos de forma eficiente e precificar seus serviços adequadamente."
-      },
-      {
-        question: "Como a Nexprice pode ajudar meu negócio?",
-        answer: "A Nexprice oferece ferramentas para gestão de projetos, precificação de serviços, comunicação com clientes, geração de relatórios e muito mais. Nossa plataforma ajuda a otimizar processos, economizar tempo e aumentar a lucratividade do seu negócio."
-      },
-      {
-        question: "A plataforma é adequada para qualquer tipo de negócio?",
-        answer: "A Nexprice foi desenvolvida pensando nas necessidades específicas de freelancers e agências de diversos segmentos, como design, desenvolvimento web, marketing digital, consultoria e outros serviços baseados em projetos."
-      },
-    ]
+    question: "What is Pointer and who is it for?",
+    answer:
+      "Pointer is an AI-powered development platform designed for developers, teams, and organizations who want toaccelerate their coding workflow. It's perfect for both individual developers looking to enhance their productivity and teams seeking seamless collaboration tools.",
   },
   {
-    id: "planos",
-    name: "Planos e Preços",
-    faqs: [
-      {
-        question: "Posso mudar de plano a qualquer momento?",
-        answer: "Sim, você pode fazer upgrade ou downgrade do seu plano a qualquer momento. As mudanças entram em vigor imediatamente e o valor é ajustado proporcionalmente ao período restante da sua assinatura."
-      },
-      {
-        question: "Existe um período de teste?",
-        answer: "Sim, oferecemos um período de teste de 14 dias para os planos Profissional e Empresarial. Durante esse período, você pode testar todas as funcionalidades sem compromisso."
-      },
-      {
-        question: "Como funciona o plano Gratuito?",
-        answer: "O plano Gratuito é realmente gratuito para sempre, sem necessidade de cartão de crédito. Ele inclui as funcionalidades básicas para que você possa gerenciar até 3 projetos simultaneamente."
-      },
-    ]
+    question: "How does Pointer's AI code review work?",
+    answer:
+      "Our AI analyzes your code in real-time, providing intelligent suggestions for improvements, catching potential bugs, and ensuring best practices. It learns from your coding patterns and adapts to your team's standards, making code reviews faster and more consistent.",
   },
   {
-    id: "funcionalidades",
-    name: "Funcionalidades",
-    faqs: [
-      {
-        question: "Como funciona a calculadora de preços?",
-        answer: "Nossa calculadora de preços considera diversos fatores como tempo estimado, complexidade do projeto, custos fixos e variáveis, margem de lucro desejada e outros parâmetros personalizáveis para sugerir um preço justo e competitivo para seus serviços."
-      },
-      {
-        question: "É possível gerar relatórios personalizados?",
-        answer: "Sim, a Nexprice permite gerar relatórios detalhados e personalizados sobre seus projetos, finanças, tempo investido, rentabilidade e outros indicadores importantes para o seu negócio."
-      },
-      {
-        question: "A plataforma oferece integração com outras ferramentas?",
-        answer: "Sim, a Nexprice se integra com diversas ferramentas populares de gestão, contabilidade, comunicação e produtividade para criar um ecossistema completo para o seu negócio."
-      },
-    ]
+    question: "Can I integrate Pointer with my existing tools?",
+    answer:
+      "Yes! Pointer offers one-click integrations with popular development tools including GitHub, GitLab, VS Code, Slack, and many more. Our MCP connectivity allows you to easily manage and configure server access across your entire development stack.",
   },
   {
-    id: "suporte",
-    name: "Suporte e Conta",
-    faqs: [
-      {
-        question: "Como posso obter suporte técnico?",
-        answer: "Oferecemos suporte técnico por chat, email e, para planos empresariais, também por telefone. Nossa equipe está disponível em horário comercial para ajudar com qualquer dúvida ou problema."
-      },
-      {
-        question: "O que acontece com meus dados se eu cancelar?",
-        answer: "Seus dados ficam disponíveis por 30 dias após o cancelamento. Após esse período, eles são arquivados e podem ser restaurados caso você reative sua conta. Após 90 dias, os dados são permanentemente excluídos."
-      },
-      {
-        question: "Como posso alterar as informações da minha conta?",
-        answer: "Você pode alterar as informações da sua conta a qualquer momento através da seção 'Configurações' no painel de controle. Lá você pode atualizar seus dados pessoais, informações de faturamento e preferências de notificação."
-      },
-    ]
+    question: "What's included in the free plan?",
+    answer:
+      "The free plan includes real-time code suggestions, basic integrations, single MCP server connection, up to 2 AI coding agents, and Vercel deployments with Pointer branding. It's perfect for individual developers getting started.",
+  },
+  {
+    question: "How do parallel coding agents work?",
+    answer:
+      "Our parallel coding agents can work on different parts of your codebase simultaneously, solving complex problems faster than traditional single-threaded approaches. You can launch multiple agents to handle different tasks like bug fixes, feature development, and code optimization concurrently.",
+  },
+  {
+    question: "Is my code secure with Pointer?",
+    answer:
+      "Absolutely. We use enterprise-grade security measures including end-to-end encryption, secure data transmission, and compliance with industry standards. Your code never leaves your secure environment without your explicit permission, and we offer on-premises deployment options for enterprise customers.",
   },
 ]
 
-export function FAQSection() {
-  return (
-    <div className="max-w-4xl mx-auto mt-12">
-    
-      <Tabs defaultValue="geral" className="w-full">
-        <TabsList className="flex justify-center mb-8 flex-wrap">
-          {faqCategories.map((category) => (
-            <TabsTrigger key={category.id} value={category.id}>
-              {category.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+interface FAQItemProps {
+  question: string
+  answer: string
+  isOpen: boolean
+  onToggle: () => void
+}
 
-        {faqCategories.map((category) => (
-          <TabsContent key={category.id} value={category.id}>
-            <Accordion type="single" collapsible className="w-full">
-              {category.faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`}>
-                  <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-                  <AccordionContent>{faq.answer}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </TabsContent>
-        ))}
-      </Tabs>
+const FAQItem = ({ question, answer, isOpen, onToggle }: FAQItemProps) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    onToggle()
+  }
+  return (
+    <div
+      className={`w-full bg-[rgba(231,236,235,0.08)] shadow-[0px_2px_4px_rgba(0,0,0,0.16)] overflow-hidden rounded-[10px] outline outline-1 outline-border outline-offset-[-1px] transition-all duration-500 ease-out cursor-pointer`}
+      onClick={handleClick}
+    >
+      <div className="w-full px-5 py-[18px] pr-4 flex justify-between items-center gap-5 text-left transition-all duration-300 ease-out">
+        <div className="flex-1 text-foreground text-base font-medium leading-6 break-words">{question}</div>
+        <div className="flex justify-center items-center">
+          <ChevronDown
+            className={`w-6 h-6 text-muted-foreground-dark transition-all duration-500 ease-out ${isOpen ? "rotate-180 scale-110" : "rotate-0 scale-100"}`}
+          />
+        </div>
+      </div>
+      <div
+        className={`overflow-hidden transition-all duration-500 ease-out ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
+        style={{
+          transitionProperty: "max-height, opacity, padding",
+          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <div
+          className={`px-5 transition-all duration-500 ease-out ${isOpen ? "pb-[18px] pt-2 translate-y-0" : "pb-0 pt-0 -translate-y-2"}`}
+        >
+          <div className="text-foreground/80 text-sm font-normal leading-6 break-words">{answer}</div>
+        </div>
+      </div>
     </div>
+  )
+}
+
+export function FAQSection() {
+  const [openItems, setOpenItems] = useState<Set<number>>(new Set())
+  const toggleItem = (index: number) => {
+    const newOpenItems = new Set(openItems)
+    if (newOpenItems.has(index)) {
+      newOpenItems.delete(index)
+    } else {
+      newOpenItems.add(index)
+    }
+    setOpenItems(newOpenItems)
+  }
+  return (
+    <section className="w-full pt-[66px] pb-20 md:pb-40 px-5 relative flex flex-col justify-center items-center">
+      <div className="w-[300px] h-[500px] absolute top-[150px] left-1/2 -translate-x-1/2 origin-top-left rotate-[-33.39deg] bg-primary/10 blur-[100px] z-0" />
+      <div className="self-stretch pt-8 pb-8 md:pt-14 md:pb-14 flex flex-col justify-center items-center gap-2 relative z-10">
+        <div className="flex flex-col justify-start items-center gap-4">
+          <h2 className="w-full max-w-[435px] text-center text-foreground text-4xl font-semibold leading-10 break-words">
+            Frequently Asked Questions
+          </h2>
+          <p className="self-stretch text-center text-muted-foreground text-sm font-medium leading-[18.20px] break-words">
+            Everything you need to know about Pointer and how it can transform your development workflow
+          </p>
+        </div>
+      </div>
+      <div className="w-full max-w-[600px] pt-0.5 pb-10 flex flex-col justify-start items-start gap-4 relative z-10">
+        {faqData.map((faq, index) => (
+          <FAQItem key={index} {...faq} isOpen={openItems.has(index)} onToggle={() => toggleItem(index)} />
+        ))}
+      </div>
+    </section>
   )
 }

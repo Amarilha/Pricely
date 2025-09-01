@@ -11,10 +11,10 @@ import { DashboardMain } from "@/components/dashboard-main"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Dashboard de Faturamento",
-  description: "Dashboard para visualização de faturamentos de projetos",
+  title: "Nexprice - Gestão de Projetos e Precificação",
+  description: "Plataforma completa para gestão de projetos e precificação para freelancers e agências",
   icons:{
-    icon:'nexprice.jpeg',
+ icon:'/nexprice-logo-branco-sem-texto.png',
   },
 }
 

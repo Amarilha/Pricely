@@ -11,6 +11,7 @@ const features = [
     icon: BarChart3,
     title: "Relatórios Detalhados",
     description: "Visualize o desempenho dos seus projetos com gráficos e relatórios personalizados.",
+    //Component:,
   },
   {
     icon: MessageSquare,
