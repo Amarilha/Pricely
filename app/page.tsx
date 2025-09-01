@@ -28,10 +28,7 @@ export default function HomePage() {
             </AnimatedSection>
           </div>
         </main>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto px-6 mt-[411px] md:mt-[400px]" delay={0.1}>
-          <SocialProof />
-        </AnimatedSection>
-        <AnimatedSection id="features-section" className="relative z-10 max-w-[1320px] mx-auto mt-16" delay={0.2}>
+        <AnimatedSection id="features-section" className="relative z-10 max-w-[1320px] mx-auto px-6 mt-[411px] md:mt-[400px]" delay={0.2}>
           <BentoSection />
         </AnimatedSection>
         <AnimatedSection
@@ -44,11 +41,11 @@ export default function HomePage() {
         <AnimatedSection id="faq-section" className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.2}>
           <CTASection />
         </AnimatedSection>
-
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.2}>
-          <FooterSection />
-        </AnimatedSection>
       </div>
+      <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.2}>
+          <FooterSection />
+      </AnimatedSection>
     </div>
+
   )
 }
