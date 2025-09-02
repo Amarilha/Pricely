@@ -38,7 +38,8 @@ import {stateAuth} from "@/app/src/services/estadoAuth"
 import { DateRangeSelector } from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 import { Checkbox } from "@/components/ui/checkbox";
-import { generateQuotePDF } from "@/lib/pdfGenerator";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
@@ -951,7 +952,40 @@ function ServiceQuoteGeneratorContent() {
 
   // Enhanced PDF generation function
   const gerarPDF = useCallback(() => {
-    generateQuotePDF(dados);
+    const quoteElement = document.getElementById('service-quote-pdf');
+    if (quoteElement) {
+      html2canvas(quoteElement, {
+        scale: 2,
+        useCORS: true,
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const canvasRatio = canvasWidth / canvasHeight;
+
+        const pdfRatio = pdfWidth / pdfHeight;
+
+        let finalWidth, finalHeight;
+
+        if (canvasRatio > pdfRatio) {
+            finalWidth = pdfWidth;
+            finalHeight = pdfWidth / canvasRatio;
+        } else {
+            finalHeight = pdfHeight;
+            finalWidth = pdfHeight * canvasRatio;
+        }
+
+        const x = (pdfWidth - finalWidth) / 2;
+        const y = (pdfHeight - finalHeight) / 2;
+
+        pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+        pdf.save(`Orcamento_${dados.numeroOrdem}.pdf`);
+      });
+    }
   }, [dados]);
 
   const handleSaveOrcamento = async () => {

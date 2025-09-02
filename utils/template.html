@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem de Serviço</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg">
+        <div class="page-content"> <header class="flex justify-between items-start pb-4 border-b">
+                <div class="flex items-center">
+                    <div class="mr-4">
+                        <div class="bg-purple-600 text-white font-bold text-2xl w-20 h-10 flex items-center justify-center rounded logo-placeholder">{{empresa.logoChar}}</div>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">{{empresa.nome}}</h2>
+                        <p class="text-sm text-gray-600">CNPJ {{empresa.cnpj}}</p>
+                        <p class="text-sm text-gray-600">{{empresa.endereco.rua}}, {{empresa.endereco.numero}}</p>
+                        <p class="text-sm text-gray-600">{{empresa.endereco.cidade}}, {{empresa.endereco.estado}}</p>
+                        <p class="text-sm text-gray-600">Telefone {{empresa.telefone}}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <h1 class="text-3xl font-bold text-gray-800">ORDEM DE SERVIÇO</h1>
+                    <div class="mt-2 border border-gray-300 rounded-md p-2 text-left">
+                        <p class="text-sm"><span class="font-semibold">Ordem nº:</span> {{dadosGerais.numeroOrdem}}</p>
+                        <p class="text-sm"><span class="font-semibold">Data:</span> {{dadosGerais.data}}</p>
+                    </div>
+                </div>
+            </header>
+
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="border border-gray-300 rounded-md">
+                    <div class="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Cliente</div>
+                    <div class="p-3 text-sm text-gray-700">
+                        <p><strong>Nome:</strong> {{cliente.nome}}</p>
+                        <p><strong>CPF:</strong> {{cliente.cpf}}</p>
+                        <p><strong>Endereço:</strong> {{cliente.endereco.rua}}, {{cliente.endereco.numero}} - {{cliente.endereco.cidade}}, {{cliente.endereco.estado}}</p>
+                    </div>
+                </div>
+                <div class="border border-gray-300 rounded-md">
+                    <div class="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Endereço de cobrança</div>
+                    <div class="p-3 text-sm text-gray-700">
+                        <p>{{cobranca.endereco}}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="border border-gray-300 rounded-md">
+                    <div class="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Descrição do serviço</div>
+                    <div class="p-3 text-sm text-gray-700">
+                        <p>{{servico.descricao}}</p>
+                    </div>
+                </div>
+                <div class="border border-gray-300 rounded-md">
+                    <div class="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Local de prestação</div>
+                    <div class="p-3 text-sm text-gray-700">
+                        <p><strong>Nome:</strong> {{localPrestacao.nome}}</p>
+                        <p><strong>{{localPrestacao.tipoDocumento}}:</strong> {{localPrestacao.documento}}</p>
+                        <p><strong>Endereço:</strong> {{localPrestacao.endereco.rua}}, {{localPrestacao.endereco.numero}} - {{localPrestacao.endereco.cidade}}, {{localPrestacao.endereco.estado}}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mt-6">
+                <table class="w-full text-left table-auto table-bordered">
+                    <thead>
+                        <tr class="bg-purple-600 text-white">
+                            <th class="p-2">Quantidade</th>
+                            <th class="p-2">Produto utilizado ou Serviço Prestado</th>
+                            <th class="p-2 text-right">Preço Unitário</th>
+                            <th class="p-2 text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        {{#each itens}}
+                        <tr>
+                            <td class="p-2">{{this.quantidade}}</td>
+                            <td class="p-2">{{this.descricao}}</td>
+                            <td class="p-2 text-right">R$ {{formatCurrency this.precoUnitario}}</td>
+                            <td class="p-2 text-right">R$ {{formatCurrency this.totalItem}}</td>
+                        </tr>
+                        {{/each}}
+                        {{#if_eq itens.length 0}}
+                        <tr class="h-8"><td class="p-2"></td><td></td><td></td><td></td></tr>
+                        <tr class="h-8"><td class="p-2"></td><td></td><td></td><td></td></tr>
+                        <tr class="h-8"><td class="p-2"></td><td></td><td></td><td></td></tr>
+                        <tr class="h-8"><td class="p-2"></td><td></td><td></td><td></td></tr>
+                        {{/if_eq}}
+                        {{#if_lt itens.length 4}}
+                            {{#times (subtract 4 itens.length)}}
+                                <tr class="h-8"><td class="p-2"></td><td></td><td></td><td></td></tr>
+                            {{/times}}
+                        {{/if_lt}}
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div class="border border-gray-300 rounded-md h-full">
+                    <div class="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Forma de pagamento</div>
+                    <div class="p-3 text-sm text-gray-700">
+                        <p>{{formaPagamento}}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center bg-gray-100 p-2 rounded-md">
+                        <span class="font-semibold text-gray-600">Subtotal</span>
+                        <span class="text-gray-800 font-semibold">R$ {{formatCurrency totais.subtotal}}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-2">
+                        <span class="font-semibold text-gray-600">Desconto</span>
+                        <span>{{totais.desconto}}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-2">
+                        <span class="font-semibold text-gray-600">Acréscimos</span>
+                        <span>{{totais.acrescimos}}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-200 p-3 rounded-md">
+                        <span class="font-bold text-gray-800 text-lg">TOTAL</span>
+                        <span class="text-green-600 font-bold text-lg">R$ {{formatCurrency totais.totalFinal}}</span>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="mt-8 pt-4">
+                <p class="text-center text-sm text-gray-600 mb-8">
+                    Confirmo que o serviço foi prestado de acordo com o combinado.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <div class="text-center">
+                        <div class="border-t border-gray-400 pt-2">
+                            <p class="font-semibold">Assinatura do Cliente</p>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="border-t border-gray-400 pt-2">
+                            <p class="font-semibold">Data de entrega do serviço: {{dadosGerais.dataEntrega}}</p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-8">
+                        <div class="border-t border-gray-400 pt-2">
+                            <p class="font-semibold">Assinatura do Técnico</p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-8 self-end">
+                        <p class="bg-purple-600 font-bold">QuantoSobra.com.br</p>
+                    </div>
+                </div>
+            </footer>
+        </div> </div>
+</body>
+</html>
