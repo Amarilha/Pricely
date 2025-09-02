@@ -38,10 +38,9 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">N</span>
+            <div className="flex items-center">
+              <img src="/nexprice-logo-branco-texto-lateral.png" className="h-10 w-auto" alt="Your Logo Description"></img>
             </div>
-            <span className="font-bold text-lg text-primary">Nexprice</span>
           </Link>
         </div>
 
