@@ -962,24 +962,31 @@ function ServiceQuoteGeneratorContent() {
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const ratio = canvas.width / canvas.height;
-        const width = pdfWidth - 20; // margin
-        const height = width / ratio;
 
-        let finalHeight = height;
-        let finalWidth = width;
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const canvasRatio = canvasWidth / canvasHeight;
 
-        if (height > pdfHeight) {
-          finalHeight = pdfHeight - 20; // margin
-          finalWidth = finalHeight * ratio;
+        const pdfRatio = pdfWidth / pdfHeight;
+
+        let finalWidth, finalHeight;
+
+        if (canvasRatio > pdfRatio) {
+            finalWidth = pdfWidth;
+            finalHeight = pdfWidth / canvasRatio;
+        } else {
+            finalHeight = pdfHeight;
+            finalWidth = pdfHeight * canvasRatio;
         }
 
+        const x = (pdfWidth - finalWidth) / 2;
+        const y = (pdfHeight - finalHeight) / 2;
 
-        pdf.addImage(imgData, 'PNG', 10, 10, finalWidth, finalHeight);
+        pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
         pdf.save(`Orcamento_${dados.numeroOrdem}.pdf`);
       });
     }
-  }, [dados.numeroOrdem]);
+  }, [dados]);
 
   const handleSaveOrcamento = async () => {
     if (!dados.empresa.id_company || !dados.cliente.id_client) {
