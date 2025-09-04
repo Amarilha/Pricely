@@ -45,29 +45,29 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface ServiceItem {
   id: string
-  quantidade: string
+  quantidade: number
   descricao: string
-  precoUnitario: string
+  precoUnitario: number
   totalItem: number
 }
 
 interface FixedCost {
-  id:string
+  id: string
   descricao: string
-  valor: string
+  valor: number
 }
 
 interface VariableCost {
   id: string
   categoria: string
   descricao: string
-  valor: string
+  valor: number
   unidade: string
-  quantidade: string
+  quantidade:number
   observacoes: string
-  pessoas?: string
-  horas?: string
-  valorHora?: string
+  pessoas?: number
+  horas?: number
+  valorHora?: number
 }
 
 interface Company {
@@ -123,17 +123,17 @@ interface QuoteData {
       estado: string
     }
   }
-  horasTrabalhadasMes: string
+  horasTrabalhadasMes: number
   custosFixos: FixedCost[]
   custosVariaveis: VariableCost[]
-  margemLucro: string
-  impostos: string
-  totalHours: string
+  margemLucro: number
+  impostos: number
+  totalHours: number
   incluirSalarios: boolean
   itens: ServiceItem[]
   formaPagamento: string
-  desconto: string
-  acrescimos: string
+  desconto: number
+  acrescimos: number
   condicoesPersonalizadas: string
 }
 
@@ -153,46 +153,124 @@ const TooltipHelper = ({ content, children }: { content: string; children: React
   </TooltipProvider>
 )
 
+const formatarMoeda = (valor: number) => {
+  if (!valor || isNaN(valor) || !isFinite(valor)) return "R$ 0,00"
+  try {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      minimumFractionDigits: 2,
+    })
+  } catch (error) {
+    return `R$ ${valor.toFixed(2).replace(".", ",")}`
+  }
+};
+
+interface CurrencyInputProps {
+  id: string;
+  value: number;
+  onChange: (value: number) => void;
+  disabled?: boolean;
+  className?: string;
+  placeholder?: string;
+}
+
+const CurrencyInput: React.FC<CurrencyInputProps> = ({ id, value, onChange, disabled, className, placeholder }) => {
+  const [displayValue, setDisplayValue] = useState(() => formatarMoeda(value));
+
+  useEffect(() => {
+    // Update display value only if the input is not focused
+    // to avoid disrupting user typing.
+    if (document.activeElement?.id !== id) {
+      setDisplayValue(formatarMoeda(value));
+    }
+  }, [value, id]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = inputValue.replace(/\D/g, '');
+    
+    // Update the parent component with the raw number value
+    const numberValue = Number(numericValue) / 100;
+    onChange(numberValue);
+
+    // Update the display value with the formatted string
+    const formattedValue = formatarMoeda(numberValue);
+    setDisplayValue(formattedValue);
+  };
+
+  return (
+    <Input
+      id={id}
+      type="text"
+      placeholder={placeholder}
+      className={className}
+      value={displayValue}
+      onChange={handleChange}
+      disabled={disabled}
+    />
+  );
+};
+
+const formatInteger = (value: number | string): string => {
+  const num = String(value).replace(/\D/g, '');
+  if (num === '') return '0';
+  return new Intl.NumberFormat('pt-BR').format(parseInt(num, 10));
+};
+
+interface NumberInputProps {
+  value: number;
+  onChange: (value: number) => void;
+  disabled?: boolean;
+  className?: string;
+  placeholder?: string;
+  min?: number;
+  max?: number;
+}
+
+const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, ...props }) => {
+  const [displayValue, setDisplayValue] = useState(() => formatInteger(value));
+
+  useEffect(() => {
+    if (String(value).replace(/\D/g, '') !== displayValue.replace(/\D/g, '')) {
+      setDisplayValue(formatInteger(value));
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    const numberValue = Number(rawValue);
+
+    if (!isNaN(numberValue)) {
+      if (props.max && numberValue > props.max) {
+        onChange(props.max);
+        setDisplayValue(formatInteger(props.max));
+      } else {
+        onChange(numberValue);
+        setDisplayValue(formatInteger(rawValue));
+      }
+    } else if (rawValue === '') {
+      onChange(0);
+      setDisplayValue('0');
+    }
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={displayValue}
+      onChange={handleChange}
+      {...props}
+    />
+  );
+};
+
+
 import { DateRangeProvider, useDateRange } from "@/components/calculadora-01/data-context";
 
 function ServiceQuoteGeneratorContent() {
   const { dateRange } = useDateRange();
-
-  const formatNumericInputValue = (value: string): string => {
-    // Garante que o valor não é nulo ou indefinido
-    if (value === null || value === undefined) {
-      return "0";
-    }
-  
-    // Converte para string e remove caracteres não numéricos, exceto o ponto decimal
-    let numericValue = String(value).replace(/[^0-9.]/g, '');
-  
-    // Garante que há apenas um ponto decimal
-    const parts = numericValue.split('.');
-    if (parts.length > 2) {
-      numericValue = parts[0] + '.' + parts.slice(1).join('');
-    }
-  
-    // Remove zeros à esquerda, exceto para valores como "0.5"
-    if (numericValue.length > 1 && numericValue.startsWith('0') && !numericValue.startsWith('0.')) {
-      numericValue = numericValue.replace(/^0+/, '');
-      if (numericValue.startsWith('.')) {
-        numericValue = '0' + numericValue;
-      }
-    }
-  
-    // Se o valor ficar vazio, retorna "0"
-    if (numericValue === '') {
-      return '0';
-    }
-  
-    // Se o valor for apenas um ponto, retorna "0."
-    if (numericValue === '.') {
-      return '0.';
-    }
-  
-    return numericValue;
-  };
 
   const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([])
   const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([])
@@ -274,25 +352,25 @@ function ServiceQuoteGeneratorContent() {
       documento: '',
       endereco: { rua: '', numero: '', cidade: '', estado: '' },
     },
-    horasTrabalhadasMes: '0',
+    horasTrabalhadasMes: 0,
     selectedDays: Array(7).fill(false),
     hoursPerDay: 8,
     dataInicio: '',
     dataFim: '',
-    totalHours: '0',
+    totalHours: 0,
     custosFixos: [
-      { id: '1', descricao: 'Aluguel/Financiamento', valor: '0' },
-      { id: '2', descricao: 'Internet/Telefone', valor: '0' },
-      { id: '3', descricao: 'Salários/Pró-labore', valor: '0' },
+      { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
+      { id: '2', descricao: 'Internet/Telefone', valor: 0 },
+      { id: '3', descricao: 'Salários/Pró-labore', valor: 0 },
     ],
     custosVariaveis: [],
-    margemLucro: '30',
-    impostos: '8',
+    margemLucro: 30,
+    impostos: 8,
     incluirSalarios: true,
     itens: [],
     formaPagamento: '',
-    desconto: '0',
-    acrescimos: '0',
+    desconto: 0,
+    acrescimos: 0,
     condicoesPersonalizadas: '',
   });
 
@@ -338,24 +416,24 @@ function ServiceQuoteGeneratorContent() {
     },
   })
 
-  const [salarioDesejado, setSalarioDesejado] = useState("5000");
-  const [duracaoProjeto, setDuracaoProjeto] = useState("40");
+  const [salarioDesejado, setSalarioDesejado] = useState(5000);
+  const [duracaoProjeto, setDuracaoProjeto] = useState(40);
   const [valorHora, setValorHora] = useState(0);
   const [selectedDays, setSelectedDays] = useState([false, true, true, true, true, true, false]); // Mon-Fri
-  const [hoursPerDay, setHoursPerDay] = useState("8");
+  const [hoursPerDay, setHoursPerDay] = useState(8);
 
   useEffect(() => {
-    const weeklyHours = selectedDays.filter(Boolean).length * Number(hoursPerDay);
+    const weeklyHours = selectedDays.filter(Boolean).length * hoursPerDay;
     const monthlyHours = weeklyHours * 4; // 4 weeks per month
     if (monthlyHours > 0) {
-      setValorHora(Number(salarioDesejado) / monthlyHours);
+      setValorHora(salarioDesejado / monthlyHours);
     } else {
       setValorHora(0);
     }
   }, [salarioDesejado, selectedDays, hoursPerDay]);
 
   const valorTotalProjeto = useMemo(() => {
-    return valorHora * Number(duracaoProjeto);
+    return valorHora * duracaoProjeto;
   }, [valorHora, duracaoProjeto]);
 
   const handleDateChange = (details: {
@@ -366,10 +444,10 @@ function ServiceQuoteGeneratorContent() {
     dailyHours: number;
   }) => {
     if (details.totalHours > 0) {
-      setDuracaoProjeto(String(details.totalHours));
+      setDuracaoProjeto(details.totalHours);
     }
     setSelectedDays(details.selectedDays);
-    setHoursPerDay(String(details.dailyHours));
+    setHoursPerDay(details.dailyHours);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -741,7 +819,7 @@ function ServiceQuoteGeneratorContent() {
     const novoId = Date.now().toString()
     setDados((prev) => ({
       ...prev,
-      custosFixos: [...prev.custosFixos, { id: novoId, descricao: "", valor: "0" }],
+      custosFixos: [...prev.custosFixos, { id: novoId, descricao: "", valor: 0 }],
     }))
   }, [])
 
@@ -770,8 +848,8 @@ function ServiceQuoteGeneratorContent() {
           id: novoId,
           categoria: "Material",
           descricao: "",
-          valor: "0",
-          quantidade: "1",
+          valor: 0,
+          quantidade: 0,
           unidade: "unidade",
           observacoes: "",
         },
@@ -798,14 +876,14 @@ function ServiceQuoteGeneratorContent() {
 
         if (campo === 'categoria') {
           if (valor === 'Equipe') {
-            custoAtualizado.pessoas = custoAtualizado.pessoas || "1";
-            custoAtualizado.horas = custoAtualizado.horas || "1";
-            custoAtualizado.valorHora = custoAtualizado.valorHora || "0";
+            custoAtualizado.pessoas = custoAtualizado.pessoas || 1;
+            custoAtualizado.horas = custoAtualizado.horas || 1;
+            custoAtualizado.valorHora = custoAtualizado.valorHora || 0;
             custoAtualizado.unidade = 'equipe';
-            custoAtualizado.quantidade = "1";
+            custoAtualizado.quantidade = 1;
           } else {
             custoAtualizado.unidade = 'unidade';
-            custoAtualizado.quantidade = "0";
+            custoAtualizado.quantidade = 0;
             delete custoAtualizado.pessoas;
             delete custoAtualizado.horas;
             delete custoAtualizado.valorHora;
@@ -816,8 +894,8 @@ function ServiceQuoteGeneratorContent() {
           const pessoas = Number(custoAtualizado.pessoas || 0);
           const horas = Number(custoAtualizado.horas || 0);
           const valorHora = Number(custoAtualizado.valorHora || 0);
-          custoAtualizado.valor = String(pessoas * horas * valorHora);
-          custoAtualizado.quantidade = "1";
+          custoAtualizado.valor = pessoas * horas * valorHora;
+          custoAtualizado.quantidade = 1;
         }
 
         return custoAtualizado;
@@ -830,7 +908,7 @@ function ServiceQuoteGeneratorContent() {
     const novoId = Date.now().toString()
     setDados((prev) => ({
       ...prev,
-      itens: [...prev.itens, { id: novoId, quantidade: "1", descricao: "", precoUnitario: "0", totalItem: 0 }],
+      itens: [...prev.itens, { id: novoId, quantidade: 1, descricao: "", precoUnitario: 0, totalItem: 0 }],
     }))
   }, [])
 
@@ -847,7 +925,7 @@ function ServiceQuoteGeneratorContent() {
         if (item.id === id) {
           const itemAtualizado = { ...item, [campo]: valor }
           if (campo === "quantidade" || campo === "precoUnitario") {
-            itemAtualizado.totalItem = Number(itemAtualizado.quantidade) * Number(itemAtualizado.precoUnitario)
+            itemAtualizado.totalItem = itemAtualizado.quantidade * itemAtualizado.precoUnitario
           }
           return itemAtualizado
         }
@@ -859,7 +937,7 @@ function ServiceQuoteGeneratorContent() {
 
   const handleRegimeTributarioChange = useCallback((value: "MEI" | "ME") => {
     setRegimeTributario(value)
-    const impostoRate = value === "MEI" ? "0" : "8" // 0 for MEI (fixed), 8% for ME
+    const impostoRate = value === "MEI" ? 0 : 8 // 0 for MEI (fixed), 8% for ME
     setDados((prev) => ({
       ...prev,
       impostos: impostoRate,
@@ -875,12 +953,12 @@ function ServiceQuoteGeneratorContent() {
       ) {
         return total
       }
-      return total + (Number(custo.valor) || 0)
+      return total + (custo.valor || 0)
     }, 0)
   }, [dados.custosFixos, dados.incluirSalarios])
 
   const calcularTotalCustosVariaveis = useMemo(() => {
-    return dados.custosVariaveis.reduce((total, custo) => total + ((Number(custo.valor) || 0)*(Number(custo.quantidade) || 0)), 0)
+    return dados.custosVariaveis.reduce((total, custo) => total + ((custo.valor || 0)*(custo.quantidade || 0)), 0)
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
@@ -899,7 +977,7 @@ function ServiceQuoteGeneratorContent() {
       }
     }
 
-    const monthlyTotalHours = workingDaysInMonth * Number(hoursPerDay);
+    const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
 
     return monthlyTotalHours > 0 
   ? Number((calcularTotalCustosFixos / 730).toFixed(2)) 
@@ -907,7 +985,7 @@ function ServiceQuoteGeneratorContent() {
   }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
 
   const calcularCustoOperacional = useMemo(() => {
-    const custoHora = calcularCustoHora * Number(duracaoProjeto)
+    const custoHora = calcularCustoHora * duracaoProjeto
     const custoVariaveis = calcularTotalCustosVariaveis
 
     return custoVariaveis + custoHora
@@ -923,7 +1001,7 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularLucro = useMemo(() => {
     const subtotal = calcularSubtotalGeral
-    return subtotal * ((Number(dados.margemLucro) || 0) / 100)
+    return subtotal * ((dados.margemLucro || 0) / 100)
   }, [calcularSubtotalGeral, dados.margemLucro])
 
   const calcularImpostos = useMemo(() => {
@@ -931,14 +1009,14 @@ function ServiceQuoteGeneratorContent() {
       return 80;
     }
     const subtotalComLucro = calcularSubtotalGeral + calcularLucro
-    return subtotalComLucro * ((Number(dados.impostos) || 0) / 100)
+    return subtotalComLucro * ((dados.impostos || 0) / 100)
   }, [regimeTributario, calcularSubtotalGeral, calcularLucro, dados.impostos])
 
   const calcularTotalFinal = useMemo(() => {
     const subtotal = calcularSubtotalGeral
     const lucro = calcularLucro
     const impostos = calcularImpostos
-    return subtotal + lucro + impostos - (Number(dados.desconto) || 0) + (Number(dados.acrescimos) || 0)
+    return subtotal + lucro + impostos - (dados.desconto || 0) + (dados.acrescimos || 0)
   }, [calcularSubtotalGeral, calcularLucro, calcularImpostos, dados.desconto, dados.acrescimos])
 
   // Função de formatação memoizada
@@ -1312,7 +1390,7 @@ function ServiceQuoteGeneratorContent() {
           <tr key="item-${index}">
             <td>${item.quantidade}</td>
             <td>${item.descricao}</td>
-            <td class="text-right">${formatarMoeda(Number(item.precoUnitario))}</td>
+            <td class="text-right">${formatarMoeda(item.precoUnitario)}</td>
             <td class="text-right">${formatarMoeda(item.totalItem)}</td>
           </tr>
         `).join('')}
@@ -1320,8 +1398,8 @@ function ServiceQuoteGeneratorContent() {
           <tr key="variavel-${index}" class="text-xs bg-gray-50">
             <td>${custo.quantidade} ${custo.unidade}</td>
             <td class="italic">${custo.descricao} (${custo.categoria})</td>
-            <td class="text-right">${formatarMoeda(Number(custo.valor))}</td>
-            <td class="text-right">${formatarMoeda(Number(custo.valor) * Number(custo.quantidade))}</td>
+            <td class="text-right">${formatarMoeda(custo.valor)}</td>
+            <td class="text-right">${formatarMoeda(custo.valor * custo.quantidade)}</td>
           </tr>
         `).join('')}
         ${Array.from({
@@ -1347,16 +1425,16 @@ function ServiceQuoteGeneratorContent() {
       </div>
       <div class="totals-breakdown">
         
-        ${Number(dados.desconto) > 0 ? `
+        ${dados.desconto > 0 ? `
         <div class="total-row">
           <span class="label">Desconto</span>
-          <span class="value negative">-${formatarMoeda(Number(dados.desconto))}</span>
+          <span class="value negative">-${formatarMoeda(dados.desconto)}</span>
         </div>
         ` : ''}
-        ${Number(dados.acrescimos) > 0 ? `
+        ${dados.acrescimos > 0 ? `
         <div class="total-row">
           <span class="label">Acréscimos</span>
-          <span class="value positive">+${formatarMoeda(Number(dados.acrescimos))}</span>
+          <span class="value positive">+${formatarMoeda(dados.acrescimos)}</span>
         </div>
         ` : ''}
         <div class="total-row final">
@@ -2110,14 +2188,9 @@ function ServiceQuoteGeneratorContent() {
                             <TooltipHelper content="Percentual de lucro que você deseja obter sobre os custos. Recomendado: 25% ou mais">
                               <Label htmlFor="margem-lucro">Margem de Lucro (%)</Label>
                             </TooltipHelper>
-                            <Input
-                              id="margem-lucro"
-                              type="text"
+                            <NumberInput
                               value={dados.margemLucro}
-                              onChange={(e) => {
-                                const formattedValue = formatNumericInputValue(e.target.value);
-                                setDados((prev) => ({ ...prev, margemLucro: formattedValue }));
-                              }}
+                              onChange={(newValue) => setDados((prev) => ({ ...prev, margemLucro: newValue }))}
                             />
                           </div>
                           <div>
@@ -2137,15 +2210,9 @@ function ServiceQuoteGeneratorContent() {
                             {regimeTributario === 'ME' && (
                                 <div className="mt-2">
                                     <Label htmlFor="impostos">Impostos (%)</Label>
-                                    <Input
-                                        id="impostos"
-                                        type="text"
-                                        step="0.1"
+                                    <NumberInput
                                         value={dados.impostos}
-                                        onChange={(e) => {
-                                          const formattedValue = formatNumericInputValue(e.target.value);
-                                          setDados((prev) => ({ ...prev, impostos: formattedValue }));
-                                        }}
+                                        onChange={(newValue) => setDados((prev) => ({ ...prev, impostos: newValue }))}
                                     />
                                 </div>
                             )}
@@ -2153,7 +2220,7 @@ function ServiceQuoteGeneratorContent() {
                             <p className="text-xs text-gray-500 mt-1">
                               Imposto a ser calculado:{" "}
                               <strong>
-                                {regimeTributario === 'MEI' ? formatarMoeda(80) : `${Number(dados.impostos)}% sobre o faturamento`}
+                                {regimeTributario === 'MEI' ? formatarMoeda(80) : `${dados.impostos}% sobre o faturamento`}
                               </strong>
                             </p>
                           </div>
@@ -2228,15 +2295,13 @@ function ServiceQuoteGeneratorContent() {
                                   />
                                 </div>
                                 <div className="w-32">
-                                  <Input
-                                    type="text"
-                                    placeholder="R$ 0,00"
+                                  <CurrencyInput
+                                    id={`custo-fixo-valor-${custo.id}`}
                                     value={custo.valor}
-                                    onChange={(e) => {
-                                      const formattedValue = formatNumericInputValue(e.target.value);
-                                      atualizarCustoFixo(custo.id, "valor", formattedValue);
-                                    }}
+                                    onChange={(newValue) => atualizarCustoFixo(custo.id, "valor", newValue)}
                                     disabled={isExcluded}
+                                    placeholder="R$ 0,00"
+                                    className="w-32"
                                   />
                                 </div>
                                 <Button variant="destructive" size="sm" onClick={() => removerCustoFixo(custo.id)}>
@@ -2329,14 +2394,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Número de pessoas na equipe">
                                           <Label className="text-xs">Nº Pessoas</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <NumberInput
                                           className="h-8"
-                                          type="text"
+                                          min={1}
                                           placeholder="1"
-                                          value={custo.pessoas}
-                                          onChange={(e) => {
-                                            const formattedValue = formatNumericInputValue(e.target.value);
-                                            atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, formattedValue);
+                                          value={custo.pessoas || 0}
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, newValue);
                                           }}
                                         />
                                       </div>
@@ -2344,14 +2408,14 @@ function ServiceQuoteGeneratorContent() {
                                       <TooltipHelper content="Total de horas trabalhadas pela equipe">
                                         <Label className="text-xs">Horas</Label>
                                       </TooltipHelper>
-                                      <Input
+                                      <NumberInput
                                         className="h-8"
-                                        type="text"
+                                        min={0}
+                                        max={24}
                                         placeholder="0"
-                                        value={custo.horas}
-                                        onChange={(e) => {
-                                          const formattedValue = formatNumericInputValue(e.target.value);
-                                          atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, formattedValue);
+                                        value={custo.horas || 0}
+                                        onChange={(newValue) => {
+                                          atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, newValue);
                                         }}
                                       />
                                       </div>
@@ -2359,14 +2423,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Valor por hora de cada membro da equipe">
                                           <Label className="text-xs">Valor/Hora (R$)</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <CurrencyInput
+                                          id={`custo-variavel-valor-hora-${custo.id}`}
                                           className="h-8"
-                                          type="text"
                                           placeholder="0,00"
-                                          value={custo.valorHora}
-                                          onChange={(e) => {
-                                            const formattedValue = formatNumericInputValue(e.target.value);
-                                            atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, formattedValue);
+                                          value={custo.valorHora || 0}
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, newValue);
                                           }}
                                         />
                                       </div>
@@ -2377,14 +2440,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Valor unitário ou total do custo">
                                           <Label className="text-xs">Valor (R$)</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <CurrencyInput
+                                          id={`custo-variavel-valor-${custo.id}`}
                                           className="h-8"
-                                          type="text"
                                           placeholder="0,00"
                                           value={custo.valor}
-                                          onChange={(e) => {
-                                            const formattedValue = formatNumericInputValue(e.target.value);
-                                            atualizarCustoVariavel(custo.id, "valor", formattedValue);
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "valor", newValue);
                                           }}
                                         />
                                       </div>
@@ -2392,14 +2454,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Quantidade total">
                                           <Label className="text-xs">QT</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <NumberInput
                                           className="h-8"
-                                          type="text"
+                                          min={0}
                                           placeholder="0,00"
                                           value={custo.quantidade}
-                                          onChange={(e) => {
-                                            const formattedValue = formatNumericInputValue(e.target.value);
-                                            atualizarCustoVariavel(custo.id, "quantidade", formattedValue);
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "quantidade", newValue);
                                           }}
                                         />
                                       </div>
@@ -2610,28 +2671,20 @@ function ServiceQuoteGeneratorContent() {
                             <TooltipHelper content="Valor de desconto a ser aplicado no total final">
                               <Label htmlFor="desconto">Desconto</Label>
                             </TooltipHelper>
-                            <Input
+                            <CurrencyInput
                               id="desconto"
-                              type="text"
                               value={dados.desconto}
-                              onChange={(e) => {
-                                const formattedValue = formatNumericInputValue(e.target.value);
-                                setDados((prev) => ({ ...prev, desconto: formattedValue }));
-                              }}
+                              onChange={(newValue) => setDados((prev) => ({ ...prev, desconto: newValue }))}
                             />
                           </div>
                           <div>
                             <TooltipHelper content="Valores extras a serem adicionados (urgência, complexidade, etc.)">
                               <Label htmlFor="acrescimos">Acréscimos</Label>
                             </TooltipHelper>
-                            <Input
+                            <CurrencyInput
                               id="acrescimos"
-                              type="text"
                               value={dados.acrescimos}
-                              onChange={(e) => {
-                                const formattedValue = formatNumericInputValue(e.target.value);
-                                setDados((prev) => ({ ...prev, acrescimos: formattedValue }));
-                              }}
+                              onChange={(newValue) => setDados((prev) => ({ ...prev, acrescimos: newValue }))}
                             />
                           </div>
                         </CardContent>
