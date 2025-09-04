@@ -38,6 +38,8 @@ import {stateAuth} from "@/app/src/services/estadoAuth"
 import { DateRangeSelector } from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 import { Checkbox } from "@/components/ui/checkbox";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
@@ -950,430 +952,41 @@ function ServiceQuoteGeneratorContent() {
 
   // Enhanced PDF generation function
   const gerarPDF = useCallback(() => {
-    const conteudoOrcamento = document.getElementById("service-quote-pdf")
-    if (!conteudoOrcamento) {
-      alert("Erro: Conteúdo do orçamento não encontrado")
-      return
-    }
+    const quoteElement = document.getElementById('service-quote-pdf');
+    if (quoteElement) {
+      html2canvas(quoteElement, {
+        scale: 2,
+        useCORS: true,
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // Create optimized PDF content
-  const pdfContent = `
-  <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orçamento - ${dados.numeroOrdem}</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact !important;
-      color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const canvasRatio = canvasWidth / canvasHeight;
 
-    body {
-      font-family: Arial, Helvetica, sans-serif !important;
-      line-height: 1.4;
-      color: #000;
-      background: white !important;
-      padding: 20px;
-    }
+        const pdfRatio = pdfWidth / pdfHeight;
 
-    .pdf-container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-    }
-    
-    .pdf-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #d1d5db;
-      margin-bottom: 16px;
-    }
-    .company-info {
-      display: flex;
-      align-items: center;
-    }
-    .company-logo {
-      background-color: #9333ea !important;
-      color: white !important;
-      font-weight: bold;
-      font-size: 24px;
-      width: 80px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      margin-right: 16px;
-    }
-    .company-details h2 {
-      font-size: 20px;
-      font-weight: bold;
-      color: #1f2937;
-      margin-bottom: 4px;
-    }
-    .company-details p {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 2px;
-    }
-    .order-info {
-      text-align: right;
-    }
-    .order-info h1 {
-      font-size: 28px;
-      font-weight: bold;
-      color: #1f2937;
-      margin-bottom: 8px;
-    }
-    .order-details {
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      padding: 8px;
-      background: #f9fafb;
-    }
-    .order-details p {
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin: 16px 0;
-    }
-    .info-card {
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .info-card-header {
-      background-color: #9333ea !important;
-      color: white !important;
-      padding: 8px;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .info-card-content {
-      padding: 12px;
-      font-size: 14px;
-      color: #374151;
-    }
-    .info-card-content p {
-      margin-bottom: 4px;
-    }
-    .items-table {
-      width: 100%;
-      border-collapse: collapse !important;
-      margin: 24px 0;
-    }
-    .items-table th,
-    .items-table td {
-      border: 1px solid #d1d5db !important;
-      padding: 8px !important;
-      text-align: left;
-    }
-    .items-table th {
-      background-color: #9333ea !important;
-      color: white !important;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .items-table td {
-      font-size: 14px;
-      color: #374151;
-    }
-    .items-table .text-right {
-      text-align: right;
-    }
-    .totals-section {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin: 16px 0;
-      align-items: start;
-    }
-    .payment-info {
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      height: fit-content;
-    }
-    .totals-breakdown {
-      space-y: 8px;
-    }
-    .total-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px;
-      border-radius: 4px;
-    }
-    .total-row.subtotal {
-      background-color: #f3f4f6;
-    }
-    .total-row.final {
-      background-color: #e5e7eb;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    .total-row .label {
-      font-weight: 600;
-      color: #6b7280;
-    }
-    .total-row .value {
-      font-weight: 600;
-    }
-    .value.positive {
-      color: #16a34a;
-    }
-    .value.negative {
-      color: #dc2626;
-    }
-    .value.final {
-      color: #16a34a;
-      font-size: 18px;
-    }
-    .signatures {
-      margin-top: 32px;
-      padding-top: 16px;
-    }
-    .signatures-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      margin-top: 32px;
-    }
-    .signature-line {
-      text-align: center;
-      border-top: 1px solid #9ca3af;
-      padding-top: 8px;
-      font-weight: 600;
-    }
-    .footer-brand {
-      text-align: center;
-      margin-top: 32px;
-    }
-    .footer-brand p {
-      background-color: #9333ea !important;
-      color: white !important;
-      font-weight: bold;
-      padding: 8px 16px;
-      border-radius: 4px;
-      display: inline-block;
-    }
-    .variable-costs-detail {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-    .controls {
-      text-align: center;
-      margin: 20px 0;
-      padding: 20px;
-      border-top: 2px solid #e5e7eb;
-    }
-    .btn {
-      background: #9333ea;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      margin: 0 8px;
-      font-family: Arial, sans-serif;
-    }
-    .btn:hover {
-      background: #7c3aed;
-    }
-    .btn-secondary {
-      background: #6b7280;
-    }
-    .btn-secondary:hover {
-      background: #4b5563;
-    }
-    @media print {
-      .controls {
-        display: none !important;
-      }
-      body {
-        padding: 0 !important;
-      }
-      .pdf-container {
-        max-width: none !important;
-      }
-    }
-    @page {
-      size: A4;
-      margin: 0.5in;
-    }
-  </style>
-</head>
-<body>
-  <div class="pdf-container">
-    <!-- Header -->
-    <div class="pdf-header">
-      <div class="company-info">
-        <div class="company-logo">
-          ${dados.empresa.logoChar || "XX"}
-        </div>
-        <div class="company-details">
-          <h2>${dados.empresa.nome || "Nome da Empresa"}</h2>
-          <p>CNPJ ${dados.empresa.cnpj || "00.000.000/0000-00"}</p>
-          <p>${dados.empresa.endereco_rua || "Rua"}, ${dados.empresa.endereco_numero || "Número"}</p>
-          <p>${dados.empresa.endereco_cidade || "Cidade"}, ${dados.empresa.endereco_estado || "Estado"}</p>
-          <p>Telefone ${dados.empresa.telefone || "(00) 0000-0000"}</p>
-        </div>
-      </div>
-      <div class="order-info">
-        <h1>ORÇAMENTO</h 1>
-        <div class="order-details">
-          <p><strong>Ordem nº:</strong> ${dados.numeroOrdem}</p>
-          <p><strong>Data:</strong> ${formatarData(dados.data || '')}</p>
-        </div>
-      </div>
-    </div>
+        let finalWidth, finalHeight;
 
-    <!-- Client and Billing Information -->
-    <div class="info-grid">
-      <div class="info-card">
-        <div class="info-card-header">Cliente</div>
-        <div class="info-card-content">
-          <p><strong>Nome:</strong> ${dados.cliente.nome || "Nome do Cliente"}</p>
-          <p><strong>${dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> ${dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "000.000.000-00" : "00.000.000/0000-00")}</p>
-          <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Rua"}, ${dados.cliente.endereco_numero || "Número"} - ${dados.cliente.endereco_cidade || "Cidade"}, ${dados.cliente.endereco_estado || "Estado"}</p>
-          <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-header">Descrição do serviço</div>
-        <div class="info-card-content">
-          <p>${dados.descricaoServico || "Descrição do serviço"}</p>
-        </div>
-      </div>
-    </div>
+        if (canvasRatio > pdfRatio) {
+            finalWidth = pdfWidth;
+            finalHeight = pdfWidth / canvasRatio;
+        } else {
+            finalHeight = pdfHeight;
+            finalWidth = pdfHeight * canvasRatio;
+        }
 
-    <!-- Items Table -->
-    <table class="items-table">
-      <thead>
-        <tr>
-          <th>Quantidade</th>
-          <th>Produto utilizado ou Serviço Prestado</th>
-          <th class="text-right">Preço Unitário</th>
-          <th class="text-right">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${dados.itens.map((item, index) => `
-          <tr key="item-${index}">
-            <td>${item.quantidade}</td>
-            <td>${item.descricao}</td>
-            <td class="text-right">${formatarMoeda(item.precoUnitario)}</td>
-            <td class="text-right">${formatarMoeda(item.totalItem)}</td>
-          </tr>
-        `).join('')}
-        ${dados.custosVariaveis.map((custo, index) => `
-          <tr key="variavel-${index}" class="text-xs bg-gray-50">
-            <td>${custo.quantidade} ${custo.unidade}</td>
-            <td class="italic">${custo.descricao} (${custo.categoria})</td>
-            <td class="text-right">${formatarMoeda(custo.valor)}</td>
-            <td class="text-right">${formatarMoeda(custo.valor * custo.quantidade)}</td>
-          </tr>
-        `).join('')}
-        ${Array.from({
-          length: Math.max(0, 4 - dados.itens.length - (dados.custosFixos.length + dados.custosVariaveis.length)),
-        }).map((_, index) => `
-          <tr key="empty-${index}" style="height: 32px;">
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
+        const x = (pdfWidth - finalWidth) / 2;
+        const y = (pdfHeight - finalHeight) / 2;
 
-    <!-- Payment and Totals -->
-    <div class="totals-section">
-      <div class="payment-info">
-        <div class="info-card-header">Forma de pagamento</div>
-        <div class="info-card-content">
-          <p>${dados.formaPagamento || "Forma de pagamento"}</p>
-        </div>
-      </div>
-      <div class="totals-breakdown">
-        
-        ${dados.desconto > 0 ? `
-        <div class="total-row">
-          <span class="label">Desconto</span>
-          <span class="value negative">-${formatarMoeda(dados.desconto)}</span>
-        </div>
-        ` : ''}
-        ${dados.acrescimos > 0 ? `
-        <div class="total-row">
-          <span class="label">Acréscimos</span>
-          <span class="value positive">+${formatarMoeda(dados.acrescimos)}</span>
-        </div>
-        ` : ''}
-        <div class="total-row final">
-          <span class="label">TOTAL</span>
-          <span class="value final">${formatarMoeda(calcularTotalFinal)}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer-brand">
-      <p>nexprice.com.br</p>
-    </div>
-  </div>
-
-  <script>
-    // Auto-focus for better UX
-    window.onload = function() {
-      document.body.focus();
+        pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+        pdf.save(`Orcamento_${dados.numeroOrdem}.pdf`);
+      });
     }
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      if (e.ctrlKey && e.key === 'p') {
-        e.preventDefault();
-        window.print();
-      }
-      if (e.key === 'Escape') {
-        window.close();
-      }
-    });
-  </script>
-</body>
-</html>
-  `
-
-    // Open new window with PDF content
-    const pdfWindow = window.open("", "_blank", "width=900,height=700,scrollbars=yes,resizable=yes")
-    if (pdfWindow) {
-      pdfWindow.document.write(pdfContent)
-      pdfWindow.document.close()
-      pdfWindow.focus()
-    } else {
-      alert("Por favor, permita pop-ups para gerar o PDF")
-    }
-  }, [
-    dados,
-    calcularCustoOperacional,
-    calcularSubtotalGeral,
-    calcularLucro,
-    calcularImpostos,
-    calcularTotalFinal,
-    formatarMoeda,
-    formatarData,
-  ])
+  }, [dados]);
 
   const handleSaveOrcamento = async () => {
     if (!dados.empresa.id_company || !dados.cliente.id_client) {
