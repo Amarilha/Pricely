@@ -38,8 +38,6 @@ import {stateAuth} from "@/app/src/services/estadoAuth"
 import { DateRangeSelector } from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 import { Checkbox } from "@/components/ui/checkbox";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
@@ -47,29 +45,29 @@ import html2canvas from "html2canvas";
 
 interface ServiceItem {
   id: string
-  quantidade: number
+  quantidade: string
   descricao: string
-  precoUnitario: number
+  precoUnitario: string
   totalItem: number
 }
 
 interface FixedCost {
-  id: string
+  id:string
   descricao: string
-  valor: number
+  valor: string
 }
 
 interface VariableCost {
   id: string
   categoria: string
   descricao: string
-  valor: number
+  valor: string
   unidade: string
-  quantidade:number
+  quantidade: string
   observacoes: string
-  pessoas?: number
-  horas?: number
-  valorHora?: number
+  pessoas?: string
+  horas?: string
+  valorHora?: string
 }
 
 interface Company {
@@ -125,17 +123,17 @@ interface QuoteData {
       estado: string
     }
   }
-  horasTrabalhadasMes: number
+  horasTrabalhadasMes: string
   custosFixos: FixedCost[]
   custosVariaveis: VariableCost[]
-  margemLucro: number
-  impostos: number
-  totalHours: number
+  margemLucro: string
+  impostos: string
+  totalHours: string
   incluirSalarios: boolean
   itens: ServiceItem[]
   formaPagamento: string
-  desconto: number
-  acrescimos: number
+  desconto: string
+  acrescimos: string
   condicoesPersonalizadas: string
 }
 
@@ -159,6 +157,43 @@ import { DateRangeProvider, useDateRange } from "@/components/calculadora-01/dat
 
 function ServiceQuoteGeneratorContent() {
   const { dateRange } = useDateRange();
+
+  const formatNumericInputValue = (value: string): string => {
+    // Garante que o valor não é nulo ou indefinido
+    if (value === null || value === undefined) {
+      return "0";
+    }
+  
+    // Converte para string e remove caracteres não numéricos, exceto o ponto decimal
+    let numericValue = String(value).replace(/[^0-9.]/g, '');
+  
+    // Garante que há apenas um ponto decimal
+    const parts = numericValue.split('.');
+    if (parts.length > 2) {
+      numericValue = parts[0] + '.' + parts.slice(1).join('');
+    }
+  
+    // Remove zeros à esquerda, exceto para valores como "0.5"
+    if (numericValue.length > 1 && numericValue.startsWith('0') && !numericValue.startsWith('0.')) {
+      numericValue = numericValue.replace(/^0+/, '');
+      if (numericValue.startsWith('.')) {
+        numericValue = '0' + numericValue;
+      }
+    }
+  
+    // Se o valor ficar vazio, retorna "0"
+    if (numericValue === '') {
+      return '0';
+    }
+  
+    // Se o valor for apenas um ponto, retorna "0."
+    if (numericValue === '.') {
+      return '0.';
+    }
+  
+    return numericValue;
+  };
+
   const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([])
   const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([])
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
@@ -239,25 +274,25 @@ function ServiceQuoteGeneratorContent() {
       documento: '',
       endereco: { rua: '', numero: '', cidade: '', estado: '' },
     },
-    horasTrabalhadasMes: 0,
+    horasTrabalhadasMes: '0',
     selectedDays: Array(7).fill(false),
     hoursPerDay: 8,
     dataInicio: '',
     dataFim: '',
-    totalHours: 0,
+    totalHours: '0',
     custosFixos: [
-      { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
-      { id: '2', descricao: 'Internet/Telefone', valor: 0 },
-      { id: '3', descricao: 'Salários/Pró-labore', valor: 0 },
+      { id: '1', descricao: 'Aluguel/Financiamento', valor: '0' },
+      { id: '2', descricao: 'Internet/Telefone', valor: '0' },
+      { id: '3', descricao: 'Salários/Pró-labore', valor: '0' },
     ],
     custosVariaveis: [],
-    margemLucro: 30,
-    impostos: 8,
+    margemLucro: '30',
+    impostos: '8',
     incluirSalarios: true,
     itens: [],
     formaPagamento: '',
-    desconto: 0,
-    acrescimos: 0,
+    desconto: '0',
+    acrescimos: '0',
     condicoesPersonalizadas: '',
   });
 
@@ -303,24 +338,24 @@ function ServiceQuoteGeneratorContent() {
     },
   })
 
-  const [salarioDesejado, setSalarioDesejado] = useState(5000);
-  const [duracaoProjeto, setDuracaoProjeto] = useState(40);
+  const [salarioDesejado, setSalarioDesejado] = useState("5000");
+  const [duracaoProjeto, setDuracaoProjeto] = useState("40");
   const [valorHora, setValorHora] = useState(0);
   const [selectedDays, setSelectedDays] = useState([false, true, true, true, true, true, false]); // Mon-Fri
-  const [hoursPerDay, setHoursPerDay] = useState(8);
+  const [hoursPerDay, setHoursPerDay] = useState("8");
 
   useEffect(() => {
-    const weeklyHours = selectedDays.filter(Boolean).length * hoursPerDay;
+    const weeklyHours = selectedDays.filter(Boolean).length * Number(hoursPerDay);
     const monthlyHours = weeklyHours * 4; // 4 weeks per month
     if (monthlyHours > 0) {
-      setValorHora(salarioDesejado / monthlyHours);
+      setValorHora(Number(salarioDesejado) / monthlyHours);
     } else {
       setValorHora(0);
     }
   }, [salarioDesejado, selectedDays, hoursPerDay]);
 
   const valorTotalProjeto = useMemo(() => {
-    return valorHora * duracaoProjeto;
+    return valorHora * Number(duracaoProjeto);
   }, [valorHora, duracaoProjeto]);
 
   const handleDateChange = (details: {
@@ -331,10 +366,10 @@ function ServiceQuoteGeneratorContent() {
     dailyHours: number;
   }) => {
     if (details.totalHours > 0) {
-      setDuracaoProjeto(details.totalHours);
+      setDuracaoProjeto(String(details.totalHours));
     }
     setSelectedDays(details.selectedDays);
-    setHoursPerDay(details.dailyHours);
+    setHoursPerDay(String(details.dailyHours));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -706,7 +741,7 @@ function ServiceQuoteGeneratorContent() {
     const novoId = Date.now().toString()
     setDados((prev) => ({
       ...prev,
-      custosFixos: [...prev.custosFixos, { id: novoId, descricao: "", valor: 0 }],
+      custosFixos: [...prev.custosFixos, { id: novoId, descricao: "", valor: "0" }],
     }))
   }, [])
 
@@ -735,8 +770,8 @@ function ServiceQuoteGeneratorContent() {
           id: novoId,
           categoria: "Material",
           descricao: "",
-          valor: 0,
-          quantidade: 0,
+          valor: "0",
+          quantidade: "1",
           unidade: "unidade",
           observacoes: "",
         },
@@ -763,14 +798,14 @@ function ServiceQuoteGeneratorContent() {
 
         if (campo === 'categoria') {
           if (valor === 'Equipe') {
-            custoAtualizado.pessoas = custoAtualizado.pessoas || 1;
-            custoAtualizado.horas = custoAtualizado.horas || 1;
-            custoAtualizado.valorHora = custoAtualizado.valorHora || 0;
+            custoAtualizado.pessoas = custoAtualizado.pessoas || "1";
+            custoAtualizado.horas = custoAtualizado.horas || "1";
+            custoAtualizado.valorHora = custoAtualizado.valorHora || "0";
             custoAtualizado.unidade = 'equipe';
-            custoAtualizado.quantidade = 1;
+            custoAtualizado.quantidade = "1";
           } else {
             custoAtualizado.unidade = 'unidade';
-            custoAtualizado.quantidade = 0;
+            custoAtualizado.quantidade = "0";
             delete custoAtualizado.pessoas;
             delete custoAtualizado.horas;
             delete custoAtualizado.valorHora;
@@ -781,8 +816,8 @@ function ServiceQuoteGeneratorContent() {
           const pessoas = Number(custoAtualizado.pessoas || 0);
           const horas = Number(custoAtualizado.horas || 0);
           const valorHora = Number(custoAtualizado.valorHora || 0);
-          custoAtualizado.valor = pessoas * horas * valorHora;
-          custoAtualizado.quantidade = 1;
+          custoAtualizado.valor = String(pessoas * horas * valorHora);
+          custoAtualizado.quantidade = "1";
         }
 
         return custoAtualizado;
@@ -795,7 +830,7 @@ function ServiceQuoteGeneratorContent() {
     const novoId = Date.now().toString()
     setDados((prev) => ({
       ...prev,
-      itens: [...prev.itens, { id: novoId, quantidade: 1, descricao: "", precoUnitario: 0, totalItem: 0 }],
+      itens: [...prev.itens, { id: novoId, quantidade: "1", descricao: "", precoUnitario: "0", totalItem: 0 }],
     }))
   }, [])
 
@@ -812,7 +847,7 @@ function ServiceQuoteGeneratorContent() {
         if (item.id === id) {
           const itemAtualizado = { ...item, [campo]: valor }
           if (campo === "quantidade" || campo === "precoUnitario") {
-            itemAtualizado.totalItem = itemAtualizado.quantidade * itemAtualizado.precoUnitario
+            itemAtualizado.totalItem = Number(itemAtualizado.quantidade) * Number(itemAtualizado.precoUnitario)
           }
           return itemAtualizado
         }
@@ -824,7 +859,7 @@ function ServiceQuoteGeneratorContent() {
 
   const handleRegimeTributarioChange = useCallback((value: "MEI" | "ME") => {
     setRegimeTributario(value)
-    const impostoRate = value === "MEI" ? 0 : 8 // 0 for MEI (fixed), 8% for ME
+    const impostoRate = value === "MEI" ? "0" : "8" // 0 for MEI (fixed), 8% for ME
     setDados((prev) => ({
       ...prev,
       impostos: impostoRate,
@@ -840,12 +875,12 @@ function ServiceQuoteGeneratorContent() {
       ) {
         return total
       }
-      return total + (custo.valor || 0)
+      return total + (Number(custo.valor) || 0)
     }, 0)
   }, [dados.custosFixos, dados.incluirSalarios])
 
   const calcularTotalCustosVariaveis = useMemo(() => {
-    return dados.custosVariaveis.reduce((total, custo) => total + ((custo.valor || 0)*(custo.quantidade || 0)), 0)
+    return dados.custosVariaveis.reduce((total, custo) => total + ((Number(custo.valor) || 0)*(Number(custo.quantidade) || 0)), 0)
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
@@ -864,7 +899,7 @@ function ServiceQuoteGeneratorContent() {
       }
     }
 
-    const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
+    const monthlyTotalHours = workingDaysInMonth * Number(hoursPerDay);
 
     return monthlyTotalHours > 0 
   ? Number((calcularTotalCustosFixos / 730).toFixed(2)) 
@@ -872,7 +907,7 @@ function ServiceQuoteGeneratorContent() {
   }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
 
   const calcularCustoOperacional = useMemo(() => {
-    const custoHora = calcularCustoHora * duracaoProjeto
+    const custoHora = calcularCustoHora * Number(duracaoProjeto)
     const custoVariaveis = calcularTotalCustosVariaveis
 
     return custoVariaveis + custoHora
@@ -888,7 +923,7 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularLucro = useMemo(() => {
     const subtotal = calcularSubtotalGeral
-    return subtotal * ((dados.margemLucro || 0) / 100)
+    return subtotal * ((Number(dados.margemLucro) || 0) / 100)
   }, [calcularSubtotalGeral, dados.margemLucro])
 
   const calcularImpostos = useMemo(() => {
@@ -896,14 +931,14 @@ function ServiceQuoteGeneratorContent() {
       return 80;
     }
     const subtotalComLucro = calcularSubtotalGeral + calcularLucro
-    return subtotalComLucro * ((dados.impostos || 0) / 100)
+    return subtotalComLucro * ((Number(dados.impostos) || 0) / 100)
   }, [regimeTributario, calcularSubtotalGeral, calcularLucro, dados.impostos])
 
   const calcularTotalFinal = useMemo(() => {
     const subtotal = calcularSubtotalGeral
     const lucro = calcularLucro
     const impostos = calcularImpostos
-    return subtotal + lucro + impostos - (dados.desconto || 0) + (dados.acrescimos || 0)
+    return subtotal + lucro + impostos - (Number(dados.desconto) || 0) + (Number(dados.acrescimos) || 0)
   }, [calcularSubtotalGeral, calcularLucro, calcularImpostos, dados.desconto, dados.acrescimos])
 
   // Função de formatação memoizada
@@ -952,41 +987,430 @@ function ServiceQuoteGeneratorContent() {
 
   // Enhanced PDF generation function
   const gerarPDF = useCallback(() => {
-    const quoteElement = document.getElementById('service-quote-pdf');
-    if (quoteElement) {
-      html2canvas(quoteElement, {
-        scale: 2,
-        useCORS: true,
-      }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const canvasRatio = canvasWidth / canvasHeight;
-
-        const pdfRatio = pdfWidth / pdfHeight;
-
-        let finalWidth, finalHeight;
-
-        if (canvasRatio > pdfRatio) {
-            finalWidth = pdfWidth;
-            finalHeight = pdfWidth / canvasRatio;
-        } else {
-            finalHeight = pdfHeight;
-            finalWidth = pdfHeight * canvasRatio;
-        }
-
-        const x = (pdfWidth - finalWidth) / 2;
-        const y = (pdfHeight - finalHeight) / 2;
-
-        pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
-        pdf.save(`Orcamento_${dados.numeroOrdem}.pdf`);
-      });
+    const conteudoOrcamento = document.getElementById("service-quote-pdf")
+    if (!conteudoOrcamento) {
+      alert("Erro: Conteúdo do orçamento não encontrado")
+      return
     }
-  }, [dados]);
+
+    // Create optimized PDF content
+  const pdfContent = `
+  <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orçamento - ${dados.numeroOrdem}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif !important;
+      line-height: 1.4;
+      color: #000;
+      background: white !important;
+      padding: 20px;
+    }
+
+    .pdf-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+    }
+    
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #d1d5db;
+      margin-bottom: 16px;
+    }
+    .company-info {
+      display: flex;
+      align-items: center;
+    }
+    .company-logo {
+      background-color: #9333ea !important;
+      color: white !important;
+      font-weight: bold;
+      font-size: 24px;
+      width: 80px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      margin-right: 16px;
+    }
+    .company-details h2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+    .company-details p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+    .order-info {
+      text-align: right;
+    }
+    .order-info h1 {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    .order-details {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 8px;
+      background: #f9fafb;
+    }
+    .order-details p {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .info-card {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .info-card-header {
+      background-color: #9333ea !important;
+      color: white !important;
+      padding: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .info-card-content {
+      padding: 12px;
+      font-size: 14px;
+      color: #374151;
+    }
+    .info-card-content p {
+      margin-bottom: 4px;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse !important;
+      margin: 24px 0;
+    }
+    .items-table th,
+    .items-table td {
+      border: 1px solid #d1d5db !important;
+      padding: 8px !important;
+      text-align: left;
+    }
+    .items-table th {
+      background-color: #9333ea !important;
+      color: white !important;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .items-table td {
+      font-size: 14px;
+      color: #374151;
+    }
+    .items-table .text-right {
+      text-align: right;
+    }
+    .totals-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+      align-items: start;
+    }
+    .payment-info {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      height: fit-content;
+    }
+    .totals-breakdown {
+      space-y: 8px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .total-row.subtotal {
+      background-color: #f3f4f6;
+    }
+    .total-row.final {
+      background-color: #e5e7eb;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .total-row .label {
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .total-row .value {
+      font-weight: 600;
+    }
+    .value.positive {
+      color: #16a34a;
+    }
+    .value.negative {
+      color: #dc2626;
+    }
+    .value.final {
+      color: #16a34a;
+      font-size: 18px;
+    }
+    .signatures {
+      margin-top: 32px;
+      padding-top: 16px;
+    }
+    .signatures-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 32px;
+    }
+    .signature-line {
+      text-align: center;
+      border-top: 1px solid #9ca3af;
+      padding-top: 8px;
+      font-weight: 600;
+    }
+    .footer-brand {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .footer-brand p {
+      background-color: #9333ea !important;
+      color: white !important;
+      font-weight: bold;
+      padding: 8px 16px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .variable-costs-detail {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .controls {
+      text-align: center;
+      margin: 20px 0;
+      padding: 20px;
+      border-top: 2px solid #e5e7eb;
+    }
+    .btn {
+      background: #9333ea;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 0 8px;
+      font-family: Arial, sans-serif;
+    }
+    .btn:hover {
+      background: #7c3aed;
+    }
+    .btn-secondary {
+      background: #6b7280;
+    }
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+    @media print {
+      .controls {
+        display: none !important;
+      }
+      body {
+        padding: 0 !important;
+      }
+      .pdf-container {
+        max-width: none !important;
+      }
+    }
+    @page {
+      size: A4;
+      margin: 0.5in;
+    }
+  </style>
+</head>
+<body>
+  <div class="pdf-container">
+    <!-- Header -->
+    <div class="pdf-header">
+      <div class="company-info">
+        <div class="company-logo">
+          ${dados.empresa.logoChar || "XX"}
+        </div>
+        <div class="company-details">
+          <h2>${dados.empresa.nome || "Nome da Empresa"}</h2>
+          <p>CNPJ ${dados.empresa.cnpj || "00.000.000/0000-00"}</p>
+          <p>${dados.empresa.endereco_rua || "Rua"}, ${dados.empresa.endereco_numero || "Número"}</p>
+          <p>${dados.empresa.endereco_cidade || "Cidade"}, ${dados.empresa.endereco_estado || "Estado"}</p>
+          <p>Telefone ${dados.empresa.telefone || "(00) 0000-0000"}</p>
+        </div>
+      </div>
+      <div class="order-info">
+        <h1>ORÇAMENTO</h 1>
+        <div class="order-details">
+          <p><strong>Ordem nº:</strong> ${dados.numeroOrdem}</p>
+          <p><strong>Data:</strong> ${formatarData(dados.data || '')}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client and Billing Information -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-header">Cliente</div>
+        <div class="info-card-content">
+          <p><strong>Nome:</strong> ${dados.cliente.nome || "Nome do Cliente"}</p>
+          <p><strong>${dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> ${dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "000.000.000-00" : "00.000.000/0000-00")}</p>
+          <p><strong>Endereço:</strong> ${dados.cliente.endereco_rua || "Rua"}, ${dados.cliente.endereco_numero || "Número"} - ${dados.cliente.endereco_cidade || "Cidade"}, ${dados.cliente.endereco_estado || "Estado"}</p>
+          <p><strong>Telefone:</strong> ${dados.cliente.telefone || "(00) 0000-0000"}</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-header">Descrição do serviço</div>
+        <div class="info-card-content">
+          <p>${dados.descricaoServico || "Descrição do serviço"}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Quantidade</th>
+          <th>Produto utilizado ou Serviço Prestado</th>
+          <th class="text-right">Preço Unitário</th>
+          <th class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${dados.itens.map((item, index) => `
+          <tr key="item-${index}">
+            <td>${item.quantidade}</td>
+            <td>${item.descricao}</td>
+            <td class="text-right">${formatarMoeda(Number(item.precoUnitario))}</td>
+            <td class="text-right">${formatarMoeda(item.totalItem)}</td>
+          </tr>
+        `).join('')}
+        ${dados.custosVariaveis.map((custo, index) => `
+          <tr key="variavel-${index}" class="text-xs bg-gray-50">
+            <td>${custo.quantidade} ${custo.unidade}</td>
+            <td class="italic">${custo.descricao} (${custo.categoria})</td>
+            <td class="text-right">${formatarMoeda(Number(custo.valor))}</td>
+            <td class="text-right">${formatarMoeda(Number(custo.valor) * Number(custo.quantidade))}</td>
+          </tr>
+        `).join('')}
+        ${Array.from({
+          length: Math.max(0, 4 - dados.itens.length - (dados.custosFixos.length + dados.custosVariaveis.length)),
+        }).map((_, index) => `
+          <tr key="empty-${index}" style="height: 32px;">
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <!-- Payment and Totals -->
+    <div class="totals-section">
+      <div class="payment-info">
+        <div class="info-card-header">Forma de pagamento</div>
+        <div class="info-card-content">
+          <p>${dados.formaPagamento || "Forma de pagamento"}</p>
+        </div>
+      </div>
+      <div class="totals-breakdown">
+        
+        ${Number(dados.desconto) > 0 ? `
+        <div class="total-row">
+          <span class="label">Desconto</span>
+          <span class="value negative">-${formatarMoeda(Number(dados.desconto))}</span>
+        </div>
+        ` : ''}
+        ${Number(dados.acrescimos) > 0 ? `
+        <div class="total-row">
+          <span class="label">Acréscimos</span>
+          <span class="value positive">+${formatarMoeda(Number(dados.acrescimos))}</span>
+        </div>
+        ` : ''}
+        <div class="total-row final">
+          <span class="label">TOTAL</span>
+          <span class="value final">${formatarMoeda(calcularTotalFinal)}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-brand">
+      <p>nexprice.com.br</p>
+    </div>
+  </div>
+
+  <script>
+    // Auto-focus for better UX
+    window.onload = function() {
+      document.body.focus();
+    }
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        window.print();
+      }
+      if (e.key === 'Escape') {
+        window.close();
+      }
+    });
+  </script>
+</body>
+</html>
+  `
+
+    // Open new window with PDF content
+    const pdfWindow = window.open("", "_blank", "width=900,height=700,scrollbars=yes,resizable=yes")
+    if (pdfWindow) {
+      pdfWindow.document.write(pdfContent)
+      pdfWindow.document.close()
+      pdfWindow.focus()
+    } else {
+      alert("Por favor, permita pop-ups para gerar o PDF")
+    }
+  }, [
+    dados,
+    calcularCustoOperacional,
+    calcularSubtotalGeral,
+    calcularLucro,
+    calcularImpostos,
+    calcularTotalFinal,
+    formatarMoeda,
+    formatarData,
+  ])
 
   const handleSaveOrcamento = async () => {
     if (!dados.empresa.id_company || !dados.cliente.id_client) {
@@ -1688,9 +2112,12 @@ function ServiceQuoteGeneratorContent() {
                             </TooltipHelper>
                             <Input
                               id="margem-lucro"
-                              type="number"
+                              type="text"
                               value={dados.margemLucro}
-                              onChange={(e) => setDados((prev) => ({ ...prev, margemLucro: Number(e.target.value) }))}
+                              onChange={(e) => {
+                                const formattedValue = formatNumericInputValue(e.target.value);
+                                setDados((prev) => ({ ...prev, margemLucro: formattedValue }));
+                              }}
                             />
                           </div>
                           <div>
@@ -1712,10 +2139,13 @@ function ServiceQuoteGeneratorContent() {
                                     <Label htmlFor="impostos">Impostos (%)</Label>
                                     <Input
                                         id="impostos"
-                                        type="number"
+                                        type="text"
                                         step="0.1"
                                         value={dados.impostos}
-                                        onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
+                                        onChange={(e) => {
+                                          const formattedValue = formatNumericInputValue(e.target.value);
+                                          setDados((prev) => ({ ...prev, impostos: formattedValue }));
+                                        }}
                                     />
                                 </div>
                             )}
@@ -1723,7 +2153,7 @@ function ServiceQuoteGeneratorContent() {
                             <p className="text-xs text-gray-500 mt-1">
                               Imposto a ser calculado:{" "}
                               <strong>
-                                {regimeTributario === 'MEI' ? formatarMoeda(80) : `${dados.impostos}% sobre o faturamento`}
+                                {regimeTributario === 'MEI' ? formatarMoeda(80) : `${Number(dados.impostos)}% sobre o faturamento`}
                               </strong>
                             </p>
                           </div>
@@ -1799,16 +2229,12 @@ function ServiceQuoteGeneratorContent() {
                                 </div>
                                 <div className="w-32">
                                   <Input
-                                    type="number"
-                                    step="0.01"
-                                    min="0" // Impede valores negativos via controle do navegador
+                                    type="text"
                                     placeholder="R$ 0,00"
                                     value={custo.valor}
                                     onChange={(e) => {
-                                      const value = Number(e.target.value);
-                                      if (value >= 0) { // Validação para garantir que não seja negativo
-                                        atualizarCustoFixo(custo.id, "valor", value);
-                                      }
+                                      const formattedValue = formatNumericInputValue(e.target.value);
+                                      atualizarCustoFixo(custo.id, "valor", formattedValue);
                                     }}
                                     disabled={isExcluded}
                                   />
@@ -1905,16 +2331,12 @@ function ServiceQuoteGeneratorContent() {
                                         </TooltipHelper>
                                         <Input
                                           className="h-8"
-                                          type="number"
-                                          step="1"
-                                          min="1"
+                                          type="text"
                                           placeholder="1"
                                           value={custo.pessoas}
                                           onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, value);
-                                            }
+                                            const formattedValue = formatNumericInputValue(e.target.value);
+                                            atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, formattedValue);
                                           }}
                                         />
                                       </div>
@@ -1924,31 +2346,12 @@ function ServiceQuoteGeneratorContent() {
                                       </TooltipHelper>
                                       <Input
                                         className="h-8"
-                                        type="number"
-                                        step="1"
-                                        min="0"
-                                        max="24"
+                                        type="text"
                                         placeholder="0"
                                         value={custo.horas}
                                         onChange={(e) => {
-                                          const value = Number(e.target.value);
-                                          // Valida se o valor está entre 0 e 24
-                                          if (value >= 0 && value <= 24) {
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, value);
-                                          } else if (value > 24) {
-                                            // Se for maior que 24, define como 24
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
-                                          }
-                                          // Se for negativo, não faz nada (mantém o valor anterior)
-                                        }}
-                                        onBlur={(e) => {
-                                          // Garante que ao sair do campo, o valor esteja válido
-                                          const value = Number(e.target.value);
-                                          if (value < 0 || isNaN(value)) {
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 0);
-                                          } else if (value > 24) {
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
-                                          }
+                                          const formattedValue = formatNumericInputValue(e.target.value);
+                                          atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, formattedValue);
                                         }}
                                       />
                                       </div>
@@ -1958,16 +2361,12 @@ function ServiceQuoteGeneratorContent() {
                                         </TooltipHelper>
                                         <Input
                                           className="h-8"
-                                          type="number"
-                                          step="0.01"
-                                          min="0"
+                                          type="text"
                                           placeholder="0,00"
                                           value={custo.valorHora}
                                           onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, value);
-                                            }
+                                            const formattedValue = formatNumericInputValue(e.target.value);
+                                            atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, formattedValue);
                                           }}
                                         />
                                       </div>
@@ -1980,16 +2379,12 @@ function ServiceQuoteGeneratorContent() {
                                         </TooltipHelper>
                                         <Input
                                           className="h-8"
-                                          type="number"
-                                          step="0.01"
-                                          min="0"
+                                          type="text"
                                           placeholder="0,00"
                                           value={custo.valor}
                                           onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "valor", value);
-                                            }
+                                            const formattedValue = formatNumericInputValue(e.target.value);
+                                            atualizarCustoVariavel(custo.id, "valor", formattedValue);
                                           }}
                                         />
                                       </div>
@@ -1999,16 +2394,12 @@ function ServiceQuoteGeneratorContent() {
                                         </TooltipHelper>
                                         <Input
                                           className="h-8"
-                                          type="number"
-                                          step="1"
-                                          min="0"
+                                          type="text"
                                           placeholder="0,00"
                                           value={custo.quantidade}
                                           onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "quantidade", value);
-                                            }
+                                            const formattedValue = formatNumericInputValue(e.target.value);
+                                            atualizarCustoVariavel(custo.id, "quantidade", formattedValue);
                                           }}
                                         />
                                       </div>
@@ -2221,10 +2612,12 @@ function ServiceQuoteGeneratorContent() {
                             </TooltipHelper>
                             <Input
                               id="desconto"
-                              type="number"
-                              step="0.01"
+                              type="text"
                               value={dados.desconto}
-                              onChange={(e) => setDados((prev) => ({ ...prev, desconto: Number(e.target.value) }))}
+                              onChange={(e) => {
+                                const formattedValue = formatNumericInputValue(e.target.value);
+                                setDados((prev) => ({ ...prev, desconto: formattedValue }));
+                              }}
                             />
                           </div>
                           <div>
@@ -2233,10 +2626,12 @@ function ServiceQuoteGeneratorContent() {
                             </TooltipHelper>
                             <Input
                               id="acrescimos"
-                              type="number"
-                              step="0.01"
+                              type="text"
                               value={dados.acrescimos}
-                              onChange={(e) => setDados((prev) => ({ ...prev, acrescimos: Number(e.target.value) }))}
+                              onChange={(e) => {
+                                const formattedValue = formatNumericInputValue(e.target.value);
+                                setDados((prev) => ({ ...prev, acrescimos: formattedValue }));
+                              }}
                             />
                           </div>
                         </CardContent>
