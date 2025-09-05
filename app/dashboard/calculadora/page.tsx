@@ -297,6 +297,10 @@ function ServiceQuoteGeneratorContent() {
   const [personType, setPersonType] = useState<'fisica' | 'juridica'>('fisica');
   const [formErrorsEmpresas, setFormErrorsEmpresas] = useState<Partial<typeof formDataEmpresas>>({});
   const [formErrorsClient, setFormErrorsClient] = useState<Partial<typeof formDataClient>>({});
+  const [companyCities, setCompanyCities] = useState<{ id: number; nome: string }[]>([]);
+  const [isCompanyCitiesLoading, setIsCompanyCitiesLoading] = useState(false);
+  const [clientCities, setClientCities] = useState<{ id: number; nome: string }[]>([]);
+  const [isClientCitiesLoading, setIsClientCitiesLoading] = useState(false);
   const [formDataClient, setFormDataClient] = useState<Omit<Client, 'id_client'> & { cnpj?: string }>({
     nome: '',
     cpf: '',
@@ -401,6 +405,32 @@ function ServiceQuoteGeneratorContent() {
   useEffect(() => {
     localStorage.setItem('calculadoraDados', JSON.stringify(dados));
   }, [dados]);
+
+  useEffect(() => {
+    if (formDataEmpresas.state) {
+      setIsCompanyCitiesLoading(true);
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formDataEmpresas.state}/municipios`)
+        .then(response => response.json())
+        .then(data => {
+          setCompanyCities(data);
+        })
+        .catch(error => console.error('Error fetching company cities:', error))
+        .finally(() => setIsCompanyCitiesLoading(false));
+    }
+  }, [formDataEmpresas.state]);
+
+  useEffect(() => {
+    if (formDataClient.endereco_estado) {
+      setIsClientCitiesLoading(true);
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formDataClient.endereco_estado}/municipios`)
+        .then(response => response.json())
+        .then(data => {
+          setClientCities(data);
+        })
+        .catch(error => console.error('Error fetching client cities:', error))
+        .finally(() => setIsClientCitiesLoading(false));
+    }
+  }, [formDataClient.endereco_estado]);
 
   const [impostosDetalhados, setImpostosDetalhados] = useState({
     total: 0,
@@ -1796,12 +1826,31 @@ function ServiceQuoteGeneratorContent() {
                                   <Label htmlFor="company-city" className="text-right">
                                     Cidade
                                   </Label>
-                                  <Input
-                                    id="company-city"
+                                  <Select
                                     value={formDataEmpresas.city}
-                                    onChange={handleChange}
-                                    className="col-span-3"
-                                  />
+                                    onValueChange={(value) => {
+                                      handleChange({
+                                        target: {
+                                          id: 'company-city',
+                                          value: value
+                                        }
+                                      } as React.ChangeEvent<HTMLInputElement>);
+                                    }}
+                                    disabled={!formDataEmpresas.state || isCompanyCitiesLoading}
+                                  >
+                                    <SelectTrigger className="col-span-3">
+                                      <SelectValue placeholder={isCompanyCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectGroup>
+                                        {companyCities.map((city) => (
+                                          <SelectItem key={city.id} value={city.nome}>
+                                            {city.nome}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                               </div>
                               <div className="flex justify-end gap-4">
@@ -2121,12 +2170,31 @@ function ServiceQuoteGeneratorContent() {
                                   <Label htmlFor="client-city" className="text-right">
                                     Cidade
                                   </Label>
-                                  <Input
-                                    id="client-city"
+                                  <Select
                                     value={formDataClient.endereco_cidade}
-                                    onChange={handleChangeClient}
-                                    className="col-span-3"
-                                  />
+                                    onValueChange={(value) => {
+                                      handleChangeClient({
+                                        target: {
+                                          id: 'client-city',
+                                          value: value
+                                        }
+                                      } as React.ChangeEvent<HTMLInputElement>);
+                                    }}
+                                    disabled={!formDataClient.endereco_estado || isClientCitiesLoading}
+                                  >
+                                    <SelectTrigger className="col-span-3">
+                                      <SelectValue placeholder={isClientCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectGroup>
+                                        {clientCities.map((city) => (
+                                          <SelectItem key={city.id} value={city.nome}>
+                                            {city.nome}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-notes" className="text-right">
