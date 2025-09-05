@@ -450,6 +450,44 @@ function ServiceQuoteGeneratorContent() {
     setHoursPerDay(details.dailyHours);
   };
 
+  const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
+    const cleanedCep = cep.replace(/\D/g, '');
+    if (cleanedCep.length !== 8) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+      if (!response.ok) {
+        throw new Error('CEP não encontrado');
+      }
+      const data = await response.json();
+      if (data.erro) {
+        throw new Error('CEP inválido');
+      }
+
+      if (formType === 'company') {
+        setFormDataEmpresas(prev => ({
+          ...prev,
+          street: data.logradouro,
+          neighborhood: data.bairro,
+          city: data.localidade,
+          state: data.uf,
+        }));
+      } else {
+        setFormDataClient(prev => ({
+          ...prev,
+          endereco_rua: data.logradouro,
+          endereco_cidade: data.localidade,
+          endereco_estado: data.uf,
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      // Optionally, set an error state to show in the UI
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
     setFormDataEmpresas(prev => ({
@@ -1709,17 +1747,20 @@ function ServiceQuoteGeneratorContent() {
                                   />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="company-city" className="text-right">
-                                    Cidade
-                                  </Label>
-                                  <Input
-                                    id="company-city"
-                                    value={formDataEmpresas.city}
-                                    onChange={handleChange}
-                                    className="col-span-3"
-                                  />
+                                  <Label htmlFor="company-cep" className="text-right">CEP</Label>
+                                <Input
+                                  id="company-cep"
+                                  value={formDataEmpresas.cep}
+                                  onBlur={(e) => handleCepBlur(e.target.value, 'company')}
+                                  onChange={(e) => {
+                                    handleChange(e);
+                                    let value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                                    setFormDataEmpresas(prev => ({ ...prev, cep: value }));
+                                  }}
+                                  className="col-span-3"
+                                />
                                 </div>
-                                
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-state" className="text-right">
                                     Estado
@@ -1751,20 +1792,17 @@ function ServiceQuoteGeneratorContent() {
                                     </SelectContent>
                                   </Select>
                                 </div>
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="company-cep" className="text-right">CEP</Label>
-                                <Input
-                                  id="company-cep"
-                                  value={formDataEmpresas.cep}
-                                  onChange={(e) => {
-                                    handleChange(e);
-                                    let value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                                    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-                                    setFormDataEmpresas(prev => ({ ...prev, cep: value }));
-                                  }}
-                                  className="col-span-3"
-                                />
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-city" className="text-right">
+                                    Cidade
+                                  </Label>
+                                  <Input
+                                    id="company-city"
+                                    value={formDataEmpresas.city}
+                                    onChange={handleChange}
+                                    className="col-span-3"
+                                  />
+                                </div>
                               </div>
                               <div className="flex justify-end gap-4">
                                 <Button variant="outline" onClick={handleCancelEmpresas}>
@@ -2034,14 +2072,18 @@ function ServiceQuoteGeneratorContent() {
                                   />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="client-city" className="text-right">
-                                    Cidade
-                                  </Label>
+                                  <Label htmlFor="client-cep" className="text-right">CEP</Label>
                                   <Input
-                                    id="client-city"
-                                    value={formDataClient.endereco_cidade}
-                                    onChange={handleChangeClient}
+                                    id="client-cep"
+                                    value={formDataClient.endereco_cep}
+                                    onBlur={(e) => handleCepBlur(e.target.value, 'client')}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                      value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                                      setFormDataClient(prev => ({ ...prev, endereco_cep: value }));
+                                    }}
                                     className="col-span-3"
+                                    placeholder="00000-000"
                                   />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
@@ -2076,17 +2118,14 @@ function ServiceQuoteGeneratorContent() {
                                   </Select>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="client-cep" className="text-right">CEP</Label>
+                                  <Label htmlFor="client-city" className="text-right">
+                                    Cidade
+                                  </Label>
                                   <Input
-                                    id="client-cep"
-                                    value={formDataClient.endereco_cep}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                                      value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-                                      setFormDataClient(prev => ({ ...prev, endereco_cep: value }));
-                                    }}
+                                    id="client-city"
+                                    value={formDataClient.endereco_cidade}
+                                    onChange={handleChangeClient}
                                     className="col-span-3"
-                                    placeholder="00000-000"
                                   />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
