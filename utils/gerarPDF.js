@@ -24,7 +24,7 @@ export const gerarPDF = (
   custoTotal,
   valorImposto,
   valorLucro,
-  valorEngenharia, 
+  valorEngenharia,
   precoFinal,
   pesoTotal,
   precoPorKg,
@@ -33,7 +33,7 @@ export const gerarPDF = (
 ) => {
   // Inicializa o documento PDF
   const doc = new jsPDF();
-  
+
   // Configurações de página
   const pageWidth = doc.internal.pageSize.width;
   const margin = 20;
@@ -59,9 +59,9 @@ export const gerarPDF = (
 
   // Formata valores monetários
   const formatCurrency = (value) => {
-    return value.toLocaleString("pt-BR", { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    return value.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
   };
 
@@ -252,7 +252,7 @@ export const gerarPDF = (
 
   // Tabela de itens (USANDO AUTOTABLE CORRETAMENTE)
   yPosition = checkPageBreak(yPosition, 50);
-  
+
   autoTable(doc, {
     startY: yPosition,
     head: [["Quantidade", "Produto/Serviço", "Preço Unitário", "Total"]],
@@ -263,12 +263,12 @@ export const gerarPDF = (
       `R$ ${formatCurrency(item.totalItem)}`,
     ]),
     theme: "grid",
-    headStyles: { 
-      fillColor: [61, 101, 155], 
+    headStyles: {
+      fillColor: [61, 101, 155],
       textColor: [255, 255, 255],
       fontStyle: 'bold'
     },
-    bodyStyles: { 
+    bodyStyles: {
       textColor: [0, 0, 0],
       cellPadding: 3
     },

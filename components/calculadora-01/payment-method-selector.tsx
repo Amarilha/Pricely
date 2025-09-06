@@ -87,7 +87,7 @@ export function PaymentMethodSelector({
               <SelectTrigger >
                 <SelectValue placeholder="Escolha uma forma de pagamento..." />
               </SelectTrigger>
-              <SelectContent >
+              <SelectContent className="flex bg-background ">
                 {paymentMethods.map((method) => {
                   const Icon = method.icon
                   return (
