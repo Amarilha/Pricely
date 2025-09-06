@@ -1809,7 +1809,7 @@ function ServiceQuoteGeneratorContent() {
                                     <SelectTrigger className="col-span-3">
                                       <SelectValue placeholder="Selecione um estado" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="flex bg-background ">
                                       <SelectGroup>
                                         {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
                                           'MA','MT','MS','MG','PA','PB','PR','PE','PI',
@@ -1841,7 +1841,7 @@ function ServiceQuoteGeneratorContent() {
                                     <SelectTrigger className="col-span-3">
                                       <SelectValue placeholder={isCompanyCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="flex bg-background ">
                                       <SelectGroup>
                                         {companyCities.map((city) => (
                                           <SelectItem key={city.id} value={city.nome}>
@@ -1875,9 +1875,9 @@ function ServiceQuoteGeneratorContent() {
                             <SelectTrigger>
                               <SelectValue placeholder="Escolha uma empresa cadastrada..." />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="flex bg-muted " >
                               {empresasCadastradas.map((empresa) => (
-                                <SelectItem key={empresa.id_company} value={empresa.id_company}>
+                                <SelectItem className="flex bg-background m-1 rounded-lg" key={empresa.id_company} value={empresa.id_company}>
                                   <div className="flex items-center gap-2">
                                     <div className="bg-purple-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded">
                                       {empresa.logoChar}
@@ -2153,7 +2153,7 @@ function ServiceQuoteGeneratorContent() {
                                     <SelectTrigger className="col-span-3">
                                       <SelectValue placeholder="Selecione um estado" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="flex bg-background ">
                                       <SelectGroup>
                                         {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
                                           'MA','MT','MS','MG','PA','PB','PR','PE','PI',
@@ -2185,7 +2185,7 @@ function ServiceQuoteGeneratorContent() {
                                     <SelectTrigger className="col-span-3">
                                       <SelectValue placeholder={isClientCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="flex bg-background ">
                                       <SelectGroup>
                                         {clientCities.map((city) => (
                                           <SelectItem key={city.id} value={city.nome}>
@@ -2229,10 +2229,10 @@ function ServiceQuoteGeneratorContent() {
                             <SelectTrigger>
                               <SelectValue placeholder="Escolha um cliente cadastrado..." />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="flex bg-muted">
                               {clientesCadastrados.map((cliente) => (
-                                <SelectItem key={cliente.id_client} value={cliente.id_client}>
-                                  <div className="flex items-center gap-2">
+                                <SelectItem className="flex bg-background m-1 rounded-lg" key={cliente.id_client} value={cliente.id_client}>
+                                  <div className="flex  items-center gap-2">
                                     <div className="font-medium">{cliente.nome}</div>
                                     <div className="text-xs text-gray-500">
                                       <strong>{cliente.cpf ? "CPF" : "CNPJ"}:</strong> {cliente.cpf || cliente.cnpj || (cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")} • <strong>Telefone:</strong> {cliente.telefone}
@@ -2308,7 +2308,7 @@ function ServiceQuoteGeneratorContent() {
                               <SelectTrigger id="regime-tributario">
                                 <SelectValue placeholder="Selecione o regime" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="flex bg-background ">
                                 <SelectItem value="MEI">MEI (Taxa Fixa)</SelectItem>
                                 <SelectItem value="ME">ME (Simples Nacional)</SelectItem>
                               </SelectContent>
@@ -2470,7 +2470,7 @@ function ServiceQuoteGeneratorContent() {
                                       <SelectTrigger className="h-8">
                                         <SelectValue />
                                       </SelectTrigger>
-                                      <SelectContent>
+                                      <SelectContent className="flex bg-background " >
                                         <SelectItem value="Material">📦 Material</SelectItem>
                                         <SelectItem value="Transporte">🚗 Transporte</SelectItem>
                                         <SelectItem value="Ferramenta">🔧 Ferramentas</SelectItem>
@@ -2582,7 +2582,7 @@ function ServiceQuoteGeneratorContent() {
                                           <SelectTrigger className="h-8">
                                             <SelectValue />
                                           </SelectTrigger>
-                                          <SelectContent>
+                                          <SelectContent className="flex bg-background ">
                                             <SelectItem value="unidade">un</SelectItem>
                                             <SelectItem value="kg">kg</SelectItem>
                                             <SelectItem value="litros">L</SelectItem>
@@ -2759,8 +2759,9 @@ function ServiceQuoteGeneratorContent() {
                             </TooltipHelper>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent >
                           <PaymentMethodSelector
+                          
                             value={dados.formaPagamento}
                             onChange={(value) => setDados((prev) => ({ ...prev, formaPagamento: value }))}
                             customTerms={dados.condicoesPersonalizadas || ""}
