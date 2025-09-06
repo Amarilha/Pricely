@@ -110,10 +110,10 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
   return (
     <>
       <div id="service-quote-pdf" className="bg-white">
-        <Card className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg print:shadow-none">
+        <Card className="w-full max-w-4xl mx-auto bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-lg print:shadow-none">
           <CardContent className="page-content">
             {/* Header */}
-            <header className="flex justify-between items-start pb-4 border-b">
+            <header className="flex flex-col sm:flex-row sm:justify-between items-center sm:items-start pb-4 border-b">
               <div className="flex items-center">
                 <div className="mr-4">
                   <div className="bg-purple-600 text-white font-bold text-2xl w-20 h-10 flex items-center justify-center rounded">
@@ -150,42 +150,45 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
             </header>
 
             {/* Client and Billing Information */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div className="border border-gray-300 rounded-md">
-                <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Cliente</div>
-                <div className="p-3 text-sm text-gray-700">
-                  <p>
-                    <strong>Nome:</strong> {dados.cliente.nome || "Nome do Cliente"}
-                  </p>
-                  <p>
-                    <strong>{dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> {dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")}
+            <section className="mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-gray-300 rounded-md">
+                  <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Cliente</div>
+                  <div className="p-3 text-sm text-gray-700">
+                    <p>
+                      <strong>Nome:</strong> {dados.cliente.nome || "Nome do Cliente"}
                     </p>
-                  <p>
-                    <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Rua"},{" "}
-                    {dados.cliente.endereco_numero || "Número"} - {dados.cliente.endereco_cidade || "Cidade"},{" "}
-                    {dados.cliente.endereco_estado || "Estado"}
-                  </p>
-                  <p>
-                    <strong>Telefone:</strong> {dados.cliente.telefone || "(00) 0000-0000"}
-                  </p>
+                    <p>
+                      <strong>{dados.cliente.cpf ? "CPF" : "CNPJ"}:</strong> {dados.cliente.cpf || dados.cliente.cnpj || (dados.cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")}
+                    </p>
+                    <p>
+                      <strong>Endereço:</strong> {dados.cliente.endereco_rua || "Rua"},{" "}
+                      {dados.cliente.endereco_numero || "Número"} - {dados.cliente.endereco_cidade || "Cidade"},{" "}
+                      {dados.cliente.endereco_estado || "Estado"}
+                    </p>
+                    <p>
+                      <strong>Telefone:</strong> {dados.cliente.telefone || "(00) 0000-0000"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="border border-gray-300 rounded-md">
-                <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
-                  Descrição do serviço
-                </div>
-                <div className="p-3 text-sm text-gray-700">
-                  <p>{dados.descricaoServico || "Descrição do serviço"}</p>
+                
+                <div className="border border-gray-300 rounded-md">
+                  <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">
+                    Descrição do serviço
+                  </div>
+                  <div className="p-3 text-sm text-gray-700">
+                    <p>{dados.descricaoServico || "Descrição do serviço"}</p>
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* Items Table */}
             <section className="mt-6">
-              <table className="w-full text-left border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-purple-600 text-white">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-purple-600 text-white">
                     <th className="p-2 border border-gray-300">Quantidade</th>
                     <th className="p-2 border border-gray-300">Produto utilizado ou Serviço Prestado</th>
                     <th className="p-2 text-right border border-gray-300">Preço Unitário</th>
@@ -239,34 +242,37 @@ const OrcamentoDetalhado: React.FC<OrcamentoDetalhadoProps> = ({
                   ))}
                 </tbody>
               </table>
+              </div>
             </section>
 
             {/* Payment and Totals */}
-            <section className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              <div className="border border-gray-300 rounded-md h-full">
-                <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Forma de pagamento</div>
-                <div className="p-3 text-sm text-gray-700">
-                  <p>{dados.formaPagamento || "Forma de pagamento"}</p>
+            <section className="mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div className="border border-gray-300 rounded-md h-full">
+                  <div className="bg-purple-600 text-white p-2 rounded-t-md font-semibold">Forma de pagamento</div>
+                  <div className="p-3 text-sm text-gray-700">
+                    <p>{dados.formaPagamento || "Forma de pagamento"}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                
-                {dados.desconto > 0 && (
-                  <div className="flex justify-between items-center p-2">
-                    <span className="font-semibold text-gray-600">Desconto</span>
-                    <span className="text-red-600">-{formatarMoeda(dados.desconto)}</span>
+                <div className="space-y-2">
+                  
+                  {dados.desconto > 0 && (
+                    <div className="flex justify-between items-center p-2">
+                      <span className="font-semibold text-gray-600">Desconto</span>
+                      <span className="text-red-600">-{formatarMoeda(dados.desconto)}</span>
+                    </div>
+                  )}
+                  {dados.acrescimos > 0 && (
+                    <div className="flex justify-between items-center p-2">
+                      <span className="font-semibold text-gray-600">Acréscimos</span>
+                      <span className="text-green-600">+{formatarMoeda(dados.acrescimos)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center bg-gray-200 p-3 rounded-md">
+                    <span className="font-bold text-gray-800 text-lg">TOTAL</span>
+                    <span className="text-green-600 font-bold text-lg">{formatarMoeda(calcularTotalFinal)}</span>
                   </div>
-                )}
-                {dados.acrescimos > 0 && (
-                  <div className="flex justify-between items-center p-2">
-                    <span className="font-semibold text-gray-600">Acréscimos</span>
-                    <span className="text-green-600">+{formatarMoeda(dados.acrescimos)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center bg-gray-200 p-3 rounded-md">
-                  <span className="font-bold text-gray-800 text-lg">TOTAL</span>
-                  <span className="text-green-600 font-bold text-lg">{formatarMoeda(calcularTotalFinal)}</span>
                 </div>
               </div>
             </section>

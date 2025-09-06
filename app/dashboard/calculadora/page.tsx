@@ -153,10 +153,125 @@ const TooltipHelper = ({ content, children }: { content: string; children: React
   </TooltipProvider>
 )
 
+const formatarMoeda = (valor: number) => {
+  if (!valor || isNaN(valor) || !isFinite(valor)) return "R$ 0,00"
+  try {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      minimumFractionDigits: 2,
+    })
+  } catch (error) {
+    return `R$ ${valor.toFixed(2).replace(".", ",")}`
+  }
+};
+
+interface CurrencyInputProps {
+  id: string;
+  value: number;
+  onChange: (value: number) => void;
+  disabled?: boolean;
+  className?: string;
+  placeholder?: string;
+}
+
+const CurrencyInput: React.FC<CurrencyInputProps> = ({ id, value, onChange, disabled, className, placeholder }) => {
+  const [displayValue, setDisplayValue] = useState(() => formatarMoeda(value));
+
+  useEffect(() => {
+    // Update display value only if the input is not focused
+    // to avoid disrupting user typing.
+    if (document.activeElement?.id !== id) {
+      setDisplayValue(formatarMoeda(value));
+    }
+  }, [value, id]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const numericValue = inputValue.replace(/\D/g, '');
+    
+    // Update the parent component with the raw number value
+    const numberValue = Number(numericValue) / 100;
+    onChange(numberValue);
+
+    // Update the display value with the formatted string
+    const formattedValue = formatarMoeda(numberValue);
+    setDisplayValue(formattedValue);
+  };
+
+  return (
+    <Input
+      id={id}
+      type="text"
+      placeholder={placeholder}
+      className={className}
+      value={displayValue}
+      onChange={handleChange}
+      disabled={disabled}
+    />
+  );
+};
+
+const formatInteger = (value: number | string): string => {
+  const num = String(value).replace(/\D/g, '');
+  if (num === '') return '0';
+  return new Intl.NumberFormat('pt-BR').format(parseInt(num, 10));
+};
+
+interface NumberInputProps {
+  value: number;
+  onChange: (value: number) => void;
+  disabled?: boolean;
+  className?: string;
+  placeholder?: string;
+  min?: number;
+  max?: number;
+}
+
+const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, ...props }) => {
+  const [displayValue, setDisplayValue] = useState(() => formatInteger(value));
+
+  useEffect(() => {
+    if (String(value).replace(/\D/g, '') !== displayValue.replace(/\D/g, '')) {
+      setDisplayValue(formatInteger(value));
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    const numberValue = Number(rawValue);
+
+    if (!isNaN(numberValue)) {
+      if (props.max && numberValue > props.max) {
+        onChange(props.max);
+        setDisplayValue(formatInteger(props.max));
+      } else {
+        onChange(numberValue);
+        setDisplayValue(formatInteger(rawValue));
+      }
+    } else if (rawValue === '') {
+      onChange(0);
+      setDisplayValue('0');
+    }
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={displayValue}
+      onChange={handleChange}
+      {...props}
+    />
+  );
+};
+
+
 import { DateRangeProvider, useDateRange } from "@/components/calculadora-01/data-context";
 
 function ServiceQuoteGeneratorContent() {
   const { dateRange } = useDateRange();
+
   const [empresasCadastradas, setEmpresasCadastradas] = useState<Company[]>([])
   const [clientesCadastrados, setClientesCadastrados] = useState<Client[]>([])
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
@@ -182,6 +297,10 @@ function ServiceQuoteGeneratorContent() {
   const [personType, setPersonType] = useState<'fisica' | 'juridica'>('fisica');
   const [formErrorsEmpresas, setFormErrorsEmpresas] = useState<Partial<typeof formDataEmpresas>>({});
   const [formErrorsClient, setFormErrorsClient] = useState<Partial<typeof formDataClient>>({});
+  const [companyCities, setCompanyCities] = useState<{ id: number; nome: string }[]>([]);
+  const [isCompanyCitiesLoading, setIsCompanyCitiesLoading] = useState(false);
+  const [clientCities, setClientCities] = useState<{ id: number; nome: string }[]>([]);
+  const [isClientCitiesLoading, setIsClientCitiesLoading] = useState(false);
   const [formDataClient, setFormDataClient] = useState<Omit<Client, 'id_client'> & { cnpj?: string }>({
     nome: '',
     cpf: '',
@@ -287,6 +406,32 @@ function ServiceQuoteGeneratorContent() {
     localStorage.setItem('calculadoraDados', JSON.stringify(dados));
   }, [dados]);
 
+  useEffect(() => {
+    if (formDataEmpresas.state) {
+      setIsCompanyCitiesLoading(true);
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formDataEmpresas.state}/municipios`)
+        .then(response => response.json())
+        .then(data => {
+          setCompanyCities(data);
+        })
+        .catch(error => console.error('Error fetching company cities:', error))
+        .finally(() => setIsCompanyCitiesLoading(false));
+    }
+  }, [formDataEmpresas.state]);
+
+  useEffect(() => {
+    if (formDataClient.endereco_estado) {
+      setIsClientCitiesLoading(true);
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formDataClient.endereco_estado}/municipios`)
+        .then(response => response.json())
+        .then(data => {
+          setClientCities(data);
+        })
+        .catch(error => console.error('Error fetching client cities:', error))
+        .finally(() => setIsClientCitiesLoading(false));
+    }
+  }, [formDataClient.endereco_estado]);
+
   const [impostosDetalhados, setImpostosDetalhados] = useState({
     total: 0,
     breakdown: {
@@ -333,6 +478,44 @@ function ServiceQuoteGeneratorContent() {
     }
     setSelectedDays(details.selectedDays);
     setHoursPerDay(details.dailyHours);
+  };
+
+  const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
+    const cleanedCep = cep.replace(/\D/g, '');
+    if (cleanedCep.length !== 8) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+      if (!response.ok) {
+        throw new Error('CEP não encontrado');
+      }
+      const data = await response.json();
+      if (data.erro) {
+        throw new Error('CEP inválido');
+      }
+
+      if (formType === 'company') {
+        setFormDataEmpresas(prev => ({
+          ...prev,
+          street: data.logradouro,
+          neighborhood: data.bairro,
+          city: data.localidade,
+          state: data.uf,
+        }));
+      } else {
+        setFormDataClient(prev => ({
+          ...prev,
+          endereco_rua: data.logradouro,
+          endereco_cidade: data.localidade,
+          endereco_estado: data.uf,
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      // Optionally, set an error state to show in the UI
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1594,17 +1777,20 @@ function ServiceQuoteGeneratorContent() {
                                   />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="company-city" className="text-right">
-                                    Cidade
-                                  </Label>
-                                  <Input
-                                    id="company-city"
-                                    value={formDataEmpresas.city}
-                                    onChange={handleChange}
-                                    className="col-span-3"
-                                  />
+                                  <Label htmlFor="company-cep" className="text-right">CEP</Label>
+                                <Input
+                                  id="company-cep"
+                                  value={formDataEmpresas.cep}
+                                  onBlur={(e) => handleCepBlur(e.target.value, 'company')}
+                                  onChange={(e) => {
+                                    handleChange(e);
+                                    let value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                                    setFormDataEmpresas(prev => ({ ...prev, cep: value }));
+                                  }}
+                                  className="col-span-3"
+                                />
                                 </div>
-                                
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-state" className="text-right">
                                     Estado
@@ -1623,7 +1809,7 @@ function ServiceQuoteGeneratorContent() {
                                     <SelectTrigger className="col-span-3">
                                       <SelectValue placeholder="Selecione um estado" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="flex bg-background ">
                                       <SelectGroup>
                                         {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
                                           'MA','MT','MS','MG','PA','PB','PR','PE','PI',
@@ -1636,20 +1822,36 @@ function ServiceQuoteGeneratorContent() {
                                     </SelectContent>
                                   </Select>
                                 </div>
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="company-cep" className="text-right">CEP</Label>
-                                <Input
-                                  id="company-cep"
-                                  value={formDataEmpresas.cep}
-                                  onChange={(e) => {
-                                    handleChange(e);
-                                    let value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                                    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-                                    setFormDataEmpresas(prev => ({ ...prev, cep: value }));
-                                  }}
-                                  className="col-span-3"
-                                />
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="company-city" className="text-right">
+                                    Cidade
+                                  </Label>
+                                  <Select
+                                    value={formDataEmpresas.city}
+                                    onValueChange={(value) => {
+                                      handleChange({
+                                        target: {
+                                          id: 'company-city',
+                                          value: value
+                                        }
+                                      } as React.ChangeEvent<HTMLInputElement>);
+                                    }}
+                                    disabled={!formDataEmpresas.state || isCompanyCitiesLoading}
+                                  >
+                                    <SelectTrigger className="col-span-3">
+                                      <SelectValue placeholder={isCompanyCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
+                                    </SelectTrigger>
+                                    <SelectContent className="flex bg-background ">
+                                      <SelectGroup>
+                                        {companyCities.map((city) => (
+                                          <SelectItem key={city.id} value={city.nome}>
+                                            {city.nome}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                               <div className="flex justify-end gap-4">
                                 <Button variant="outline" onClick={handleCancelEmpresas}>
@@ -1673,9 +1875,9 @@ function ServiceQuoteGeneratorContent() {
                             <SelectTrigger>
                               <SelectValue placeholder="Escolha uma empresa cadastrada..." />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="flex bg-muted " >
                               {empresasCadastradas.map((empresa) => (
-                                <SelectItem key={empresa.id_company} value={empresa.id_company}>
+                                <SelectItem className="flex bg-background m-1 rounded-lg" key={empresa.id_company} value={empresa.id_company}>
                                   <div className="flex items-center gap-2">
                                     <div className="bg-purple-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded">
                                       {empresa.logoChar}
@@ -1919,14 +2121,18 @@ function ServiceQuoteGeneratorContent() {
                                   />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="client-city" className="text-right">
-                                    Cidade
-                                  </Label>
+                                  <Label htmlFor="client-cep" className="text-right">CEP</Label>
                                   <Input
-                                    id="client-city"
-                                    value={formDataClient.endereco_cidade}
-                                    onChange={handleChangeClient}
+                                    id="client-cep"
+                                    value={formDataClient.endereco_cep}
+                                    onBlur={(e) => handleCepBlur(e.target.value, 'client')}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                      value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                                      setFormDataClient(prev => ({ ...prev, endereco_cep: value }));
+                                    }}
                                     className="col-span-3"
+                                    placeholder="00000-000"
                                   />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
@@ -1947,7 +2153,7 @@ function ServiceQuoteGeneratorContent() {
                                     <SelectTrigger className="col-span-3">
                                       <SelectValue placeholder="Selecione um estado" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="flex bg-background ">
                                       <SelectGroup>
                                         {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
                                           'MA','MT','MS','MG','PA','PB','PR','PE','PI',
@@ -1961,18 +2167,34 @@ function ServiceQuoteGeneratorContent() {
                                   </Select>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="client-cep" className="text-right">CEP</Label>
-                                  <Input
-                                    id="client-cep"
-                                    value={formDataClient.endereco_cep}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                                      value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-                                      setFormDataClient(prev => ({ ...prev, endereco_cep: value }));
+                                  <Label htmlFor="client-city" className="text-right">
+                                    Cidade
+                                  </Label>
+                                  <Select
+                                    value={formDataClient.endereco_cidade}
+                                    onValueChange={(value) => {
+                                      handleChangeClient({
+                                        target: {
+                                          id: 'client-city',
+                                          value: value
+                                        }
+                                      } as React.ChangeEvent<HTMLInputElement>);
                                     }}
-                                    className="col-span-3"
-                                    placeholder="00000-000"
-                                  />
+                                    disabled={!formDataClient.endereco_estado || isClientCitiesLoading}
+                                  >
+                                    <SelectTrigger className="col-span-3">
+                                      <SelectValue placeholder={isClientCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
+                                    </SelectTrigger>
+                                    <SelectContent className="flex bg-background ">
+                                      <SelectGroup>
+                                        {clientCities.map((city) => (
+                                          <SelectItem key={city.id} value={city.nome}>
+                                            {city.nome}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="client-notes" className="text-right">
@@ -2007,10 +2229,10 @@ function ServiceQuoteGeneratorContent() {
                             <SelectTrigger>
                               <SelectValue placeholder="Escolha um cliente cadastrado..." />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="flex bg-muted">
                               {clientesCadastrados.map((cliente) => (
-                                <SelectItem key={cliente.id_client} value={cliente.id_client}>
-                                  <div className="flex items-center gap-2">
+                                <SelectItem className="flex bg-background m-1 rounded-lg" key={cliente.id_client} value={cliente.id_client}>
+                                  <div className="flex  items-center gap-2">
                                     <div className="font-medium">{cliente.nome}</div>
                                     <div className="text-xs text-gray-500">
                                       <strong>{cliente.cpf ? "CPF" : "CNPJ"}:</strong> {cliente.cpf || cliente.cnpj || (cliente.cpf ? "100.000.000-01" : "10.000.000/0000-01")} • <strong>Telefone:</strong> {cliente.telefone}
@@ -2073,11 +2295,9 @@ function ServiceQuoteGeneratorContent() {
                             <TooltipHelper content="Percentual de lucro que você deseja obter sobre os custos. Recomendado: 25% ou mais">
                               <Label htmlFor="margem-lucro">Margem de Lucro (%)</Label>
                             </TooltipHelper>
-                            <Input
-                              id="margem-lucro"
-                              type="number"
+                            <NumberInput
                               value={dados.margemLucro}
-                              onChange={(e) => setDados((prev) => ({ ...prev, margemLucro: Number(e.target.value) }))}
+                              onChange={(newValue) => setDados((prev) => ({ ...prev, margemLucro: newValue }))}
                             />
                           </div>
                           <div>
@@ -2088,7 +2308,7 @@ function ServiceQuoteGeneratorContent() {
                               <SelectTrigger id="regime-tributario">
                                 <SelectValue placeholder="Selecione o regime" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="flex bg-background ">
                                 <SelectItem value="MEI">MEI (Taxa Fixa)</SelectItem>
                                 <SelectItem value="ME">ME (Simples Nacional)</SelectItem>
                               </SelectContent>
@@ -2097,12 +2317,9 @@ function ServiceQuoteGeneratorContent() {
                             {regimeTributario === 'ME' && (
                                 <div className="mt-2">
                                     <Label htmlFor="impostos">Impostos (%)</Label>
-                                    <Input
-                                        id="impostos"
-                                        type="number"
-                                        step="0.1"
+                                    <NumberInput
                                         value={dados.impostos}
-                                        onChange={(e) => setDados((prev) => ({ ...prev, impostos: Number(e.target.value) }))}
+                                        onChange={(newValue) => setDados((prev) => ({ ...prev, impostos: newValue }))}
                                     />
                                 </div>
                             )}
@@ -2185,19 +2402,13 @@ function ServiceQuoteGeneratorContent() {
                                   />
                                 </div>
                                 <div className="w-32">
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    min="0" // Impede valores negativos via controle do navegador
-                                    placeholder="R$ 0,00"
+                                  <CurrencyInput
+                                    id={`custo-fixo-valor-${custo.id}`}
                                     value={custo.valor}
-                                    onChange={(e) => {
-                                      const value = Number(e.target.value);
-                                      if (value >= 0) { // Validação para garantir que não seja negativo
-                                        atualizarCustoFixo(custo.id, "valor", value);
-                                      }
-                                    }}
+                                    onChange={(newValue) => atualizarCustoFixo(custo.id, "valor", newValue)}
                                     disabled={isExcluded}
+                                    placeholder="R$ 0,00"
+                                    className="w-32"
                                   />
                                 </div>
                                 <Button variant="destructive" size="sm" onClick={() => removerCustoFixo(custo.id)}>
@@ -2259,7 +2470,7 @@ function ServiceQuoteGeneratorContent() {
                                       <SelectTrigger className="h-8">
                                         <SelectValue />
                                       </SelectTrigger>
-                                      <SelectContent>
+                                      <SelectContent className="flex bg-background " >
                                         <SelectItem value="Material">📦 Material</SelectItem>
                                         <SelectItem value="Transporte">🚗 Transporte</SelectItem>
                                         <SelectItem value="Ferramenta">🔧 Ferramentas</SelectItem>
@@ -2290,18 +2501,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Número de pessoas na equipe">
                                           <Label className="text-xs">Nº Pessoas</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <NumberInput
                                           className="h-8"
-                                          type="number"
-                                          step="1"
-                                          min="1"
+                                          min={1}
                                           placeholder="1"
-                                          value={custo.pessoas}
-                                          onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, value);
-                                            }
+                                          value={custo.pessoas || 0}
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "pessoas" as keyof VariableCost, newValue);
                                           }}
                                         />
                                       </div>
@@ -2309,33 +2515,14 @@ function ServiceQuoteGeneratorContent() {
                                       <TooltipHelper content="Total de horas trabalhadas pela equipe">
                                         <Label className="text-xs">Horas</Label>
                                       </TooltipHelper>
-                                      <Input
+                                      <NumberInput
                                         className="h-8"
-                                        type="number"
-                                        step="1"
-                                        min="0"
-                                        max="24"
+                                        min={0}
+                                        max={24}
                                         placeholder="0"
-                                        value={custo.horas}
-                                        onChange={(e) => {
-                                          const value = Number(e.target.value);
-                                          // Valida se o valor está entre 0 e 24
-                                          if (value >= 0 && value <= 24) {
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, value);
-                                          } else if (value > 24) {
-                                            // Se for maior que 24, define como 24
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
-                                          }
-                                          // Se for negativo, não faz nada (mantém o valor anterior)
-                                        }}
-                                        onBlur={(e) => {
-                                          // Garante que ao sair do campo, o valor esteja válido
-                                          const value = Number(e.target.value);
-                                          if (value < 0 || isNaN(value)) {
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 0);
-                                          } else if (value > 24) {
-                                            atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, 24);
-                                          }
+                                        value={custo.horas || 0}
+                                        onChange={(newValue) => {
+                                          atualizarCustoVariavel(custo.id, "horas" as keyof VariableCost, newValue);
                                         }}
                                       />
                                       </div>
@@ -2343,18 +2530,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Valor por hora de cada membro da equipe">
                                           <Label className="text-xs">Valor/Hora (R$)</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <CurrencyInput
+                                          id={`custo-variavel-valor-hora-${custo.id}`}
                                           className="h-8"
-                                          type="number"
-                                          step="0.01"
-                                          min="0"
                                           placeholder="0,00"
-                                          value={custo.valorHora}
-                                          onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, value);
-                                            }
+                                          value={custo.valorHora || 0}
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "valorHora" as keyof VariableCost, newValue);
                                           }}
                                         />
                                       </div>
@@ -2365,18 +2547,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Valor unitário ou total do custo">
                                           <Label className="text-xs">Valor (R$)</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <CurrencyInput
+                                          id={`custo-variavel-valor-${custo.id}`}
                                           className="h-8"
-                                          type="number"
-                                          step="0.01"
-                                          min="0"
                                           placeholder="0,00"
                                           value={custo.valor}
-                                          onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "valor", value);
-                                            }
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "valor", newValue);
                                           }}
                                         />
                                       </div>
@@ -2384,18 +2561,13 @@ function ServiceQuoteGeneratorContent() {
                                         <TooltipHelper content="Quantidade total">
                                           <Label className="text-xs">QT</Label>
                                         </TooltipHelper>
-                                        <Input
+                                        <NumberInput
                                           className="h-8"
-                                          type="number"
-                                          step="1"
-                                          min="0"
+                                          min={0}
                                           placeholder="0,00"
                                           value={custo.quantidade}
-                                          onChange={(e) => {
-                                            const value = Number(e.target.value);
-                                            if (value >= 0) {
-                                              atualizarCustoVariavel(custo.id, "quantidade", value);
-                                            }
+                                          onChange={(newValue) => {
+                                            atualizarCustoVariavel(custo.id, "quantidade", newValue);
                                           }}
                                         />
                                       </div>
@@ -2410,7 +2582,7 @@ function ServiceQuoteGeneratorContent() {
                                           <SelectTrigger className="h-8">
                                             <SelectValue />
                                           </SelectTrigger>
-                                          <SelectContent>
+                                          <SelectContent className="flex bg-background ">
                                             <SelectItem value="unidade">un</SelectItem>
                                             <SelectItem value="kg">kg</SelectItem>
                                             <SelectItem value="litros">L</SelectItem>
@@ -2587,8 +2759,9 @@ function ServiceQuoteGeneratorContent() {
                             </TooltipHelper>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent >
                           <PaymentMethodSelector
+                          
                             value={dados.formaPagamento}
                             onChange={(value) => setDados((prev) => ({ ...prev, formaPagamento: value }))}
                             customTerms={dados.condicoesPersonalizadas || ""}
@@ -2606,24 +2779,20 @@ function ServiceQuoteGeneratorContent() {
                             <TooltipHelper content="Valor de desconto a ser aplicado no total final">
                               <Label htmlFor="desconto">Desconto</Label>
                             </TooltipHelper>
-                            <Input
+                            <CurrencyInput
                               id="desconto"
-                              type="number"
-                              step="0.01"
                               value={dados.desconto}
-                              onChange={(e) => setDados((prev) => ({ ...prev, desconto: Number(e.target.value) }))}
+                              onChange={(newValue) => setDados((prev) => ({ ...prev, desconto: newValue }))}
                             />
                           </div>
                           <div>
                             <TooltipHelper content="Valores extras a serem adicionados (urgência, complexidade, etc.)">
                               <Label htmlFor="acrescimos">Acréscimos</Label>
                             </TooltipHelper>
-                            <Input
+                            <CurrencyInput
                               id="acrescimos"
-                              type="number"
-                              step="0.01"
                               value={dados.acrescimos}
-                              onChange={(e) => setDados((prev) => ({ ...prev, acrescimos: Number(e.target.value) }))}
+                              onChange={(newValue) => setDados((prev) => ({ ...prev, acrescimos: newValue }))}
                             />
                           </div>
                         </CardContent>
