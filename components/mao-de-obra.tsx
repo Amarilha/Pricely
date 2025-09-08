@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import {
   Card,
   CardContent,
@@ -14,6 +14,17 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle } from "lucide-react"
+import { stateAuth } from "@/app/src/services/estadoAuth"
 
 export function MaoDeObra() {
   const [hourlyRate, setHourlyRate] = useState("")
@@ -32,6 +43,56 @@ export function MaoDeObra() {
   const [calculatedRate, setCalculatedRate] = useState<number | null>(null)
   const [daysPerMonth, setDaysPerMonth] = useState<number | null>(null)
   const [totalHoursMonth, setTotalHoursMonth] = useState<number | null>(null)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [showErrorDialog, setShowErrorDialog] = useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [laborName, setLaborName] = useState("")
+  const [errorMessage, setErrorMessage] = useState("")
+
+  // Função de formatação memoizada - CORRIGIDA
+  const formatarMoeda = useCallback((valor: number | null): string => {
+    if (valor === null || isNaN(valor) || !isFinite(valor)) return "R$ 0,00"
+
+    try {
+      return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+      })
+    } catch (error) {
+      // Fallback seguro
+      return `R$ ${valor.toFixed(2).replace(".", ",")}`
+    }
+  }, [])
+
+  // Função para formatar input como moeda
+  const formatCurrencyInput = (value: string): string => {
+    // Remove tudo que não é número
+    const onlyNumbers = value.replace(/\D/g, '')
+    
+    // Se estiver vazio, retorna vazio
+    if (onlyNumbers === '') return ''
+    
+    // Converte para número e divide por 100 para considerar os centavos
+    const numberValue = parseFloat(onlyNumbers) / 100
+    
+    // Formata como moeda usando a função corrigida
+    return formatarMoeda(numberValue)
+  }
+
+  // Função para converter valor formatado para número
+  const currencyToNumber = (currency: string): number => {
+    if (!currency) return 0
+    
+    // Remove "R$", pontos e substitui vírgula por ponto
+    const numericString = currency
+      .replace('R$', '')
+      .replace(/\./g, '')  // Remove todos os pontos
+      .replace(',', '.')
+      .trim()
+    
+    return parseFloat(numericString) || 0
+  }
 
   const handleWorkDayChange = (day: keyof typeof workDays) => {
     setWorkDays((prev) => ({
@@ -40,12 +101,12 @@ export function MaoDeObra() {
     }))
   }
 
-  const formatCurrency = (value: number) => {
-    return value.toFixed(2).replace('.', ',')
-  }
-
   const formatNumberInput = (value: string, isCurrency: boolean = false) => {
-    // Remove tudo que não é número ou vírgula
+    if (isCurrency) {
+      return formatCurrencyInput(value)
+    }
+    
+    // Para números não monetários (como horas)
     let formattedValue = value.replace(/[^\d,]/g, '')
     
     // Permite apenas uma vírgula
@@ -71,23 +132,101 @@ export function MaoDeObra() {
   }
 
   const calculateHourlyRate = () => {
-    const income = parseFloat(estimatedIncome.replace(',', '.'))
+    const income = currencyToNumber(estimatedIncome)
     const hoursDaily = parseFloat(hoursPerDay.replace(',', '.'))
     const daysPerWeek = Object.values(workDays).filter(Boolean).length
     
+    if (daysPerWeek === 0) {
+      setErrorMessage("Selecione pelo menos um dia da semana trabalhado.")
+      setShowErrorDialog(true)
+      return
+    }
+    
+    if (!income || income <= 0) {
+      setErrorMessage("Informe uma expectativa salarial válida.")
+      setShowErrorDialog(true)
+      return
+    }
+    
+    if (!hoursDaily || hoursDaily <= 0) {
+      setErrorMessage("Informe uma quantidade de horas diárias válida.")
+      setShowErrorDialog(true)
+      return
+    }
+
     // Cálculo correto considerando 30 dias no mês
     const daysPerMonthValue = Math.round((daysPerWeek / 7) * 30)
-    const totalHoursMonthValue = hoursDaily * daysPerMonthValue
+    const totalHoursMonthValue = parseFloat((hoursDaily * daysPerMonthValue).toFixed(2))
 
     if (income > 0 && totalHoursMonthValue > 0) {
-      setCalculatedRate(income / totalHoursMonthValue)
+      const rate = income / totalHoursMonthValue
+      setCalculatedRate(rate)
       setDaysPerMonth(daysPerMonthValue)
       setTotalHoursMonth(totalHoursMonthValue)
+      
+     
     } else {
       setCalculatedRate(null)
       setDaysPerMonth(null)
       setTotalHoursMonth(null)
     }
+  }
+
+  const handleSave = () => {
+    // Verifica se há um valor válido para salvar
+    let rateToSave: number | null = null
+    
+    if (knowsHourlyRate) {
+      // Quando o usuário já sabe o valor da hora
+      if (hourlyRate) {
+        rateToSave = currencyToNumber(hourlyRate)
+      } else {
+        setErrorMessage("Por favor, informe o valor da hora antes de salvar.")
+        setShowErrorDialog(true)
+        return
+      }
+    } else {
+      // Quando o valor foi calculado
+      if (!calculatedRate) {
+        setErrorMessage("Por favor, calcule o valor da hora antes de salvar.")
+        setShowErrorDialog(true)
+        return
+      }
+      rateToSave = calculatedRate
+    }
+
+    // Só abre o pop-up se tiver um valor válido
+    if (rateToSave && rateToSave > 0) {
+      setShowSaveDialog(true)
+    } else {
+      setErrorMessage("Por favor, informe ou calcule um valor válido antes de salvar.")
+      setShowErrorDialog(true)
+    }
+  }
+
+  const confirmSave = async () => {
+    // Obtém o valor da hora baseado no modo atual
+    const rateToSave = knowsHourlyRate 
+      ? currencyToNumber(hourlyRate)
+      : calculatedRate
+    
+    // userID
+    const userId = await stateAuth();
+    
+    // Aqui você pode implementar a lógica para salvar os dados
+    // com o nome fornecido (laborName) e o valor da hora
+    console.log("Salvando mão de obra:", {
+      userId: userId,
+      name: laborName,
+      hourlyRate: rateToSave
+    })
+    
+    // Fechar o diálogo e resetar o campo
+    setShowSaveDialog(false)
+    setLaborName("")
+    
+    // Mostrar mensagem de sucesso
+    setShowSuccessDialog(true)
   }
 
   return (
@@ -117,7 +256,7 @@ export function MaoDeObra() {
                 <Input
                   id="hourly-rate"
                   type="text"
-                  placeholder="Ex: 50,00"
+                  placeholder="Ex: R$ 50,00"
                   value={hourlyRate}
                   onChange={(e) => handleInputChange(e.target.value, setHourlyRate, true)}
                 />
@@ -127,7 +266,7 @@ export function MaoDeObra() {
         </CardContent>
         {knowsHourlyRate && (
           <CardFooter>
-            <Button>Salvar</Button>
+            <Button onClick={handleSave}>Salvar</Button>
           </CardFooter>
         )}
       </Card>
@@ -149,7 +288,7 @@ export function MaoDeObra() {
               <Input
                 id="estimated-income"
                 type="text"
-                placeholder="Ex: 5000,00"
+                placeholder="Ex: R$ 5.000,00"
                 value={estimatedIncome}
                 onChange={(e) => handleInputChange(e.target.value, setEstimatedIncome, true)}
               />
@@ -193,23 +332,103 @@ export function MaoDeObra() {
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Horas/mês</p>
-                    <p className="text-xl font-bold">{formatCurrency(totalHoursMonth)}h</p>
+                    <p className="text-xl font-bold">{totalHoursMonth}h</p>
                   </div>
                 </div>
                 <p className="text-sm mt-4">Seu valor por hora é:</p>
                 <p className="text-3xl font-bold text-purple-600">
-                  R$ {formatCurrency(calculatedRate)}
+                  {formatarMoeda(calculatedRate)}
                 </p>
               </div>
             )}
           </CardContent>
-          <CardFooter>
-            <Button onClick={calculateHourlyRate} className="w-full">
+          <CardFooter className="grid grid-cols-2 gap-4 mt-3">
+            <Button onClick={calculateHourlyRate}>
               Calcular
             </Button>
+            <Button onClick={handleSave}>Salvar</Button>
           </CardFooter>
         </Card>
       )}
+
+      {/* Diálogo para nomear a mão de obra */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nomear Mão de Obra</DialogTitle>
+            <DialogDescription>
+              Digite um nome para identificar esta mão de obra.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="labor-name" className="text-right">
+                Nome
+              </Label>
+              <Input
+                id="labor-name"
+                value={laborName}
+                onChange={(e) => setLaborName(e.target.value)}
+                className="col-span-3"
+                placeholder="Ex: Eletricista, Pedreiro, etc."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={confirmSave} 
+              disabled={!laborName.trim()}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de erro */}
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Erro
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Alert variant="destructive">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowErrorDialog(false)}>Entendi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de sucesso */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Sucesso
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Alert className="border-green-600 bg-green-50">
+              <AlertDescription className="text-green-800">
+                Mão de obra "{laborName}" salva com sucesso!
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowSuccessDialog(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
