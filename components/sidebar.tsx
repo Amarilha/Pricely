@@ -17,7 +17,8 @@ import {
   LogOut,
   ChevronDown,
   Building,
-  MessageCircleQuestion ,
+  MessageCircleQuestion,
+  Wrench,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -34,11 +35,20 @@ import { auth, db } from "@/app/src/config/firebaseConfig"
 import Image from "next/image"
 
 const menuItems = [
-  
+  {
+    name: "Empresas",
+    href: "/dashboard/empresas",
+    icon: Building,
+  },
   {
     name: "Calculadora",
     href: "/dashboard/calculadora",
     icon: Calculator,
+  },
+  {
+    name: "Mão de Obra",
+    href: "/dashboard/mao-de-obra",
+    icon: Wrench,
   },
   /*{
   {
@@ -60,11 +70,7 @@ const menuItems = [
     href: "/dashboard/relatorios",
     icon: BarChart3,
   },
-  {
-    name: "Empresas",
-    href: "/dashboard/empresas",
-    icon: Building,
-  },
+  
   {
     name: "Perguntas Frequentes",
     href: "/dashboard/faq",
