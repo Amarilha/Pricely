@@ -171,3 +171,53 @@ export async function createClient(clientData) {
     throw err;
   }
 }
+
+export async function getMaoDeObra(userId) {
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM MaoDeObra WHERE id_user = ?;",
+      [userId]
+    );
+    return rows;
+  } catch (err) {
+    console.error('❌ Falha na conexão:', err);
+    throw err;
+  }
+}
+
+export async function createMaoDeObra(MaoDeObraData) {
+  console.log("Dados recebidos em createMaoDeObra:", MaoDeObraData);
+  try {
+    const id_Mobra = uuidv4();
+    const {
+      id_user,
+      laborName,
+      rateToSave
+    } = MaoDeObraData;
+
+    console.log("Executando query com valores:", { id_Mobra, id_user, laborName, rateToSave });
+
+    const [result] = await pool.query(
+      `INSERT INTO MaoDeObra (
+        id_Mobra, id_user, nome, valor_hora
+      ) VALUES (?, ?, ?, ?)`,
+      [
+        id_Mobra,
+        id_user,
+        laborName,
+        rateToSave
+      ]
+    );
+
+    const [newMobra] = await pool.query(
+      'SELECT * FROM MaoDeObra WHERE id_Mobra = ?',
+      [id_Mobra]
+    );
+    
+    console.log("Mão de obra criada:", newMobra[0]);
+    return newMobra[0];
+  } catch (err) {
+    console.error('❌ Erro ao criar Mão de obra:', err);
+    throw err;
+  }
+}
