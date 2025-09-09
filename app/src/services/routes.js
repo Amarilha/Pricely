@@ -3,6 +3,8 @@ import pool from '../config/db.js'; // Caminho corrigido com .js
 import { v4 as uuidv4 } from 'uuid'; // Importa a biblioteca uuid para gerar id_company
 import { stateAuth } from '../services/estadoAuth.js'; // Importa a função stateAuth
 
+
+//Company
 export async function getEmpresas(userId) {
   try {
     const [rows] = await pool.query(
@@ -96,6 +98,7 @@ export async function createCompany(companyData) {
   }
 }
 
+//Client
 export async function getClient(userId) {
   try {
     const [rows] = await pool.query(
@@ -172,6 +175,7 @@ export async function createClient(clientData) {
   }
 }
 
+//mão de obra
 export async function getMaoDeObra(userId) {
   try {
     const [rows] = await pool.query(
@@ -218,6 +222,19 @@ export async function createMaoDeObra(MaoDeObraData) {
     return newMobra[0];
   } catch (err) {
     console.error('❌ Erro ao criar Mão de obra:', err);
+    throw err;
+  }
+}
+
+export async function deleteMaoDeObra(laborId) {
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM MaoDeObra WHERE id_Mobra = ?;",
+      [laborId]
+    );
+    return result;
+  } catch (err) {
+    console.error('❌ Erro ao excluir Mão de obra:', err);
     throw err;
   }
 }

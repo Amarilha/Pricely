@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -23,8 +23,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { AlertCircle, CheckCircle, Trash2 } from "lucide-react"
 import { stateAuth } from "@/app/src/services/estadoAuth"
+
+// Interface para a mão de obra salva
+interface Labor {
+  id_Mobra: string;
+  nome: string;
+  valor_hora: number;
+  id_user: string;
+  created_at?: string;
+}
 
 export function MaoDeObra() {
   const [hourlyRate, setHourlyRate] = useState("")
@@ -48,8 +57,92 @@ export function MaoDeObra() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [laborName, setLaborName] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
+  const [savedLabors, setSavedLabors] = useState<Labor[]>([])
+  const [selectedLabor, setSelectedLabor] = useState<Labor | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Função de formatação memoizada - CORRIGIDA
+  // Carregar mãos de obra salvas do banco de dados ao inicializar
+  useEffect(() => {
+    loadSavedLabors()
+  }, [])
+
+  // Função para buscar mãos de obra através da API
+  const getMaoDeObraAPI = async (userId: string): Promise<Labor[]> => {
+    try {
+      const response = await fetch(`/api/mao-de-obra?userId=${userId}`)
+      if (!response.ok) {
+        throw new Error('Erro ao buscar mãos de obra')
+      }
+      return await response.json()
+    } catch (err) {
+      console.error('❌ Falha na conexão:', err)
+      throw err
+    }
+  }
+
+  // Função para salvar mão de obra através da API
+  const createMaoDeObraAPI = async (MaoDeObraData: {
+    id_user: string;
+    laborName: string;
+    rateToSave: number;
+  }): Promise<Labor> => {
+    try {
+      const response = await fetch('/api/mao-de-obra', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(MaoDeObraData),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Erro ao salvar mão de obra')
+      }
+      
+      return await response.json()
+    } catch (err) {
+      console.error('❌ Falha ao salvar:', err)
+      throw err
+    }
+  }
+
+  // Função para excluir mão de obra através da API
+  const deleteMaoDeObraAPI = async (laborId: string) => {
+    try {
+      const response = await fetch(`/api/mao-de-obra?id=${laborId}`, {
+        method: 'DELETE',
+      })
+      
+      if (!response.ok) {
+        throw new Error('Erro ao excluir mão de obra')
+      }
+      
+      return await response.json()
+    } catch (err) {
+      console.error('❌ Falha ao excluir:', err)
+      throw err
+    }
+  }
+
+  // Carregar mãos de obra do banco de dados
+  const loadSavedLabors = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const userId = await stateAuth()
+      if (userId) {
+        const laborsFromDB = await getMaoDeObraAPI(userId)
+        setSavedLabors(laborsFromDB)
+      }
+    } catch (error) {
+      console.error("Erro ao carregar mãos de obra:", error)
+      setErrorMessage("Erro ao carregar mãos de obra salvas.")
+      setShowErrorDialog(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Função de formatação memoizada
   const formatarMoeda = useCallback((valor: number | null): string => {
     if (valor === null || isNaN(valor) || !isFinite(valor)) return "R$ 0,00"
 
@@ -60,23 +153,16 @@ export function MaoDeObra() {
         minimumFractionDigits: 2,
       })
     } catch (error) {
-      // Fallback seguro
       return `R$ ${valor.toFixed(2).replace(".", ",")}`
     }
   }, [])
 
   // Função para formatar input como moeda
   const formatCurrencyInput = (value: string): string => {
-    // Remove tudo que não é número
     const onlyNumbers = value.replace(/\D/g, '')
-    
-    // Se estiver vazio, retorna vazio
     if (onlyNumbers === '') return ''
     
-    // Converte para número e divide por 100 para considerar os centavos
     const numberValue = parseFloat(onlyNumbers) / 100
-    
-    // Formata como moeda usando a função corrigida
     return formatarMoeda(numberValue)
   }
 
@@ -84,10 +170,9 @@ export function MaoDeObra() {
   const currencyToNumber = (currency: string): number => {
     if (!currency) return 0
     
-    // Remove "R$", pontos e substitui vírgula por ponto
     const numericString = currency
       .replace('R$', '')
-      .replace(/\./g, '')  // Remove todos os pontos
+      .replace(/\./g, '')
       .replace(',', '.')
       .trim()
     
@@ -101,21 +186,18 @@ export function MaoDeObra() {
     }))
   }
 
-  const formatNumberInput = (value: string, isCurrency: boolean = false) => {
+  const formatNumberInput = (value: string, isCurrency: boolean = false, isHours: boolean = false) => {
     if (isCurrency) {
       return formatCurrencyInput(value)
     }
     
-    // Para números não monetários (como horas)
     let formattedValue = value.replace(/[^\d,]/g, '')
     
-    // Permite apenas uma vírgula
     const commaCount = formattedValue.split(',').length - 1
     if (commaCount > 1) {
       formattedValue = formattedValue.replace(/,+$/, '')
     }
     
-    // Limita a duas casas decimais após a vírgula
     if (formattedValue.includes(',')) {
       const parts = formattedValue.split(',')
       if (parts[1].length > 2) {
@@ -123,11 +205,27 @@ export function MaoDeObra() {
       }
     }
     
+    if (isHours && formattedValue) {
+      const numericValue = parseFloat(formattedValue.replace(',', '.'))
+      
+      if (numericValue < 0) {
+        formattedValue = '0'
+      }
+      
+      if (numericValue > 24) {
+        formattedValue = '24'
+      }
+      
+      if (formattedValue.includes(',') && parseFloat(formattedValue.replace(',', '.')) > 24) {
+        formattedValue = '24'
+      }
+    }
+    
     return formattedValue
   }
 
-  const handleInputChange = (value: string, setter: React.Dispatch<React.SetStateAction<string>>, isCurrency: boolean = false) => {
-    const formattedValue = formatNumberInput(value, isCurrency)
+  const handleInputChange = (value: string, setter: React.Dispatch<React.SetStateAction<string>>, isCurrency: boolean = false, isHours: boolean = false) => {
+    const formattedValue = formatNumberInput(value, isCurrency, isHours)
     setter(formattedValue)
   }
 
@@ -154,7 +252,12 @@ export function MaoDeObra() {
       return
     }
 
-    // Cálculo correto considerando 30 dias no mês
+    if (hoursDaily > 24) {
+      setErrorMessage("As horas trabalhadas por dia não podem ser maiores que 24 horas.")
+      setShowErrorDialog(true)
+      return
+    }
+
     const daysPerMonthValue = Math.round((daysPerWeek / 7) * 30)
     const totalHoursMonthValue = parseFloat((hoursDaily * daysPerMonthValue).toFixed(2))
 
@@ -163,8 +266,6 @@ export function MaoDeObra() {
       setCalculatedRate(rate)
       setDaysPerMonth(daysPerMonthValue)
       setTotalHoursMonth(totalHoursMonthValue)
-      
-     
     } else {
       setCalculatedRate(null)
       setDaysPerMonth(null)
@@ -173,11 +274,9 @@ export function MaoDeObra() {
   }
 
   const handleSave = () => {
-    // Verifica se há um valor válido para salvar
     let rateToSave: number | null = null
     
     if (knowsHourlyRate) {
-      // Quando o usuário já sabe o valor da hora
       if (hourlyRate) {
         rateToSave = currencyToNumber(hourlyRate)
       } else {
@@ -186,7 +285,6 @@ export function MaoDeObra() {
         return
       }
     } else {
-      // Quando o valor foi calculado
       if (!calculatedRate) {
         setErrorMessage("Por favor, calcule o valor da hora antes de salvar.")
         setShowErrorDialog(true)
@@ -195,7 +293,6 @@ export function MaoDeObra() {
       rateToSave = calculatedRate
     }
 
-    // Só abre o pop-up se tiver um valor válido
     if (rateToSave && rateToSave > 0) {
       setShowSaveDialog(true)
     } else {
@@ -205,32 +302,119 @@ export function MaoDeObra() {
   }
 
   const confirmSave = async () => {
-    // Obtém o valor da hora baseado no modo atual
     const rateToSave = knowsHourlyRate 
       ? currencyToNumber(hourlyRate)
       : calculatedRate
     
-    // userID
     const userId = await stateAuth();
     
-    // Aqui você pode implementar a lógica para salvar os dados
-    // com o nome fornecido (laborName) e o valor da hora
-    console.log("Salvando mão de obra:", {
-      userId: userId,
-      name: laborName,
-      hourlyRate: rateToSave
-    })
+    try {
+      await createMaoDeObraAPI({
+        id_user: userId,
+        laborName: laborName,
+        rateToSave: rateToSave as number
+      })
+      
+      // Recarregar a lista após salvar
+      const updatedLabors = await getMaoDeObraAPI(userId)
+      setSavedLabors(updatedLabors)
+      
+      setShowSaveDialog(false)
+      setLaborName("")
+      setShowSuccessDialog(true)
+    } catch (error) {
+      console.error("Erro ao salvar mão de obra:", error)
+      setErrorMessage("Erro ao salvar mão de obra. Tente novamente.")
+      setShowErrorDialog(true)
+    }
+  }
+
+  const handleSelectLabor = (labor: Labor) => {
+    setSelectedLabor(labor)
+    setKnowsHourlyRate(true)
+    setHourlyRate(formatarMoeda(labor.valor_hora))
+  }
+
+  const handleDeleteLabor = async (laborId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
     
-    // Fechar o diálogo e resetar o campo
-    setShowSaveDialog(false)
-    setLaborName("")
-    
-    // Mostrar mensagem de sucesso
-    setShowSuccessDialog(true)
+    try {
+      await deleteMaoDeObraAPI(laborId)
+      
+      // Recarregar a lista do banco de dados
+      const userId = await stateAuth()
+      const updatedLabors = await getMaoDeObraAPI(userId)
+      setSavedLabors(updatedLabors)
+      
+      // Se a mão de obra deletada era a selecionada, limpar seleção
+      if (selectedLabor && selectedLabor.id_Mobra === laborId) {
+        setSelectedLabor(null)
+        setHourlyRate("")
+      }
+    } catch (error) {
+      console.error("Erro ao excluir mão de obra:", error)
+      setErrorMessage("Erro ao excluir mão de obra. Tente novamente.")
+      setShowErrorDialog(true)
+    }
   }
 
   return (
-    <div className="grid gap-8 md:grid-row-2">
+    <div className="grid gap-8">
+      {/* Card para selecionar mão de obra existente */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Mãos de Obra Salvas</CardTitle>
+          <CardDescription>
+            {isLoading ? "Carregando..." : "Selecione uma mão de obra salva ou crie uma nova"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-4">
+              <p>Carregando mãos de obra...</p>
+            </div>
+          ) : savedLabors.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {savedLabors.map((labor) => (
+                <div
+                  key={labor.id_Mobra}
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    selectedLabor?.id_Mobra === labor.id_Mobra 
+                      ? 'border-purple-500 bg-purple-50' 
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                  onClick={() => handleSelectLabor(labor)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium">{labor.nome}</h4>
+                      <p className="text-sm text-purple-600">{formatarMoeda(labor.valor_hora)}/hora</p>
+                      {labor.created_at && (
+                        <p className="text-xs text-gray-500">
+                          Criada em: {new Date(labor.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-gray-400 hover:text-red-500"
+                      onClick={(e) => handleDeleteLabor(labor.id_Mobra, e)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-gray-500">
+              <p>Nenhuma mão de obra salva ainda.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Valor da Hora</CardTitle>
@@ -300,7 +484,7 @@ export function MaoDeObra() {
                 type="text"
                 placeholder="Ex: 8,5"
                 value={hoursPerDay}
-                onChange={(e) => handleInputChange(e.target.value, setHoursPerDay)}
+                onChange={(e) => handleInputChange(e.target.value, setHoursPerDay, false, true)}
               />
             </div>
             <div className="space-y-2">
