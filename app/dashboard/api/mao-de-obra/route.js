@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getMaoDeObra, createMaoDeObra, deleteMaoDeObra } from '@/app/src/services/routes'
+import { getMaoDeObra, createMaoDeObra, deleteMaoDeObra } from '@/app/src/services/routes.js'
 
 export async function GET(request) {
   try {

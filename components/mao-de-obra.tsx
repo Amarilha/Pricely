@@ -69,7 +69,7 @@ export function MaoDeObra() {
   // Função para buscar mãos de obra através da API
   const getMaoDeObraAPI = async (userId: string): Promise<Labor[]> => {
     try {
-      const response = await fetch(`/api/mao-de-obra?userId=${userId}`)
+      const response = await fetch(`/dashboard/api/mao-de-obra?userId=${userId}`)
       if (!response.ok) {
         throw new Error('Erro ao buscar mãos de obra')
       }
@@ -87,7 +87,7 @@ export function MaoDeObra() {
     rateToSave: number;
   }): Promise<Labor> => {
     try {
-      const response = await fetch('/api/mao-de-obra', {
+      const response = await fetch('/dashboard/api/mao-de-obra', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export function MaoDeObra() {
   // Função para excluir mão de obra através da API
   const deleteMaoDeObraAPI = async (laborId: string) => {
     try {
-      const response = await fetch(`/api/mao-de-obra?id=${laborId}`, {
+      const response = await fetch(`/dashboard/api/mao-de-obra?id=${laborId}`, {
         method: 'DELETE',
       })
       
