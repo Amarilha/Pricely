@@ -35,7 +35,11 @@ interface Labor {
   created_at?: string;
 }
 
-export function MaoDeObra() {
+interface MaoDeObraProps {
+  onLaborSelect?: (labor: Labor) => void;
+}
+
+export function MaoDeObra({ onLaborSelect }: MaoDeObraProps) {
   const [hourlyRate, setHourlyRate] = useState("")
   const [knowsHourlyRate, setKnowsHourlyRate] = useState(true)
   const [estimatedIncome, setEstimatedIncome] = useState("")
@@ -333,6 +337,9 @@ export function MaoDeObra() {
     setSelectedLabor(labor)
     setKnowsHourlyRate(true)
     setHourlyRate(formatarMoeda(labor.valor_hora))
+    if (onLaborSelect) {
+      onLaborSelect(labor)
+    }
   }
 
   const handleDeleteLabor = async (laborId: string, e: React.MouseEvent) => {

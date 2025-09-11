@@ -41,6 +41,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import PrintableQuote from "@/components/calculadora/PrintableQuote";
+import { MaoDeObra } from "@/components/mao-de-obra";
 import { useRef } from "react";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
@@ -370,7 +371,6 @@ function ServiceQuoteGeneratorContent() {
     custosFixos: [
       { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
       { id: '2', descricao: 'Internet/Telefone', valor: 0 },
-      { id: '3', descricao: 'Salários/Pró-labore', valor: 0 },
     ],
     custosVariaveis: [],
     margemLucro: 30,
@@ -456,6 +456,7 @@ function ServiceQuoteGeneratorContent() {
   const [valorHora, setValorHora] = useState(0);
   const [selectedDays, setSelectedDays] = useState([false, true, true, true, true, true, false]); // Mon-Fri
   const [hoursPerDay, setHoursPerDay] = useState(8);
+  const [maoDeObraHora, setMaoDeObraHora] = useState(0);
 
   useEffect(() => {
     const weeklyHours = selectedDays.filter(Boolean).length * hoursPerDay;
@@ -1059,9 +1060,10 @@ function ServiceQuoteGeneratorContent() {
   const calcularCustoOperacional = useMemo(() => {
     const custoHora = calcularCustoHora * duracaoProjeto
     const custoVariaveis = calcularTotalCustosVariaveis
+    const custoMaoDeObra = maoDeObraHora * duracaoProjeto
 
-    return custoVariaveis + custoHora
-  }, [calcularCustoHora, duracaoProjeto, calcularTotalCustosVariaveis])
+    return custoVariaveis + custoHora + custoMaoDeObra
+  }, [calcularCustoHora, duracaoProjeto, calcularTotalCustosVariaveis, maoDeObraHora])
 
   const calcularSubtotalItens = useMemo(() => {
     return dados.itens.reduce((total, item) => total + (item.totalItem || 0), 0)
@@ -1073,7 +1075,7 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularLucro = useMemo(() => {
     const subtotal = calcularSubtotalGeral
-    return subtotal * ((dados.margemLucro || 0) / 100)
+    return subtotal * ((100 - (dados.margemLucro || 0)) / 100)
   }, [calcularSubtotalGeral, dados.margemLucro])
 
   const calcularImpostos = useMemo(() => {
@@ -1956,38 +1958,7 @@ function ServiceQuoteGeneratorContent() {
 
                   {/* custo */}  
                   <TabsContent value="costs" className="space-y-6">
-                      {/* Salary Inclusion Option */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center justify-between">
-                            <span>Configuração de Custos</span>
-                            <div className="flex items-center space-x-2">
-                              <TooltipHelper content="Ative esta opção se você quer incluir salários e pró-labore no cálculo dos custos. Desative para serviços que não envolvem custos de pessoal.">
-                                <Label htmlFor="incluir-salarios" className="text-sm font-normal">
-                                  Incluir Salários/Pró-labore
-                                </Label>
-                              </TooltipHelper>
-                              <Switch
-                                id="incluir-salarios"
-                                checked={dados.incluirSalarios}
-                                onCheckedChange={(checked) => setDados((prev) => ({ ...prev, incluirSalarios: checked }))}
-                              />
-                            </div>
-                          </CardTitle>
-                        </CardHeader>
-                        {!dados.incluirSalarios && (
-                          <CardContent>
-                            <Alert>
-                              <Info className="h-4 w-4" />
-                              <AlertDescription>
-                                Salários e pró-labore foram <strong>excluídos</strong> do cálculo de custos. Ideal para serviços
-                                que não envolvem custos de pessoal.
-                              </AlertDescription>
-                            </Alert>
-                          </CardContent>
-                        )}
-                      </Card>
-
+                      
                       {/* Fixed Costs */}
                       <Card>
                         <CardHeader>
@@ -2267,6 +2238,8 @@ function ServiceQuoteGeneratorContent() {
                           </div>
                         </CardContent>
                       </Card>
+
+                      <MaoDeObra onLaborSelect={(labor) => setMaoDeObraHora(labor.valor_hora)} />
 
                   </TabsContent>
                     

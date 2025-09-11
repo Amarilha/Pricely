@@ -46,12 +46,13 @@ const menuItems = [
     href: "/dashboard/calculadora",
     icon: Calculator,
   },
+    /*{
   {
     name: "Mão de Obra",
     href: "/dashboard/mao-de-obra",
     icon: Wrench,
   },
-  /*{
+
   {
     name: "Home",
     href: "/dashboard",
