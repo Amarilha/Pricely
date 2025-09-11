@@ -1075,7 +1075,11 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularLucro = useMemo(() => {
     const subtotal = calcularSubtotalGeral
-    return subtotal / ((100 - (dados.margemLucro || 0)) / 100)
+    if (dados.margemLucro === 0) {
+    return 0;
+    }
+    return subtotal / ((100 - (dados.margemLucro || 0)) / 100);
+
   }, [calcularSubtotalGeral, dados.margemLucro])
 
   const calcularImpostos = useMemo(() => {
