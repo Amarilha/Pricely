@@ -777,7 +777,6 @@ function ServiceQuoteGeneratorContent() {
           const cnpj = (formDataClient.cnpj || '').replace(/\D/g, '');
           
           
-        
 
         const response = await fetch('/dashboard/api/client', {
           method: 'POST',

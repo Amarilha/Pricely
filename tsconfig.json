@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/dashboard/api/empresas/[id_company]/custos/route.js", "app/dashboard/api/empresas/[id_company]/custos/[id_custo_fixo]/route.js", "app/dashboard/api/mao-de-obra/route.js"],
   "exclude": ["node_modules"]
 }

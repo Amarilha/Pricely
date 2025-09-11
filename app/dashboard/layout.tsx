@@ -30,7 +30,6 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="min-h-screen">
-        <AdSense pId="6983643349322034" />
         
         <div className="flex">
           {/* Sidebar fixo */}
