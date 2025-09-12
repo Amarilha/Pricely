@@ -154,6 +154,59 @@ export default function EmpresasPage() {
     }
   };
 
+
+  // Adicione estes estados no início do componente EmpresasPage
+const [companyCities, setCompanyCities] = useState<{ id: number; nome: string }[]>([]);
+const [isCompanyCitiesLoading, setIsCompanyCitiesLoading] = useState(false);
+
+// Adicione este useEffect para buscar cidades quando o estado mudar
+useEffect(() => {
+  if (editingCompany?.endereco_estado) {
+    setIsCompanyCitiesLoading(true);
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${editingCompany.endereco_estado}/municipios`)
+      .then(response => response.json())
+      .then(data => {
+        setCompanyCities(data);
+      })
+      .catch(error => console.error('Error fetching company cities:', error))
+      .finally(() => setIsCompanyCitiesLoading(false));
+  }
+}, [editingCompany?.endereco_estado]);
+
+// Função handleCepBlur completa
+const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
+  const cleanedCep = cep.replace(/\D/g, '');
+  if (cleanedCep.length !== 8) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+    if (!response.ok) {
+      throw new Error('CEP não encontrado');
+    }
+    const data = await response.json();
+    if (data.erro) {
+      throw new Error('CEP inválido');
+    }
+
+    if (formType === 'company') {
+      setEditingCompany(prev => ({
+        ...prev,
+        endereco_rua: data.logradouro || prev?.endereco_rua || '',
+        endereco_bairro: data.bairro || prev?.endereco_bairro || '',
+        endereco_cidade: data.localidade || prev?.endereco_cidade || '',
+        endereco_estado: data.uf || prev?.endereco_estado || '',
+      }));
+    }
+  } catch (error) {
+    console.error('Erro ao buscar CEP:', error);
+    // Opcional: mostrar mensagem de erro para o usuário
+  }
+};
+
+
+
   const handleCnpjSearch = async () => {
     if (cnpjToSearch.length !== 14) return alert('CNPJ inválido.');
     setIsSearchingCnpj(true);
@@ -703,7 +756,7 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
                 />
               </div>
             </div>
-            
+            {/*cep */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="endereco_cep" className="text-right">
                 CEP
@@ -713,19 +766,21 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
                   id="endereco_cep" 
                   name="endereco_cep" 
                   value={editingCompany?.endereco_cep || ''} 
+                  onBlur={(e) => handleCepBlur(e.target.value, 'company')}
                   onChange={(e) => {
                     let value = e.target.value.replace(/\D/g, '').slice(0, 8);
                     value = value.replace(/^(\d{5})(\d)/, '$1-$2');
                     setEditingCompany({...editingCompany, endereco_cep: value});
                   }}
-                  onBlur={() => { }}
+                  className="col-span-3"
                   placeholder="00000-000"
                 />
               </div>
             </div>
-            
+
+            {/*Estado */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endereco_estado" className="text-right">
+              <Label htmlFor="company-state" className="text-right">
                 Estado
               </Label>
               <div className="col-span-3">
@@ -736,7 +791,7 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um estado" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="flex bg-background ">
                     <SelectGroup>
                       {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
                         'MA','MT','MS','MG','PA','PB','PR','PE','PI',
@@ -750,19 +805,31 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
                 </Select>
               </div>
             </div>
-            
+
+            {/*Cidade */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endereco_cidade" className="text-right">
+              <Label htmlFor="company-city" className="text-right">
                 Cidade
               </Label>
               <div className="col-span-3">
-                <Input 
-                  id="endereco_cidade" 
-                  name="endereco_cidade" 
-                  value={editingCompany?.endereco_cidade || ''} 
-                  onChange={(e) => setEditingCompany({...editingCompany, [e.target.name]: e.target.value})} 
-                  placeholder="Nome da cidade"
-                />
+                <Select
+                  value={editingCompany?.endereco_cidade || ''}
+                  onValueChange={(value) => setEditingCompany({...editingCompany, endereco_cidade: value})}
+                  disabled={!editingCompany?.endereco_estado || isCompanyCitiesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={isCompanyCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
+                  </SelectTrigger>
+                  <SelectContent className="flex bg-background ">
+                    <SelectGroup>
+                      {companyCities.map((city) => (
+                        <SelectItem key={city.id} value={city.nome}>
+                          {city.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
