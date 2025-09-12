@@ -130,7 +130,11 @@ export default function EmpresasPage() {
       }
       
       const data = await response.json();
-      setEmpresas(data);
+      const sanitizedData = data.map((empresa: Company) => ({
+        ...empresa,
+        custosFixos: empresa.custosFixos || [],
+      }));
+      setEmpresas(sanitizedData);
       setError(null);
     } catch (err: any) {
       console.error('Erro ao buscar empresas:', err);
@@ -284,43 +288,69 @@ export default function EmpresasPage() {
     }
   };
 
-  const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: number }) => {
-    if (!managingCostsForCompany || !newCost.descricao || !newCost.valor) {
-      return alert("Descrição e valor são obrigatórios.");
-    }
+const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: number }) => {
+  if (!managingCostsForCompany || !newCost.descricao || !newCost.valor) {
+    return alert("Descrição e valor são obrigatórios.");
+  }
+  
+  setIsSubmitting(true);
+  try {
+    const { id_company } = managingCostsForCompany;
+    const userId = await stateAuth();
     
-    setIsSubmitting(true);
-    try {
-      const { id_company } = managingCostsForCompany;
-      const userId = await stateAuth();
-      if (!userId) throw new Error("Usuário não autenticado.");
-
-      const url = `/dashboard/api/empresas/${id_company}/custos`;
-
-      const response = await fetch(url, { 
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': userId
-        }, 
-        body: JSON.stringify({ descricao: newCost.descricao, valor: newCost.valor }) 
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao salvar custo.');
-      }
-
-      await fetchEmpresas();
-      setEditingCosts(editingCosts.filter(cost => cost.id !== newCost.id));
-      const updatedValorInputs = { ...valorInputs };
-      delete updatedValorInputs[newCost.id];
-      setValorInputs(updatedValorInputs);
-    } catch (err: any) {
-      alert(`Erro: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
+    if (!userId) {
+      throw new Error("Usuário não autenticado. Faça login novamente.");
     }
-  };
+
+    // ✅ URL correta - verifique se está igual à estrutura de pastas
+    const url = `/dashboard/api/empresas/${id_company}/custos`;
+    
+    console.log("📤 Enviando para:", url);
+    console.log("🔑 Com userId:", userId);
+
+    const response = await fetch(url, { 
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': userId
+      }, 
+      body: JSON.stringify({ 
+        descricao: newCost.descricao, 
+        valor: newCost.valor 
+      }) 
+    });
+
+    // ✅ Log detalhado da resposta
+    console.log("📥 Resposta status:", response.status);
+    console.log("📥 Resposta ok:", response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Erro completo:", errorText);
+      throw new Error(`Falha ao salvar custo (${response.status}): ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Sucesso:", result);
+
+    // Recarrega os dados
+    await fetchEmpresas();
+    
+    // Remove o custo da lista de edição
+    setEditingCosts(editingCosts.filter(cost => cost.id !== newCost.id));
+    
+    // Limpa o input
+    const updatedValorInputs = { ...valorInputs };
+    delete updatedValorInputs[newCost.id];
+    setValorInputs(updatedValorInputs);
+
+  } catch (err: any) {
+    console.error("💥 Erro capturado:", err);
+    alert(`Erro: ${err.message}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleDeleteCost = async (costId: string) => {
     if (!managingCostsForCompany || !confirm('Excluir este custo?')) return;

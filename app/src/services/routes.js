@@ -7,16 +7,24 @@ import { stateAuth } from '../services/estadoAuth.js'; // Importa a função sta
 //Company
 export async function getEmpresas(userId) {
   try {
-    const [rows] = await pool.query(
+    const [companies] = await pool.query(
       "SELECT * FROM Company WHERE id_user = ?;",
       [userId]
     );
-    return rows; // Retorna os dados para quem chamar a função
+
+    for (const company of companies) {
+      const [custos] = await pool.query(
+        "SELECT * FROM CustoFixo WHERE id_company = ?;",
+        [company.id_company]
+      );
+      company.custosFixos = custos;
+    }
+
+    return companies;
   } catch (err) {
-    console.error('❌ Falha na conexão:', err);
-    throw err; // Propaga o erro para ser tratado por quem chamou
+    console.error('❌ Falha ao buscar empresas com custos:', err);
+    throw err;
   }
-  // Não feche o pool aqui! Deixe ele aberto para outras consultas
 }
 
 export async function createCompany(companyData) {
