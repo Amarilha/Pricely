@@ -173,6 +173,29 @@ useEffect(() => {
   }
 }, [editingCompany?.endereco_estado]);
 
+const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  let value = e.target.value.replace(/\D/g, '');
+  if (value.length > 14) value = value.slice(0, 14);
+  
+  let formattedValue = value;
+  
+  // Aplicar máscara do CNPJ: 00.000.000/0000-00
+  if (value.length > 2) {
+    formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+  }
+  if (value.length > 5) {
+    formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+  }
+  if (value.length > 8) {
+    formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4');
+  }
+  if (value.length > 12) {
+    formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+  }
+  
+  setCnpjToSearch(formattedValue);
+};
+
 // Função handleCepBlur completa
 const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
   const cleanedCep = cep.replace(/\D/g, '');
@@ -611,14 +634,24 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
                     if (value.length > 14) value = value.slice(0, 14);
                     
                     let formattedValue = value;
-                    if (value.length > 2) formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
-                    if (value.length > 5) formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-                    if (value.length > 8) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1/$2');
-                    if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
+                    
+                    // Máscara correta do CNPJ: 00.000.000/0000-00
+                    if (value.length > 2) {
+                      formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                    }
+                    if (value.length > 5) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                    }
+                    if (value.length > 8) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4');
+                    }
+                    if (value.length > 12) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+                    }
                     
                     setCnpjToSearch(formattedValue);
                   }}
-                  maxLength={14} 
+                  maxLength={18} // Agora com a máscara completa
                   placeholder="00.000.000/0000-00" 
                 />
                 <Button onClick={handleCnpjSearch} disabled={isSearchingCnpj}>
@@ -658,10 +691,20 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
                     if (value.length > 14) value = value.slice(0, 14);
                     
                     let formattedValue = value;
-                    if (value.length > 2) formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
-                    if (value.length > 5) formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-                    if (value.length > 8) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1/$2');
-                    if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
+                    
+                    // Máscara correta do CNPJ: 00.000.000/0000-00
+                    if (value.length > 2) {
+                      formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                    }
+                    if (value.length > 5) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                    }
+                    if (value.length > 8) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4');
+                    }
+                    if (value.length > 12) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+                    }
                     
                     setEditingCompany({...editingCompany, cnpj: formattedValue});
                   }} 
