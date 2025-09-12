@@ -208,10 +208,12 @@ const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
 
 
   const handleCnpjSearch = async () => {
-    if (cnpjToSearch.length !== 14) return alert('CNPJ inválido.');
+   const cnpjNumerico = cnpjToSearch.replace(/\D/g, '');
+    if (cnpjNumerico.length !== 14) return alert(`CNPJ inválido.`);
     setIsSearchingCnpj(true);
     try {
-      const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjToSearch}`);
+      
+      const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjNumerico}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Falha ao buscar CNPJ.');
       
