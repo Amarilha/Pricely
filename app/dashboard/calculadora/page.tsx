@@ -1081,6 +1081,12 @@ function ServiceQuoteGeneratorContent() {
     return subtotal / ((100 - (dados.margemLucro || 0)) / 100);
 
   }, [calcularSubtotalGeral, dados.margemLucro])
+  
+  const lucroReal = useMemo(()=>{
+    const lucroTotal = calcularLucro
+
+    return lucroTotal - calcularSubtotalGeral
+  }, [calcularSubtotalGeral, calcularLucro])
 
   const calcularImpostos = useMemo(() => {
     if (regimeTributario === 'MEI') {
@@ -1094,7 +1100,7 @@ function ServiceQuoteGeneratorContent() {
     const subtotal = calcularSubtotalGeral
     const lucro = calcularLucro
     const impostos = calcularImpostos
-    return subtotal + lucro + impostos - (dados.desconto || 0) + (dados.acrescimos || 0)
+    return lucro + impostos - (dados.desconto || 0) + (dados.acrescimos || 0)
   }, [calcularSubtotalGeral, calcularLucro, calcularImpostos, dados.desconto, dados.acrescimos])
 
   // Função de formatação memoizada
@@ -1389,6 +1395,7 @@ function ServiceQuoteGeneratorContent() {
                                     className="col-span-3"
                                   />
                                 </div>
+                                {/*Bairro */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-neighborhood" className="text-right">
                                     Bairro
@@ -1400,6 +1407,7 @@ function ServiceQuoteGeneratorContent() {
                                     className="col-span-3"
                                   />
                                 </div>
+                                {/*cep */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-cep" className="text-right">CEP</Label>
                                 <Input
@@ -1415,6 +1423,7 @@ function ServiceQuoteGeneratorContent() {
                                   className="col-span-3"
                                 />
                                 </div>
+                                {/*Estado */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-state" className="text-right">
                                     Estado
@@ -1446,6 +1455,7 @@ function ServiceQuoteGeneratorContent() {
                                     </SelectContent>
                                   </Select>
                                 </div>
+                                {/*Cidade */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-city" className="text-right">
                                     Cidade
@@ -2321,7 +2331,7 @@ function ServiceQuoteGeneratorContent() {
                             <TooltipHelper content="Valor do lucro baseado na margem definida">
                               <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
                             </TooltipHelper>
-                            <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
+                            <p className="text-xl font-bold text-green-600">{formatarMoeda(lucroReal)}</p>
                           </CardContent>
                         </Card>
                         <Card>
@@ -2338,7 +2348,7 @@ function ServiceQuoteGeneratorContent() {
                               <p className="text-sm text-gray-600">Preço Base</p>
                             </TooltipHelper>
                             <p className="text-xl font-bold text-purple-600">
-                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
+                              {formatarMoeda(calcularLucro + calcularImpostos)}
                             </p>
                           </CardContent>
                         </Card>
