@@ -465,48 +465,61 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
       {/* Lista de Empresas */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {empresas.map(empresa => (
-          <div key={empresa.id_company} className="border p-4 rounded-lg shadow-sm space-y-3 bg-card">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-600 text-white text-xs font-bold w-8 h-8 flex items-center justify-center rounded">
-                {empresa.nome.charAt(0).toUpperCase()}
-              </div>
-              <h2 className="text-xl font-semibold text-primary">{empresa.nome}</h2>
-            </div>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p><strong>CNPJ:</strong> {empresa.cnpj}</p>
-              <p><strong>Email:</strong> {empresa.email}</p>
-              <p><strong>Custos Fixos:</strong> {empresa.custosFixos?.length || 0} cadastrados</p>
-              {empresa.custosFixos && empresa.custosFixos.length > 0 ? (
-                <div>
-                  <p><strong>Lista de Custos Fixos:</strong></p>
-                  <ul className="list-disc pl-5 text-sm space-y-1">
-                    {empresa.custosFixos.map(cost => (
-                      <li key={cost.id_custo_fixo} className="flex justify-between">
-                        <span>{cost.descricao}</span>
-                        <span>{formatarMoeda(cost.valor)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <p className="text-gray-500">Nenhum custo fixo cadastrado.</p>
-              )}
-            </div>
-            <div className="flex justify-between items-center pt-3 border-t">
-              <Button variant="outline" size="sm" onClick={() => handleOpenCostDialog(empresa)}>
-                <DollarSign className="mr-1 h-4 w-4" />
-                Custos Fixos
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleOpenCompanyDialog(empresa)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteCompany(empresa.id_company)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+         <div key={empresa.id_company} className="border p-4 rounded-lg shadow-sm space-y-3 bg-card">
+  <div className="flex items-center gap-3">
+    <div className="bg-purple-600 text-white text-xs font-bold w-8 h-8 flex items-center justify-center rounded">
+      {empresa.nome.charAt(0).toUpperCase()}
+    </div>
+    <h2 className="text-xl font-semibold text-primary">{empresa.nome}</h2>
+  </div>
+  
+  <div className="text-sm text-muted-foreground space-y-2">
+    <p><strong>CNPJ:</strong> {empresa.cnpj}</p>
+    <p><strong>Email:</strong> {empresa.email}</p>
+    
+    {/* ✅ NOVA SEÇÃO DE CUSTOS - TOTAL + DETALHES COLAPSÁVEIS */}
+    <div className="border-t pt-2 mt-2">
+      <p className="font-semibold">Custos Fixos Mensais:</p>
+      <p className="text-lg font-bold text-red-600">
+        {formatarMoeda(empresa.custosFixos?.reduce((total, cost) => total + (cost.valor || 0), 0) || 0)}
+      </p>
+      
+      {empresa.custosFixos && empresa.custosFixos.length > 0 ? (
+        <details className="mt-1">
+          <summary className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm">
+            📋 Ver detalhes ({empresa.custosFixos.length} itens)
+          </summary>
+          <ul className="list-disc pl-5 space-y-1 mt-2 text-xs">
+            {empresa.custosFixos.map(cost => (
+              <li key={cost.id_custo_fixo} className="flex justify-between">
+                <span className="truncate max-w-[120px]">{cost.descricao}</span>
+                <span className="font-medium">{formatarMoeda(cost.valor)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : (
+        <p className="text-gray-500 text-sm">Nenhum custo fixo cadastrado.</p>
+      )}
+    </div>
+  </div>
+  
+  <div className="flex justify-between items-center pt-3 border-t">
+    <Button variant="outline" size="sm" onClick={() => handleOpenCostDialog(empresa)}>
+      <DollarSign className="mr-1 h-4 w-4" />
+      Gerenciar Custos
+    </Button>
+    <div className="flex gap-2">
+      <Button variant="ghost" size="icon" onClick={() => handleOpenCompanyDialog(empresa)}>
+        <Edit className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" 
+              onClick={() => handleDeleteCompany(empresa.id_company)}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  </div>
+</div>
         ))}
       </div>
 
