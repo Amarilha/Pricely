@@ -288,6 +288,19 @@ function ServiceQuoteGeneratorContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [regimeTributario, setRegimeTributario] = useState<'MEI' | 'ME'>('ME');
 
+  const [workDays, setWorkDays] = useState({
+    segunda: true,
+    terca: true,
+    quarta: true,
+    quinta: true,
+    sexta: true,
+    sabado: false,
+    domingo: false,
+  });
+  const [daysPerMonth, setDaysPerMonth] = useState(22);
+  const [totalHoursMonth, setTotalHoursMonth] = useState(176);
+  const [fixedCostsHoursPerDay, setFixedCostsHoursPerDay] = useState(8);
+
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
     cnpj: '',
@@ -398,6 +411,15 @@ function ServiceQuoteGeneratorContent() {
   useEffect(() => {
     localStorage.setItem('calculadoraDados', JSON.stringify(dados));
   }, [dados]);
+
+  useEffect(() => {
+    const daysPerWeek = Object.values(workDays).filter(Boolean).length;
+    const daysPerMonthValue = Math.round((daysPerWeek / 7) * 30);
+    const totalHoursMonthValue = parseFloat((fixedCostsHoursPerDay * daysPerMonthValue).toFixed(2));
+
+    setDaysPerMonth(daysPerMonthValue);
+    setTotalHoursMonth(totalHoursMonthValue);
+  }, [workDays, fixedCostsHoursPerDay]);
   
   useEffect(() => {
     const saved = localStorage.getItem('calculadoraDados');
@@ -861,6 +883,13 @@ function ServiceQuoteGeneratorContent() {
     setShowNewClientDialog(false)
   }
 
+  const handleWorkDayChange = (day: keyof typeof workDays) => {
+    setWorkDays((prev) => ({
+      ...prev,
+      [day]: !prev[day],
+    }));
+  };
+
   const handleChangeClient = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     
@@ -1035,27 +1064,11 @@ function ServiceQuoteGeneratorContent() {
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    // Days in current month
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    let workingDaysInMonth = 0;
-    for (let day = 1; day <= daysInMonth; day++) {
-      const currentDate = new Date(year, month, day);
-      const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, ...
-      if (selectedDays[dayOfWeek]) {
-        workingDaysInMonth++;
-      }
+    if (totalHoursMonth > 0) {
+      return calcularTotalCustosFixos / totalHoursMonth;
     }
-
-    const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
-
-    return monthlyTotalHours > 0 
-  ? Number((calcularTotalCustosFixos / 730).toFixed(2)) 
-  : 0;
-  }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
+    return 0;
+  }, [calcularTotalCustosFixos, totalHoursMonth]);
 
   const calcularCustoOperacional = useMemo(() => {
     const custoHora = calcularCustoHora * duracaoProjeto
@@ -1987,6 +2000,44 @@ function ServiceQuoteGeneratorContent() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
+                          <div className="space-y-2 mt-4">
+                            <Label>Dias da Semana Trabalhados</Label>
+                            <div className="flex flex-wrap gap-4">
+                              {Object.keys(workDays).map((day) => (
+                                <div key={day} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`fixed-cost-${day}`}
+                                    checked={workDays[day as keyof typeof workDays]}
+                                    onCheckedChange={() =>
+                                      handleWorkDayChange(day as keyof typeof workDays)
+                                    }
+                                  />
+                                  <Label htmlFor={`fixed-cost-${day}`} className="capitalize">
+                                    {day}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2 mt-4">
+                            <Label htmlFor="fixed-costs-hours-per-day">Horas Trabalhadas por Dia</Label>
+                            <Input
+                              id="fixed-costs-hours-per-day"
+                              type="number"
+                              value={fixedCostsHoursPerDay}
+                              onChange={(e) => setFixedCostsHoursPerDay(Number(e.target.value))}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 mt-3 mb-4">
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Dias/mês</p>
+                              <p className="text-xl font-bold">{daysPerMonth}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Horas/mês</p>
+                              <p className="text-xl font-bold">{totalHoursMonth}h</p>
+                            </div>
+                          </div>
                         <div className="space-y-3">
                           {dados.custosFixos.map((custo) => {
                             const isSalario =
