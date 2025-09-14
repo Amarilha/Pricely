@@ -72,9 +72,7 @@ const formatarValorInput = (valor: number): string => {
 
 // Função para converter string formatada em número
 const parseValor = (valorString: string): number => {
-  // Remove tudo que não é número, vírgula ou ponto
   const cleaned = valorString.replace(/[^\d,]/g, '');
-  // Substitui vírgula por ponto para parseFloat
   const numericString = cleaned.replace(',', '.');
   return parseFloat(numericString) || 0;
 };
@@ -132,7 +130,11 @@ export default function EmpresasPage() {
       }
       
       const data = await response.json();
-      setEmpresas(data);
+      const sanitizedData = data.map((empresa: Company) => ({
+        ...empresa,
+        custosFixos: empresa.custosFixos || [],
+      }));
+      setEmpresas(sanitizedData);
       setError(null);
     } catch (err: any) {
       console.error('Erro ao buscar empresas:', err);
@@ -142,7 +144,6 @@ export default function EmpresasPage() {
     }
   };
 
-  // Função para selecionar empresa
   const selecionarEmpresa = (empresaId: string) => {
     const empresaSelecionada = empresas.find(emp => emp.id_company === empresaId);
     if (empresaSelecionada) {
@@ -153,8 +154,84 @@ export default function EmpresasPage() {
     }
   };
 
+
+  // Adicione estes estados no início do componente EmpresasPage
+const [companyCities, setCompanyCities] = useState<{ id: number; nome: string }[]>([]);
+const [isCompanyCitiesLoading, setIsCompanyCitiesLoading] = useState(false);
+
+// Adicione este useEffect para buscar cidades quando o estado mudar
+useEffect(() => {
+  if (editingCompany?.endereco_estado) {
+    setIsCompanyCitiesLoading(true);
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${editingCompany.endereco_estado}/municipios`)
+      .then(response => response.json())
+      .then(data => {
+        setCompanyCities(data);
+      })
+      .catch(error => console.error('Error fetching company cities:', error))
+      .finally(() => setIsCompanyCitiesLoading(false));
+  }
+}, [editingCompany?.endereco_estado]);
+
+const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  let value = e.target.value.replace(/\D/g, '');
+  if (value.length > 14) value = value.slice(0, 14);
+  
+  let formattedValue = value;
+  
+  // Aplicar máscara do CNPJ: 00.000.000/0000-00
+  if (value.length > 2) {
+    formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+  }
+  if (value.length > 5) {
+    formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+  }
+  if (value.length > 8) {
+    formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4');
+  }
+  if (value.length > 12) {
+    formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+  }
+  
+  setCnpjToSearch(formattedValue);
+};
+
+// Função handleCepBlur completa
+const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
+  const cleanedCep = cep.replace(/\D/g, '');
+  if (cleanedCep.length !== 8) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+    if (!response.ok) {
+      throw new Error('CEP não encontrado');
+    }
+    const data = await response.json();
+    if (data.erro) {
+      throw new Error('CEP inválido');
+    }
+
+    if (formType === 'company') {
+      setEditingCompany(prev => ({
+        ...prev,
+        endereco_rua: data.logradouro || prev?.endereco_rua || '',
+        endereco_bairro: data.bairro || prev?.endereco_bairro || '',
+        endereco_cidade: data.localidade || prev?.endereco_cidade || '',
+        endereco_estado: data.uf || prev?.endereco_estado || '',
+      }));
+    }
+  } catch (error) {
+    console.error('Erro ao buscar CEP:', error);
+    // Opcional: mostrar mensagem de erro para o usuário
+  }
+};
+
+
+
   const handleCnpjSearch = async () => {
-    const cnpjNumerico = cnpjToSearch.replace(/\D/g, '');
+   const cnpjNumerico = cnpjToSearch.replace(/\D/g, '');
     if (cnpjNumerico.length !== 14) return alert(`CNPJ inválido.`);
     setIsSearchingCnpj(true);
     try {
@@ -183,7 +260,6 @@ export default function EmpresasPage() {
     }
   };
 
-  // Company Dialog Handlers
   const handleOpenCompanyDialog = (company: Company | null = null) => {
     setEditingCompany(company ? { ...company } : { ...initialCompanyState });
     setCnpjToSearch('');
@@ -192,7 +268,6 @@ export default function EmpresasPage() {
 
   const handleCloseCompanyDialog = () => setIsCompanyDialogOpen(false);
 
-  // Cost Dialog Handlers
   const handleOpenCostDialog = (company: Company) => {
     setManagingCostsForCompany(company);
     setEditingCosts([]);
@@ -207,7 +282,6 @@ export default function EmpresasPage() {
     setIsCostDialogOpen(false);
   };
 
-  // Company CRUD
   const handleSaveCompany = async () => {
     if (!editingCompany) return;
     setIsSubmitting(true);
@@ -221,13 +295,10 @@ export default function EmpresasPage() {
         ? `/dashboard/api/empresas/${editingCompany.id_company}` 
         : '/dashboard/api/empresas';
       
-      // Prepara os dados para enviar à API
       const payload = { 
         ...editingCompany, 
         id_user: userId,
-        // Inclui logoChar como null para compatibilidade com a API
         logoChar: null,
-        // Garante que campos opcionais sejam null se vazios
         endereco_rua: editingCompany.endereco_rua || null,
         endereco_numero: editingCompany.endereco_numero || null,
         endereco_bairro: editingCompany.endereco_bairro || null,
@@ -287,7 +358,6 @@ export default function EmpresasPage() {
       }
       
       setEmpresas(empresas.filter(e => e.id_company !== companyId));
-      // Se a empresa excluída era a selecionada, limpa a seleção
       if (dados.empresaSelecionada === companyId) {
         setDados({ empresaSelecionada: '', empresa: null });
       }
@@ -296,47 +366,69 @@ export default function EmpresasPage() {
     }
   };
 
-  // Fixed Cost CRUD
-  const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: number }) => {
-    if (!managingCostsForCompany || !newCost.descricao || !newCost.valor) {
-      return alert("Descrição e valor são obrigatórios.");
-    }
+const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: number }) => {
+  if (!managingCostsForCompany || !newCost.descricao || !newCost.valor) {
+    return alert("Descrição e valor são obrigatórios.");
+  }
+  
+  setIsSubmitting(true);
+  try {
+    const { id_company } = managingCostsForCompany;
+    const userId = await stateAuth();
     
-    setIsSubmitting(true);
-    try {
-      const { id_company } = managingCostsForCompany;
-      const userId = await stateAuth();
-      if (!userId) throw new Error("Usuário não autenticado.");
-
-      const url = `/dashboard/api/empresas/${id_company}/custos`;
-
-      const response = await fetch(url, { 
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': userId
-        }, 
-        body: JSON.stringify({ descricao: newCost.descricao, valor: newCost.valor }) 
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao salvar custo.');
-      }
-
-      // Recarrega a lista de empresas para atualizar os custos
-      await fetchEmpresas();
-      // Remove o custo salvo da lista de custos em edição
-      setEditingCosts(editingCosts.filter(cost => cost.id !== newCost.id));
-      // Remove o valor do input correspondente
-      const updatedValorInputs = { ...valorInputs };
-      delete updatedValorInputs[newCost.id];
-      setValorInputs(updatedValorInputs);
-    } catch (err: any) {
-      alert(`Erro: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
+    if (!userId) {
+      throw new Error("Usuário não autenticado. Faça login novamente.");
     }
-  };
+
+    // ✅ URL correta - verifique se está igual à estrutura de pastas
+    const url = `/dashboard/api/empresas/${id_company}/custos`;
+    
+    console.log("📤 Enviando para:", url);
+    console.log("🔑 Com userId:", userId);
+
+    const response = await fetch(url, { 
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': userId
+      }, 
+      body: JSON.stringify({ 
+        descricao: newCost.descricao, 
+        valor: newCost.valor 
+      }) 
+    });
+
+    // ✅ Log detalhado da resposta
+    console.log("📥 Resposta status:", response.status);
+    console.log("📥 Resposta ok:", response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Erro completo:", errorText);
+      throw new Error(`Falha ao salvar custo (${response.status}): ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Sucesso:", result);
+
+    // Recarrega os dados
+    await fetchEmpresas();
+    
+    // Remove o custo da lista de edição
+    setEditingCosts(editingCosts.filter(cost => cost.id !== newCost.id));
+    
+    // Limpa o input
+    const updatedValorInputs = { ...valorInputs };
+    delete updatedValorInputs[newCost.id];
+    setValorInputs(updatedValorInputs);
+
+  } catch (err: any) {
+    console.error("💥 Erro capturado:", err);
+    alert(`Erro: ${err.message}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleDeleteCost = async (costId: string) => {
     if (!managingCostsForCompany || !confirm('Excluir este custo?')) return;
@@ -355,14 +447,12 @@ export default function EmpresasPage() {
         throw new Error('Falha ao excluir custo.');
       }
 
-      // Recarrega a lista de empresas para atualizar os custos
       await fetchEmpresas();
     } catch (err: any) {
       alert(`Erro: ${err.message}`);
     }
   };
 
-  // Função para atualizar custos existentes
   const handleUpdateCost = async (id: string, field: string, value: any) => {
     if (!managingCostsForCompany) return;
     
@@ -374,13 +464,11 @@ export default function EmpresasPage() {
         return cost;
       });
       
-      // Atualiza o estado local imediatamente para feedback visual
       setManagingCostsForCompany({
         ...managingCostsForCompany,
         custosFixos: updatedCosts
       });
       
-      // Envia a atualização para o servidor
       const userId = await stateAuth();
       if (!userId) throw new Error("Usuário não autenticado.");
       
@@ -401,29 +489,22 @@ export default function EmpresasPage() {
       }
     } catch (err: any) {
       console.error('Erro ao atualizar custo:', err);
-      // Recarrega os dados em caso de erro para restaurar o estado anterior
       await fetchEmpresas();
     }
   };
 
-  // Função para formatar valor durante a digitação
   const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>, costId: number) => {
     let inputVal = e.target.value;
-    
-    // Remove tudo que não é número
     let numericVal = inputVal.replace(/\D/g, '');
     
-    // Converte para número com duas casas decimais
     let valor = 0;
     if (numericVal) {
       valor = parseFloat(numericVal) / 100;
     }
     
-    // Atualiza o estado do input
     const updatedValorInputs = { ...valorInputs, [costId]: numericVal ? formatarValorInput(valor) : '' };
     setValorInputs(updatedValorInputs);
     
-    // Atualiza o valor no editingCosts
     const updatedCosts = editingCosts.map(cost => 
       cost.id === costId ? { ...cost, valor } : cost
     );
@@ -443,8 +524,7 @@ export default function EmpresasPage() {
 
   return (
     <div className="container mx-auto p-6">
-      {userPlan === "free" && <AdsBanner dataAdFormat="auto" dataFullWidthResponsive={true} dataAdSlot="1728932878" className="my-4" />}
-      
+     
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold flex items-center"><Building className="mr-2" />Minhas Empresas</h1>
         <Button onClick={() => handleOpenCompanyDialog()}><PlusCircle className="mr-2 h-4 w-4" /> Cadastrar Empresa</Button>
@@ -463,33 +543,61 @@ export default function EmpresasPage() {
       {/* Lista de Empresas */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {empresas.map(empresa => (
-          <div key={empresa.id_company} className="border p-4 rounded-lg shadow-sm space-y-3 bg-card">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-600 text-white text-xs font-bold w-8 h-8 flex items-center justify-center rounded">
-                {empresa.nome.charAt(0).toUpperCase()}
-              </div>
-              <h2 className="text-xl font-semibold text-primary">{empresa.nome}</h2>
-            </div>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p><strong>CNPJ:</strong> {empresa.cnpj}</p>
-              <p><strong>Email:</strong> {empresa.email}</p>
-              <p><strong>Custos Fixos:</strong> {empresa.custosFixos?.length || 0} cadastrados</p>
-            </div>
-            <div className="flex justify-between items-center pt-3 border-t">
-              <Button variant="outline" size="sm" onClick={() => handleOpenCostDialog(empresa)}>
-                <DollarSign className="mr-1 h-4 w-4" />
-                Custos Fixos
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleOpenCompanyDialog(empresa)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteCompany(empresa.id_company)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+         <div key={empresa.id_company} className="border p-4 rounded-lg shadow-sm space-y-3 bg-card">
+  <div className="flex items-center gap-3">
+    <div className="bg-purple-600 text-white text-xs font-bold w-8 h-8 flex items-center justify-center rounded">
+      {empresa.nome.charAt(0).toUpperCase()}
+    </div>
+    <h2 className="text-xl font-semibold text-primary">{empresa.nome}</h2>
+  </div>
+  
+  <div className="text-sm text-muted-foreground space-y-2">
+    <p><strong>CNPJ:</strong> {empresa.cnpj}</p>
+    <p><strong>Email:</strong> {empresa.email}</p>
+    
+    {/* ✅ NOVA SEÇÃO DE CUSTOS - TOTAL + DETALHES COLAPSÁVEIS */}
+    <div className="border-t pt-2 mt-2">
+      <p className="font-semibold">Custos Fixos Mensais:</p>
+      <p className="text-lg font-bold text-red-600">
+        {formatarMoeda(empresa.custosFixos?.reduce((total, cost) => total + (cost.valor || 0), 0) || 0)}
+      </p>
+      
+      {empresa.custosFixos && empresa.custosFixos.length > 0 ? (
+        <details className="mt-1">
+          <summary className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm">
+            📋 Ver detalhes ({empresa.custosFixos.length} itens)
+          </summary>
+          <ul className="list-disc pl-5 space-y-1 mt-2 text-xs">
+            {empresa.custosFixos.map(cost => (
+              <li key={cost.id_custo_fixo} className="flex justify-between">
+                <span className="truncate max-w-[120px]">{cost.descricao}</span>
+                <span className="font-medium">{formatarMoeda(cost.valor)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : (
+        <p className="text-gray-500 text-sm">Nenhum custo fixo cadastrado.</p>
+      )}
+    </div>
+  </div>
+  
+  <div className="flex justify-between items-center pt-3 border-t">
+    <Button variant="outline" size="sm" onClick={() => handleOpenCostDialog(empresa)}>
+      <DollarSign className="mr-1 h-4 w-4" />
+      Gerenciar Custos
+    </Button>
+    <div className="flex gap-2">
+      <Button variant="ghost" size="icon" onClick={() => handleOpenCompanyDialog(empresa)}>
+        <Edit className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" 
+              onClick={() => handleDeleteCompany(empresa.id_company)}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  </div>
+</div>
         ))}
       </div>
 
@@ -525,16 +633,25 @@ export default function EmpresasPage() {
                     let value = e.target.value.replace(/\D/g, '');
                     if (value.length > 14) value = value.slice(0, 14);
                     
-                    // Aplica máscara apenas para exibição
                     let formattedValue = value;
-                    if (value.length > 2) formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
-                    if (value.length > 5) formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-                    if (value.length > 8) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1/$2');
-                    if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
+                    
+                    // Máscara correta do CNPJ: 00.000.000/0000-00
+                    if (value.length > 2) {
+                      formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                    }
+                    if (value.length > 5) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                    }
+                    if (value.length > 8) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4');
+                    }
+                    if (value.length > 12) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+                    }
                     
                     setCnpjToSearch(formattedValue);
                   }}
-                  maxLength={14} 
+                  maxLength={18} // Agora com a máscara completa
                   placeholder="00.000.000/0000-00" 
                 />
                 <Button onClick={handleCnpjSearch} disabled={isSearchingCnpj}>
@@ -545,7 +662,6 @@ export default function EmpresasPage() {
           )}
           
           <div className="grid gap-4 py-4">
-            {/* Nome da Empresa */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Nome da Empresa <span className="text-red-500">*</span>
@@ -561,7 +677,6 @@ export default function EmpresasPage() {
               </div>
             </div>
             
-            {/* CNPJ */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="cnpj" className="text-right">
                 CNPJ <span className="text-red-500">*</span>
@@ -575,12 +690,21 @@ export default function EmpresasPage() {
                     let value = e.target.value.replace(/\D/g, '');
                     if (value.length > 14) value = value.slice(0, 14);
                     
-                    // Aplica máscara apenas para exibição
                     let formattedValue = value;
-                    if (value.length > 2) formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
-                    if (value.length > 5) formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-                    if (value.length > 8) formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1/$2');
-                    if (value.length > 12) formattedValue = formattedValue.replace(/(\d{4})(\d)/, '$1-$2');
+                    
+                    // Máscara correta do CNPJ: 00.000.000/0000-00
+                    if (value.length > 2) {
+                      formattedValue = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                    }
+                    if (value.length > 5) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                    }
+                    if (value.length > 8) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4');
+                    }
+                    if (value.length > 12) {
+                      formattedValue = formattedValue.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, '$1.$2.$3/$4-$5');
+                    }
                     
                     setEditingCompany({...editingCompany, cnpj: formattedValue});
                   }} 
@@ -589,7 +713,6 @@ export default function EmpresasPage() {
               </div>
             </div>
             
-            {/* Email */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="email" className="text-right">
                 Email <span className="text-red-500">*</span>
@@ -606,7 +729,6 @@ export default function EmpresasPage() {
               </div>
             </div>
             
-            {/* Telefone */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="telefone" className="text-right">
                 Telefone <span className="text-red-500">*</span>
@@ -620,7 +742,6 @@ export default function EmpresasPage() {
                     let value = e.target.value.replace(/\D/g, '').replace(/^-/, '');
                     if (value.length > 11) value = value.substring(0, 11);
                     
-                    // Aplica a máscara de telefone
                     if (value.length <= 10) {
                       value = value.replace(/^(\d{2})(\d)/, '($1) $2');
                       value = value.replace(/(\d{4})(\d)/, '$1-$2');
@@ -636,7 +757,6 @@ export default function EmpresasPage() {
               </div>
             </div>
             
-            {/* Endereço - Rua */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="endereco_rua" className="text-right">
                 Rua
@@ -652,7 +772,6 @@ export default function EmpresasPage() {
               </div>
             </div>
             
-            {/* Endereço - Número */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="endereco_numero" className="text-right">
                 Número
@@ -668,7 +787,6 @@ export default function EmpresasPage() {
               </div>
             </div>
             
-            {/* Endereço - Bairro */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="endereco_bairro" className="text-right">
                 Bairro
@@ -683,8 +801,7 @@ export default function EmpresasPage() {
                 />
               </div>
             </div>
-            
-            {/* CEP */}
+            {/*cep */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="endereco_cep" className="text-right">
                 CEP
@@ -694,22 +811,21 @@ export default function EmpresasPage() {
                   id="endereco_cep" 
                   name="endereco_cep" 
                   value={editingCompany?.endereco_cep || ''} 
+                  onBlur={(e) => handleCepBlur(e.target.value, 'company')}
                   onChange={(e) => {
                     let value = e.target.value.replace(/\D/g, '').slice(0, 8);
                     value = value.replace(/^(\d{5})(\d)/, '$1-$2');
                     setEditingCompany({...editingCompany, endereco_cep: value});
                   }}
-                  onBlur={() => {
-                    // Adicione aqui a função para buscar o endereço pelo CEP se necessário
-                  }}
+                  className="col-span-3"
                   placeholder="00000-000"
                 />
               </div>
             </div>
-            
-            {/* Estado */}
+
+            {/*Estado */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endereco_estado" className="text-right">
+              <Label htmlFor="company-state" className="text-right">
                 Estado
               </Label>
               <div className="col-span-3">
@@ -720,7 +836,7 @@ export default function EmpresasPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um estado" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="flex bg-background ">
                     <SelectGroup>
                       {['AC','AL','AP','AM','BA','CE','DF','ES','GO',
                         'MA','MT','MS','MG','PA','PB','PR','PE','PI',
@@ -734,20 +850,31 @@ export default function EmpresasPage() {
                 </Select>
               </div>
             </div>
-            
-            {/* Cidade */}
+
+            {/*Cidade */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endereco_cidade" className="text-right">
+              <Label htmlFor="company-city" className="text-right">
                 Cidade
               </Label>
               <div className="col-span-3">
-                <Input 
-                  id="endereco_cidade" 
-                  name="endereco_cidade" 
-                  value={editingCompany?.endereco_cidade || ''} 
-                  onChange={(e) => setEditingCompany({...editingCompany, [e.target.name]: e.target.value})} 
-                  placeholder="Nome da cidade"
-                />
+                <Select
+                  value={editingCompany?.endereco_cidade || ''}
+                  onValueChange={(value) => setEditingCompany({...editingCompany, endereco_cidade: value})}
+                  disabled={!editingCompany?.endereco_estado || isCompanyCitiesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={isCompanyCitiesLoading ? "Carregando..." : "Selecione uma cidade"} />
+                  </SelectTrigger>
+                  <SelectContent className="flex bg-background ">
+                    <SelectGroup>
+                      {companyCities.map((city) => (
+                        <SelectItem key={city.id} value={city.nome}>
+                          {city.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -762,135 +889,138 @@ export default function EmpresasPage() {
       </Dialog>
 
       {/* Fixed Cost Management Dialog */}
-      {/* Fixed Cost Management Dialog */}
-  <Dialog open={isCostDialogOpen} onOpenChange={setIsCostDialogOpen}>
-    <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle className="flex items-center justify-between">
-          <div className="flex items-center">
-            Custos Fixos Mensais de {managingCostsForCompany?.nome}
-            <TooltipHelper content="Gastos que você tem todo mês, independente de quantos serviços fizer (aluguel, energia, internet, etc.)">
-              <Info className="h-4 w-4 ml-2 text-muted-foreground" />
-            </TooltipHelper>
-          </div>
-          <Button 
-            onClick={() => {
-              setEditingCosts([...editingCosts, { ...initialCostState, id: Date.now() }]);
-            }} 
-            size="sm"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Custo
-          </Button>
-        </DialogTitle>
-      </DialogHeader>
-      
-      {/* List of existing costs */}
-      <div className="space-y-3 max-h-[50vh] overflow-y-auto py-2">
-        {(managingCostsForCompany?.custosFixos || []).map(cost => (
-          <div key={cost.id_custo_fixo} className="flex gap-3 items-center p-2 border rounded-lg">
-            <div className="flex-1">
-              <Input
-                placeholder="Descrição do custo"
-                value={cost.descricao}
-                onChange={(e) => handleUpdateCost(cost.id_custo_fixo, "descricao", e.target.value)}
-              />
-            </div>
-            <div className="w-32">
-              <Input
-                type="text"
-                value={formatarValorInput(cost.valor)}
-                onChange={(e) => {
-                  const valor = parseValor(e.target.value);
-                  handleUpdateCost(cost.id_custo_fixo, "valor", valor);
-                }}
-                onBlur={(e) => {
-                  e.target.value = formatarValorInput(cost.valor);
-                }}
-                placeholder="R$ 0,00"
-                className="w-32"
-              />
-            </div>
-            <Button variant="destructive" size="sm" onClick={() => handleDeleteCost(cost.id_custo_fixo)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-        
-        {/* Forms for new costs */}
-        {editingCosts.map((newCost, index) => (
-          <div key={newCost.id} className="flex gap-3 items-center p-2 border-2 border-dashed rounded-lg bg-muted/20">
-            <div className="flex-1">
-              <Label htmlFor={`cost-desc-${index}`} className="text-xs">Nova Descrição</Label>
-              <Input 
-                id={`cost-desc-${index}`} 
-                value={newCost.descricao || ''} 
-                onChange={(e) => {
-                  const updatedCosts = [...editingCosts];
-                  updatedCosts[index] = { ...updatedCosts[index], descricao: e.target.value };
-                  setEditingCosts(updatedCosts);
+      <Dialog open={isCostDialogOpen} onOpenChange={setIsCostDialogOpen}>
+        <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                Custos Fixos Mensais de {managingCostsForCompany?.nome}
+                <TooltipHelper content="Gastos que você tem todo mês, independente de quantos serviços fizer (aluguel, energia, internet, etc.)">
+                  <Info className="h-4 w-4 ml-2 text-muted-foreground" />
+                </TooltipHelper>
+              </div>
+              <Button 
+                onClick={() => {
+                  setEditingCosts([...editingCosts, { ...initialCostState, id: Date.now() }]);
                 }} 
-                placeholder="Ex: Aluguel, Internet, Salários"
-              />
-            </div>
-            <div className="w-32">
-              <Label htmlFor={`cost-valor-${index}`} className="text-xs">Novo Valor (R$)</Label>
-              <Input 
-                id={`cost-valor-${index}`} 
-                type="text"
-                value={valorInputs[newCost.id] || ''}
-                onChange={(e) => handleValorChange(e, newCost.id)}
-                onBlur={() => {
-                  if (newCost.valor) {
-                    const updatedValorInputs = { ...valorInputs, [newCost.id]: formatarValorInput(newCost.valor) };
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Custo
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-3 max-h-[50vh] overflow-y-auto py-2">
+            {(managingCostsForCompany?.custosFixos || []).map(cost => (
+              <div key={cost.id_custo_fixo} className="flex gap-3 items-center p-2 border rounded-lg">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Descrição do custo"
+                    value={cost.descricao}
+                    onChange={(e) => handleUpdateCost(cost.id_custo_fixo, "descricao", e.target.value)}
+                  />
+                </div>
+                <div className="w-32">
+                  <Input
+                    type="text"
+                    value={formatarValorInput(cost.valor)}
+                    onChange={(e) => {
+                      const valor = parseValor(e.target.value);
+                      handleUpdateCost(cost.id_custo_fixo, "valor", valor);
+                    }}
+                    onBlur={(e) => {
+                      e.target.value = formatarValorInput(cost.valor);
+                    }}
+                    placeholder="R$ 0,00"
+                    className="w-32"
+                  />
+                </div>
+                <Button variant="destructive" size="sm" onClick={() => handleDeleteCost(cost.id_custo_fixo)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            
+            {editingCosts.map((newCost, index) => (
+              <div key={newCost.id} className="flex gap-3 items-center p-2 border-2 border-dashed rounded-lg bg-muted/20">
+                <div className="flex-1">
+                  <Label htmlFor={`cost-desc-${index}`} className="text-xs">Nova Descrição</Label>
+                  <Input 
+                    id={`cost-desc-${index}`} 
+                    value={newCost.descricao || ''} 
+                    onChange={(e) => {
+                      const updatedCosts = [...editingCosts];
+                      updatedCosts[index] = { ...updatedCosts[index], descricao: e.target.value };
+                      setEditingCosts(updatedCosts);
+                    }} 
+                    placeholder="Ex: Aluguel, Internet, Salários"
+                  />
+                </div>
+                <div className="w-32">
+                  <Label htmlFor={`cost-valor-${index}`} className="text-xs">Novo Valor (R$)</Label>
+                  <Input 
+                    id={`cost-valor-${index}`} 
+                    type="text"
+                    value={valorInputs[newCost.id] || ''}
+                    onChange={(e) => handleValorChange(e, newCost.id)}
+                    onBlur={() => {
+                      if (newCost.valor) {
+                        const updatedValorInputs = { ...valorInputs, [newCost.id]: formatarValorInput(newCost.valor) };
+                        setValorInputs(updatedValorInputs);
+                      }
+                    }}
+                    placeholder="R$ 0,00"
+                  />
+                </div>
+                <Button 
+                  onClick={() => handleSaveCost(newCost)} 
+                  disabled={isSubmitting || !newCost.descricao || !newCost.valor} 
+                  className="mt-5"
+                >
+                  Adicionar
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    const updatedCosts = editingCosts.filter((_, i) => i !== index);
+                    setEditingCosts(updatedCosts);
+                    const updatedValorInputs = { ...valorInputs };
+                    delete updatedValorInputs[newCost.id];
                     setValorInputs(updatedValorInputs);
-                  }
-                }}
-                placeholder="R$ 0,00"
-              />
+                  }} 
+                  className="mt-5"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            ))}
+            
+            <div className="pt-4 border-t mt-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Total Custos Fixos:</span>
+                <span className="font-bold text-lg text-red-600">
+                  {(() => {
+                    const existingCostsTotal = managingCostsForCompany?.custosFixos?.reduce(
+                      (total, cost) => total + (Number.isFinite(cost.valor) ? cost.valor : 0),
+                      0
+                    ) || 0;
+                    const newCostsTotal = editingCosts.reduce(
+                      (total, cost) => total + (Number.isFinite(cost.valor) ? cost.valor : 0),
+                      0
+                    );
+                    return formatarMoeda(existingCostsTotal + newCostsTotal);
+                  })()}
+                </span>
+              </div>
             </div>
-            <Button 
-              onClick={() => handleSaveCost(newCost)} 
-              disabled={isSubmitting || !newCost.descricao || !newCost.valor} 
-              className="mt-5"
-            >
-              Adicionar
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                const updatedCosts = editingCosts.filter((_, i) => i !== index);
-                setEditingCosts(updatedCosts);
-                const updatedValorInputs = { ...valorInputs };
-                delete updatedValorInputs[newCost.id];
-                setValorInputs(updatedValorInputs);
-              }} 
-              className="mt-5"
-            >
-              Cancelar
-            </Button>
           </div>
-        ))}
-        
-        {/* Totals summary */}
-        <div className="pt-4 border-t mt-4">
-  <div className="flex justify-between items-center">
-    <span className="font-semibold">Total Custos Fixos:</span>
-    <span className="font-bold text-lg text-red-600">
-      {formatarMoeda(
-        (managingCostsForCompany?.custosFixos?.reduce((total, cost) => total + cost.valor, 0) || 0) +
-        (editingCosts.reduce((total, cost) => total + (cost.valor || 0), 0))
-      )}
-    </span>
-  </div>
-</div>
-      </div>
 
-      <DialogFooter>
-        <Button variant="outline" onClick={handleCloseCostDialog}>Fechar</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseCostDialog}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

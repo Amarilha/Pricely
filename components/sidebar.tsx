@@ -36,22 +36,24 @@ import { auth, db } from "@/app/src/config/firebaseConfig"
 import Image from "next/image"
 
 const menuItems = [
-  {
-    name: "Empresas",
-    href: "/dashboard/empresas",
-    icon: Building,
-  },
+  
   {
     name: "Calculadora",
     href: "/dashboard/calculadora",
     icon: Calculator,
+  },
+    /*{
+    {
+    name: "Empresas",
+    href: "/dashboard/empresas",
+    icon: Building,
   },
   {
     name: "Mão de Obra",
     href: "/dashboard/mao-de-obra",
     icon: Wrench,
   },
-  /*{
+
   {
     name: "Home",
     href: "/dashboard",

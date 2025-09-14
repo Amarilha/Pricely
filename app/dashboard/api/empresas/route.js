@@ -1,6 +1,6 @@
 // app/dashboard/api/empresas/route.js
-import { getEmpresas as fetchEmpresasFromDB } from '../../../src/services/routes.js';
-import { createCompany as  createCompany } from '../../../src/services/routes.js';
+import { getEmpresas as fetchEmpresasFromDB } from '@/app/src/services/routes.js';
+import { createCompany as  createCompany } from '@/app/src/services/routes.js';
 
 
 export async function GET(request) {

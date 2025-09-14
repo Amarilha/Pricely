@@ -41,6 +41,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import PrintableQuote from "@/components/calculadora/PrintableQuote";
+import { MaoDeObra } from "@/components/mao-de-obra";
 import { useRef } from "react";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
@@ -287,6 +288,19 @@ function ServiceQuoteGeneratorContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [regimeTributario, setRegimeTributario] = useState<'MEI' | 'ME'>('ME');
 
+  const [workDays, setWorkDays] = useState({
+    segunda: true,
+    terca: true,
+    quarta: true,
+    quinta: true,
+    sexta: true,
+    sabado: false,
+    domingo: false,
+  });
+  const [daysPerMonth, setDaysPerMonth] = useState(22);
+  const [totalHoursMonth, setTotalHoursMonth] = useState(176);
+  const [fixedCostsHoursPerDay, setFixedCostsHoursPerDay] = useState(8);
+
   const [formDataEmpresas, setFormDataEmpresas] = useState({
     name: '',
     cnpj: '',
@@ -370,7 +384,6 @@ function ServiceQuoteGeneratorContent() {
     custosFixos: [
       { id: '1', descricao: 'Aluguel/Financiamento', valor: 0 },
       { id: '2', descricao: 'Internet/Telefone', valor: 0 },
-      { id: '3', descricao: 'Salários/Pró-labore', valor: 0 },
     ],
     custosVariaveis: [],
     margemLucro: 30,
@@ -398,6 +411,15 @@ function ServiceQuoteGeneratorContent() {
   useEffect(() => {
     localStorage.setItem('calculadoraDados', JSON.stringify(dados));
   }, [dados]);
+
+  useEffect(() => {
+    const daysPerWeek = Object.values(workDays).filter(Boolean).length;
+    const daysPerMonthValue = Math.round((daysPerWeek / 7) * 30);
+    const totalHoursMonthValue = parseFloat((fixedCostsHoursPerDay * daysPerMonthValue).toFixed(2));
+
+    setDaysPerMonth(daysPerMonthValue);
+    setTotalHoursMonth(totalHoursMonthValue);
+  }, [workDays, fixedCostsHoursPerDay]);
   
   useEffect(() => {
     const saved = localStorage.getItem('calculadoraDados');
@@ -456,6 +478,7 @@ function ServiceQuoteGeneratorContent() {
   const [valorHora, setValorHora] = useState(0);
   const [selectedDays, setSelectedDays] = useState([false, true, true, true, true, true, false]); // Mon-Fri
   const [hoursPerDay, setHoursPerDay] = useState(8);
+  const [maoDeObraHora, setMaoDeObraHora] = useState(0);
 
   useEffect(() => {
     const weeklyHours = selectedDays.filter(Boolean).length * hoursPerDay;
@@ -860,6 +883,13 @@ function ServiceQuoteGeneratorContent() {
     setShowNewClientDialog(false)
   }
 
+  const handleWorkDayChange = (day: keyof typeof workDays) => {
+    setWorkDays((prev) => ({
+      ...prev,
+      [day]: !prev[day],
+    }));
+  };
+
   const handleChangeClient = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     
@@ -1034,34 +1064,19 @@ function ServiceQuoteGeneratorContent() {
   }, [dados.custosVariaveis])
 
   const calcularCustoHora = useMemo(() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    // Days in current month
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    let workingDaysInMonth = 0;
-    for (let day = 1; day <= daysInMonth; day++) {
-      const currentDate = new Date(year, month, day);
-      const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, ...
-      if (selectedDays[dayOfWeek]) {
-        workingDaysInMonth++;
-      }
+    if (totalHoursMonth > 0) {
+      return calcularTotalCustosFixos / totalHoursMonth;
     }
-
-    const monthlyTotalHours = workingDaysInMonth * hoursPerDay;
-
-    return monthlyTotalHours > 0 
-  ? Number((calcularTotalCustosFixos / 730).toFixed(2)) 
-  : 0;
-  }, [calcularTotalCustosFixos, selectedDays, hoursPerDay]);
+    return 0;
+  }, [calcularTotalCustosFixos, totalHoursMonth]);
 
   const calcularCustoOperacional = useMemo(() => {
     const custoHora = calcularCustoHora * duracaoProjeto
     const custoVariaveis = calcularTotalCustosVariaveis
+    const custoMaoDeObra = maoDeObraHora * duracaoProjeto
 
-    return custoVariaveis + custoHora
-  }, [calcularCustoHora, duracaoProjeto, calcularTotalCustosVariaveis])
+    return custoVariaveis + custoHora + custoMaoDeObra
+  }, [calcularCustoHora, duracaoProjeto, calcularTotalCustosVariaveis, maoDeObraHora])
 
   const calcularSubtotalItens = useMemo(() => {
     return dados.itens.reduce((total, item) => total + (item.totalItem || 0), 0)
@@ -1073,8 +1088,18 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularLucro = useMemo(() => {
     const subtotal = calcularSubtotalGeral
-    return subtotal * ((dados.margemLucro || 0) / 100)
+    if (dados.margemLucro === 0) {
+    return 0;
+    }
+    return subtotal / ((100 - (dados.margemLucro || 0)) / 100);
+
   }, [calcularSubtotalGeral, dados.margemLucro])
+  
+  const lucroReal = useMemo(()=>{
+    const lucroTotal = calcularLucro
+
+    return lucroTotal - calcularSubtotalGeral
+  }, [calcularSubtotalGeral, calcularLucro])
 
   const calcularImpostos = useMemo(() => {
     if (regimeTributario === 'MEI') {
@@ -1088,7 +1113,7 @@ function ServiceQuoteGeneratorContent() {
     const subtotal = calcularSubtotalGeral
     const lucro = calcularLucro
     const impostos = calcularImpostos
-    return subtotal + lucro + impostos - (dados.desconto || 0) + (dados.acrescimos || 0)
+    return lucro + impostos - (dados.desconto || 0) + (dados.acrescimos || 0)
   }, [calcularSubtotalGeral, calcularLucro, calcularImpostos, dados.desconto, dados.acrescimos])
 
   // Função de formatação memoizada
@@ -1383,6 +1408,7 @@ function ServiceQuoteGeneratorContent() {
                                     className="col-span-3"
                                   />
                                 </div>
+                                {/*Bairro */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-neighborhood" className="text-right">
                                     Bairro
@@ -1394,6 +1420,7 @@ function ServiceQuoteGeneratorContent() {
                                     className="col-span-3"
                                   />
                                 </div>
+                                {/*cep */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-cep" className="text-right">CEP</Label>
                                 <Input
@@ -1409,6 +1436,7 @@ function ServiceQuoteGeneratorContent() {
                                   className="col-span-3"
                                 />
                                 </div>
+                                {/*Estado */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-state" className="text-right">
                                     Estado
@@ -1440,6 +1468,7 @@ function ServiceQuoteGeneratorContent() {
                                     </SelectContent>
                                   </Select>
                                 </div>
+                                {/*Cidade */}
                                 <div className="grid grid-cols-4 items-center gap-4">
                                   <Label htmlFor="company-city" className="text-right">
                                     Cidade
@@ -1956,38 +1985,7 @@ function ServiceQuoteGeneratorContent() {
 
                   {/* custo */}  
                   <TabsContent value="costs" className="space-y-6">
-                      {/* Salary Inclusion Option */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center justify-between">
-                            <span>Configuração de Custos</span>
-                            <div className="flex items-center space-x-2">
-                              <TooltipHelper content="Ative esta opção se você quer incluir salários e pró-labore no cálculo dos custos. Desative para serviços que não envolvem custos de pessoal.">
-                                <Label htmlFor="incluir-salarios" className="text-sm font-normal">
-                                  Incluir Salários/Pró-labore
-                                </Label>
-                              </TooltipHelper>
-                              <Switch
-                                id="incluir-salarios"
-                                checked={dados.incluirSalarios}
-                                onCheckedChange={(checked) => setDados((prev) => ({ ...prev, incluirSalarios: checked }))}
-                              />
-                            </div>
-                          </CardTitle>
-                        </CardHeader>
-                        {!dados.incluirSalarios && (
-                          <CardContent>
-                            <Alert>
-                              <Info className="h-4 w-4" />
-                              <AlertDescription>
-                                Salários e pró-labore foram <strong>excluídos</strong> do cálculo de custos. Ideal para serviços
-                                que não envolvem custos de pessoal.
-                              </AlertDescription>
-                            </Alert>
-                          </CardContent>
-                        )}
-                      </Card>
-
+                      
                       {/* Fixed Costs */}
                       <Card>
                         <CardHeader>
@@ -2002,6 +2000,44 @@ function ServiceQuoteGeneratorContent() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
+                          <div className="space-y-2 mt-4">
+                            <Label>Dias da Semana Trabalhados</Label>
+                            <div className="flex flex-wrap gap-4">
+                              {Object.keys(workDays).map((day) => (
+                                <div key={day} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`fixed-cost-${day}`}
+                                    checked={workDays[day as keyof typeof workDays]}
+                                    onCheckedChange={() =>
+                                      handleWorkDayChange(day as keyof typeof workDays)
+                                    }
+                                  />
+                                  <Label htmlFor={`fixed-cost-${day}`} className="capitalize">
+                                    {day}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2 mt-4">
+                            <Label htmlFor="fixed-costs-hours-per-day">Horas Trabalhadas por Dia</Label>
+                            <Input
+                              id="fixed-costs-hours-per-day"
+                              type="number"
+                              value={fixedCostsHoursPerDay}
+                              onChange={(e) => setFixedCostsHoursPerDay(Number(e.target.value))}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 mt-3 mb-4">
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Dias/mês</p>
+                              <p className="text-xl font-bold">{daysPerMonth}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm text-muted-foreground">Horas/mês</p>
+                              <p className="text-xl font-bold">{totalHoursMonth}h</p>
+                            </div>
+                          </div>
                         <div className="space-y-3">
                           {dados.custosFixos.map((custo) => {
                             const isSalario =
@@ -2268,6 +2304,8 @@ function ServiceQuoteGeneratorContent() {
                         </CardContent>
                       </Card>
 
+                      <MaoDeObra onLaborSelect={(labor) => setMaoDeObraHora(labor.valor_hora)} />
+
                   </TabsContent>
                     
                   <TabsContent value="service" className="space-y-6">
@@ -2344,7 +2382,7 @@ function ServiceQuoteGeneratorContent() {
                             <TooltipHelper content="Valor do lucro baseado na margem definida">
                               <p className="text-sm text-gray-600">Lucro ({dados.margemLucro}%)</p>
                             </TooltipHelper>
-                            <p className="text-xl font-bold text-green-600">{formatarMoeda(calcularLucro)}</p>
+                            <p className="text-xl font-bold text-green-600">{formatarMoeda(lucroReal)}</p>
                           </CardContent>
                         </Card>
                         <Card>
@@ -2361,7 +2399,7 @@ function ServiceQuoteGeneratorContent() {
                               <p className="text-sm text-gray-600">Preço Base</p>
                             </TooltipHelper>
                             <p className="text-xl font-bold text-purple-600">
-                              {formatarMoeda(calcularSubtotalGeral + calcularLucro + calcularImpostos)}
+                              {formatarMoeda(calcularLucro + calcularImpostos)}
                             </p>
                           </CardContent>
                         </Card>

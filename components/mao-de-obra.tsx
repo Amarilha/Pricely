@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle, Trash2 } from "lucide-react"
+import { AlertCircle, CheckCircle, Trash2, Plus } from "lucide-react"
 import { stateAuth } from "@/app/src/services/estadoAuth"
 
 // Interface para a mão de obra salva
@@ -35,7 +35,11 @@ interface Labor {
   created_at?: string;
 }
 
-export function MaoDeObra() {
+interface MaoDeObraProps {
+  onLaborSelect?: (labor: Labor) => void;
+}
+
+export function MaoDeObra({ onLaborSelect }: MaoDeObraProps) {
   const [hourlyRate, setHourlyRate] = useState("")
   const [knowsHourlyRate, setKnowsHourlyRate] = useState(true)
   const [estimatedIncome, setEstimatedIncome] = useState("")
@@ -60,6 +64,7 @@ export function MaoDeObra() {
   const [savedLabors, setSavedLabors] = useState<Labor[]>([])
   const [selectedLabor, setSelectedLabor] = useState<Labor | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showLaborForm, setShowLaborForm] = useState(false) // Novo estado para controlar a exibição do formulário
 
   // Carregar mãos de obra salvas do banco de dados ao inicializar
   useEffect(() => {
@@ -322,6 +327,7 @@ export function MaoDeObra() {
       setShowSaveDialog(false)
       setLaborName("")
       setShowSuccessDialog(true)
+      setShowLaborForm(false) // Fechar o formulário após salvar
     } catch (error) {
       console.error("Erro ao salvar mão de obra:", error)
       setErrorMessage("Erro ao salvar mão de obra. Tente novamente.")
@@ -333,6 +339,9 @@ export function MaoDeObra() {
     setSelectedLabor(labor)
     setKnowsHourlyRate(true)
     setHourlyRate(formatarMoeda(labor.valor_hora))
+    if (onLaborSelect) {
+      onLaborSelect(labor)
+    }
   }
 
   const handleDeleteLabor = async (laborId: string, e: React.MouseEvent) => {
@@ -358,15 +367,47 @@ export function MaoDeObra() {
     }
   }
 
+  // Função para adicionar nova mão de obra
+  const handleAddNewLabor = () => {
+    setShowLaborForm(true)
+    // Limpar seleção atual
+    setSelectedLabor(null)
+    setKnowsHourlyRate(true)
+    setHourlyRate("")
+    // Limpar campos de cálculo
+    setEstimatedIncome("")
+    setHoursPerDay("")
+    setWorkDays({
+      segunda: false,
+      terca: false,
+      quarta: false,
+      quinta: false,
+      sexta: false,
+      sabado: false,
+      domingo: false,
+    })
+    setCalculatedRate(null)
+  }
+
   return (
     <div className="grid gap-8">
       {/* Card para selecionar mão de obra existente */}
       <Card>
-        <CardHeader>
-          <CardTitle>Mãos de Obra Salvas</CardTitle>
-          <CardDescription>
-            {isLoading ? "Carregando..." : "Selecione uma mão de obra salva ou crie uma nova"}
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle>Mãos de Obra Salvas</CardTitle>
+            <CardDescription>
+              {isLoading ? "Carregando..." : "Selecione uma mão de obra salva ou crie uma nova"}
+            </CardDescription>
+          </div>
+          <Button 
+            size="sm" 
+            onClick={handleAddNewLabor}
+            className="flex items-center gap-1"
+          >
+            <Plus size={16} />
+            Novo Valor
+          </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -410,129 +451,141 @@ export function MaoDeObra() {
           ) : (
             <div className="text-center py-4 text-gray-500">
               <p>Nenhuma mão de obra salva ainda.</p>
+              <Button 
+                onClick={handleAddNewLabor}
+                className="mt-2 flex items-center gap-1"
+              >
+                <Plus size={16} />
+                Criar Primeiro Valor
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Valor da Hora</CardTitle>
-          <CardDescription>
-            Você sabe o valor da sua hora de trabalho?
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="knows-hourly-rate"
-                checked={knowsHourlyRate}
-                onCheckedChange={setKnowsHourlyRate}
-              />
-              <Label htmlFor="knows-hourly-rate">
-                {knowsHourlyRate ? "Sim, sei meu valor" : "Não, quero calcular"}
-              </Label>
-            </div>
-            {knowsHourlyRate && (
-              <>
-                <Label htmlFor="hourly-rate">Valor por Hora (R$)</Label>
-                <Input
-                  id="hourly-rate"
-                  type="text"
-                  placeholder="Ex: R$ 50,00"
-                  value={hourlyRate}
-                  onChange={(e) => handleInputChange(e.target.value, setHourlyRate, true)}
-                />
-              </>
-            )}
-          </div>
-        </CardContent>
-        {knowsHourlyRate && (
-          <CardFooter>
-            <Button onClick={handleSave}>Salvar</Button>
-          </CardFooter>
-        )}
-      </Card>
-
-      {!knowsHourlyRate && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Calcule seu valor por hora</CardTitle>
-            <CardDescription>
-              Informe sua expectativa salarial e horas trabalhadas para calcular o
-              valor da sua hora.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="estimated-income">
-                Expectativa Salarial Mensal (R$)
-              </Label>
-              <Input
-                id="estimated-income"
-                type="text"
-                placeholder="Ex: R$ 5.000,00"
-                value={estimatedIncome}
-                onChange={(e) => handleInputChange(e.target.value, setEstimatedIncome, true)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="hours-per-day">Horas Trabalhadas por Dia</Label>
-              <Input
-                id="hours-per-day"
-                type="text"
-                placeholder="Ex: 8,5"
-                value={hoursPerDay}
-                onChange={(e) => handleInputChange(e.target.value, setHoursPerDay, false, true)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Dias da Semana Trabalhados</Label>
-              <div className="flex flex-wrap gap-4">
-                {Object.keys(workDays).map((day) => (
-                  <div key={day} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={day}
-                      checked={workDays[day as keyof typeof workDays]}
-                      onCheckedChange={() =>
-                        handleWorkDayChange(day as keyof typeof workDays)
-                      }
+      {/* Formulário para criar nova mão de obra (apenas aparece quando showLaborForm é true) */}
+      {showLaborForm && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Valor da Hora</CardTitle>
+              <CardDescription>
+                Você sabe o valor da sua hora de trabalho?
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="knows-hourly-rate"
+                    checked={knowsHourlyRate}
+                    onCheckedChange={setKnowsHourlyRate}
+                  />
+                  <Label htmlFor="knows-hourly-rate">
+                    {knowsHourlyRate ? "Sim, sei meu valor" : "Não, quero calcular"}
+                  </Label>
+                </div>
+                {knowsHourlyRate && (
+                  <>
+                    <Label htmlFor="hourly-rate">Valor por Hora (R$)</Label>
+                    <Input
+                      id="hourly-rate"
+                      type="text"
+                      placeholder="Ex: R$ 50,00"
+                      value={hourlyRate}
+                      onChange={(e) => handleInputChange(e.target.value, setHourlyRate, true)}
                     />
-                    <Label htmlFor={day} className="capitalize">
-                      {day}
-                    </Label>
-                  </div>
-                ))}
+                  </>
+                )}
               </div>
-            </div>
-            {calculatedRate !== null && daysPerMonth !== null && totalHoursMonth !== null && (
-              <div className="text-center space-y-2 p-4 bg-muted rounded-lg">
-                <p className="text-lg font-semibold">Resultado do cálculo:</p>
-                <div className="grid grid-cols-2 gap-4 mt-3">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Dias/mês</p>
-                    <p className="text-xl font-bold">{daysPerMonth}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Horas/mês</p>
-                    <p className="text-xl font-bold">{totalHoursMonth}h</p>
+            </CardContent>
+            {knowsHourlyRate && (
+              <CardFooter>
+                <Button onClick={handleSave}>Salvar</Button>
+              </CardFooter>
+            )}
+          </Card>
+
+          {!knowsHourlyRate && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Calcule seu valor por hora</CardTitle>
+                <CardDescription>
+                  Informe sua expectativa salarial e horas trabalhadas para calcular o
+                  valor da sua hora.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="estimated-income">
+                    Expectativa Salarial Mensal (R$)
+                  </Label>
+                  <Input
+                    id="estimated-income"
+                    type="text"
+                    placeholder="Ex: R$ 5.000,00"
+                    value={estimatedIncome}
+                    onChange={(e) => handleInputChange(e.target.value, setEstimatedIncome, true)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hours-per-day">Horas Trabalhadas por Dia</Label>
+                  <Input
+                    id="hours-per-day"
+                    type="text"
+                    placeholder="Ex: 8,5"
+                    value={hoursPerDay}
+                    onChange={(e) => handleInputChange(e.target.value, setHoursPerDay, false, true)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Dias da Semana Trabalhados</Label>
+                  <div className="flex flex-wrap gap-4">
+                    {Object.keys(workDays).map((day) => (
+                      <div key={day} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={day}
+                          checked={workDays[day as keyof typeof workDays]}
+                          onCheckedChange={() =>
+                            handleWorkDayChange(day as keyof typeof workDays)
+                          }
+                        />
+                        <Label htmlFor={day} className="capitalize">
+                          {day}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <p className="text-sm mt-4">Seu valor por hora é:</p>
-                <p className="text-3xl font-bold text-purple-600">
-                  {formatarMoeda(calculatedRate)}
-                </p>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="grid grid-cols-2 gap-4 mt-3">
-            <Button onClick={calculateHourlyRate}>
-              Calcular
-            </Button>
-            <Button onClick={handleSave}>Salvar</Button>
-          </CardFooter>
-        </Card>
+                {calculatedRate !== null && daysPerMonth !== null && totalHoursMonth !== null && (
+                  <div className="text-center space-y-2 p-4 bg-muted rounded-lg">
+                    <p className="text-lg font-semibold">Resultado do cálculo:</p>
+                    <div className="grid grid-cols-2 gap-4 mt-3">
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Dias/mês</p>
+                        <p className="text-xl font-bold">{daysPerMonth}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Horas/mês</p>
+                        <p className="text-xl font-bold">{totalHoursMonth}h</p>
+                      </div>
+                    </div>
+                    <p className="text-sm mt-4">Seu valor por hora é:</p>
+                    <p className="text-3xl font-bold text-purple-600">
+                      {formatarMoeda(calculatedRate)}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="grid grid-cols-2 gap-4 mt-3">
+                <Button onClick={calculateHourlyRate}>
+                  Calcular
+                </Button>
+                <Button onClick={handleSave}>Salvar</Button>
+              </CardFooter>
+            </Card>
+          )}
+        </>
       )}
 
       {/* Diálogo para nomear a mão de obra */}
