@@ -387,7 +387,7 @@ function ServiceQuoteGeneratorContent() {
     ],
     custosVariaveis: [],
     margemLucro: 30,
-    impostos: 8,
+    impostos: 0,
     incluirSalarios: true,
     itens: [],
     formaPagamento: '',
@@ -1065,7 +1065,8 @@ function ServiceQuoteGeneratorContent() {
 
   const calcularCustoHora = useMemo(() => {
     if (totalHoursMonth > 0) {
-      return calcularTotalCustosFixos / totalHoursMonth;
+      const valorhora = Number((calcularTotalCustosFixos / totalHoursMonth).toFixed(2));
+      return valorhora ;
     }
     return 0;
   }, [calcularTotalCustosFixos, totalHoursMonth]);
