@@ -43,6 +43,7 @@ import html2canvas from "html2canvas";
 import PrintableQuote from "@/components/calculadora/PrintableQuote";
 import { MaoDeObra } from "@/components/mao-de-obra";
 import { useRef } from "react";
+import { calculateWorkingDaysInCurrentMonth } from "@/lib/utils";
 //import { DateRangeSelector} from "@/components/calculadora-01/DateRangeSelector";
 
 
@@ -413,8 +414,7 @@ function ServiceQuoteGeneratorContent() {
   }, [dados]);
 
   useEffect(() => {
-    const daysPerWeek = Object.values(workDays).filter(Boolean).length;
-    const daysPerMonthValue = Math.round((daysPerWeek / 7) * 30);
+    const daysPerMonthValue = calculateWorkingDaysInCurrentMonth(workDays);
     const totalHoursMonthValue = parseFloat((fixedCostsHoursPerDay * daysPerMonthValue).toFixed(2));
 
     setDaysPerMonth(daysPerMonthValue);

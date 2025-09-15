@@ -25,6 +25,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle, Trash2, Plus } from "lucide-react"
 import { stateAuth } from "@/app/src/services/estadoAuth"
+import { calculateWorkingDaysInCurrentMonth } from "@/lib/utils"
 
 // Interface para a mão de obra salva
 interface Labor {
@@ -263,7 +264,7 @@ export function MaoDeObra({ onLaborSelect }: MaoDeObraProps) {
       return
     }
 
-    const daysPerMonthValue = Math.round((daysPerWeek / 7) * 30)
+    const daysPerMonthValue = calculateWorkingDaysInCurrentMonth(workDays)
     const totalHoursMonthValue = parseFloat((hoursDaily * daysPerMonthValue).toFixed(2))
 
     if (income > 0 && totalHoursMonthValue > 0) {

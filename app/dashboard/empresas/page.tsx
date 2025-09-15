@@ -559,7 +559,7 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
     <div className="border-t pt-2 mt-2">
       <p className="font-semibold">Custos Fixos Mensais:</p>
       <p className="text-lg font-bold text-red-600">
-        {formatarMoeda(empresa.custosFixos?.reduce((total, cost) => total + (cost.valor || 0), 0) || 0)}
+        {formatarMoeda(empresa.custosFixos?.reduce((total, cost) => total + (Number(cost.valor) || 0), 0) || 0)}
       </p>
       
       {empresa.custosFixos && empresa.custosFixos.length > 0 ? (
