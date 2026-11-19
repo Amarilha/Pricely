@@ -234,11 +234,11 @@ export async function createMaoDeObra(MaoDeObraData) {
   }
 }
 
-export async function deleteMaoDeObra(laborId) {
+export async function deleteMaoDeObra(laborId, userId) {
   try {
     const [result] = await pool.query(
-      "DELETE FROM MaoDeObra WHERE id_Mobra = ?;",
-      [laborId]
+      "DELETE FROM MaoDeObra WHERE id_Mobra = ? AND id_user = ?;",
+      [laborId, userId]
     );
     return result;
   } catch (err) {

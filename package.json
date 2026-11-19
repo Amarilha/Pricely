@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "export": "next export",
-    "test-db": "node test-db.js"
+    "test-db": "node test-db.js",
+    "test": "node --test app/src/test/preco.test.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.28.0",
@@ -56,6 +57,7 @@
     "dotenv": "^17.2.1",
     "embla-carousel-react": "8.5.1",
     "firebase": "^10.14.1",
+    "firebase-admin": "^13.10.0",
     "framer-motion": "^12.23.12",
     "geist": "^1.4.2",
     "html2canvas": "^1.4.1",

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle, Trash2, Plus } from "lucide-react"
-import { stateAuth } from "@/app/src/services/estadoAuth"
+import { stateAuth, apiFetch } from "@/app/src/services/estadoAuth"
 import { calculateWorkingDaysInCurrentMonth } from "@/lib/utils"
 
 // Interface para a mão de obra salva
@@ -75,7 +75,7 @@ export function MaoDeObra({ onLaborSelect }: MaoDeObraProps) {
   // Função para buscar mãos de obra através da API
   const getMaoDeObraAPI = async (userId: string): Promise<Labor[]> => {
     try {
-      const response = await fetch(`/dashboard/api/mao-de-obra?userId=${userId}`)
+      const response = await apiFetch(`/dashboard/api/mao-de-obra`)
       if (!response.ok) {
         throw new Error('Erro ao buscar mãos de obra')
       }
@@ -93,7 +93,7 @@ export function MaoDeObra({ onLaborSelect }: MaoDeObraProps) {
     rateToSave: number;
   }): Promise<Labor> => {
     try {
-      const response = await fetch('/dashboard/api/mao-de-obra', {
+      const response = await apiFetch('/dashboard/api/mao-de-obra', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export function MaoDeObra({ onLaborSelect }: MaoDeObraProps) {
   // Função para excluir mão de obra através da API
   const deleteMaoDeObraAPI = async (laborId: string) => {
     try {
-      const response = await fetch(`/dashboard/api/mao-de-obra?id=${laborId}`, {
+      const response = await apiFetch(`/dashboard/api/mao-de-obra?id=${laborId}`, {
         method: 'DELETE',
       })
       

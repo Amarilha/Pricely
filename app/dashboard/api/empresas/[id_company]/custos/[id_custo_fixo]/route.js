@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/app/src/config/db.js';
+import { getUserId } from '@/app/src/config/firebaseAdmin.js';
 
 export async function PUT(request, { params }) {
   try {
     // ✅ CORREÇÃO: Await dos params
     const { id_company, id_custo_fixo } = await params;
-    const userId = request.headers.get('Authorization');
+    const userId = await getUserId(request);
     
     if (!userId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -51,7 +52,7 @@ export async function DELETE(request, { params }) {
   try {
     // ✅ CORREÇÃO: Await dos params
     const { id_company, id_custo_fixo } = await params;
-    const userId = request.headers.get('Authorization');
+    const userId = await getUserId(request);
     
     if (!userId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
