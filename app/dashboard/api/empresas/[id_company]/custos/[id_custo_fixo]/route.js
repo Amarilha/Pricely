@@ -40,7 +40,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ message: 'Custo atualizado com sucesso' });
   } catch (error) {
-    console.error('Erro ao atualizar custo:', error);
+    console.error('Erro ao atualizar custo:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -76,7 +76,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ message: 'Custo deletado com sucesso' });
   } catch (error) {
-    console.error('Erro ao deletar custo:', error);
+    console.error('Erro ao deletar custo:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

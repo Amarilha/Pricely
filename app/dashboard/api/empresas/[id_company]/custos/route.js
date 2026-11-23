@@ -31,7 +31,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(custos);
   } catch (error) {
-    console.error('Erro ao buscar custos:', error);
+    console.error('Erro ao buscar custos:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -83,7 +83,7 @@ export async function POST(request, { params }) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Erro ao criar custo:', error);
+    console.error('Erro ao criar custo:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

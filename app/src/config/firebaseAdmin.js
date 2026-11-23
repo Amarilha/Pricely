@@ -7,7 +7,10 @@ const app = getApps()[0] ?? initializeApp({ projectId: process.env.NEXT_PUBLIC_F
 
 // Retorna o uid do usuário logado, ou null se o token faltar ou for inválido.
 export async function getUserId(request) {
-  const token = request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];
+  return verificarToken(request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1]);
+}
+
+export async function verificarToken(token) {
   if (!token) return null;
   try {
     return (await getAuth(app).verifyIdToken(token)).uid;

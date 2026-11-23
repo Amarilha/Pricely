@@ -112,7 +112,7 @@ export async function POST(req: Request) {
 
     return new NextResponse(JSON.stringify(orcamento), { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar orçamento:', error);
+    console.error('Erro ao criar orçamento:', (error as any)?.code ?? (error as Error)?.name); // a mensagem do Prisma inclui os dados enviados
     return new NextResponse(JSON.stringify({ error: 'Erro interno do servidor' }), { status: 500 });
   }
 }

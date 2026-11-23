@@ -22,14 +22,13 @@ export async function getEmpresas(userId) {
 
     return companies;
   } catch (err) {
-    console.error('❌ Falha ao buscar empresas com custos:', err);
+    console.error('❌ Falha ao buscar empresas com custos:', err.message);
     throw err;
   }
 }
 
 export async function createCompany(companyData) {
 
-  console.log("Dados recebidos em createCompany:", companyData);
   try {
    
     // Gera um UUID para id_company
@@ -54,21 +53,6 @@ export async function createCompany(companyData) {
     if (!id_user || !nome || !cnpj || !email) {
       throw new Error('Campos obrigatórios (id_user, nome, cnpj, email) não fornecidos');
     }
-
-    console.log("Executando query com valores:", {
-      id_company,
-      id_user,
-      nome,
-      cnpj,
-      endereco_rua,
-      endereco_numero,
-      endereco_cidade,
-      endereco_estado,
-      endereco_cep,
-      telefone,
-      email,
-      logoChar,
-    });
 
     // Executa a query para inserir a empresa
     const [result] = await pool.query(
@@ -98,10 +82,9 @@ export async function createCompany(companyData) {
       [id_company]
     );
     
-    console.log("empresa criada",newCompany[0]);
     return newCompany[0]; // Retorna a empresa recém-criada
   } catch (err) {
-    console.error('❌ Erro ao criar empresa:', err);
+    console.error('❌ Erro ao criar empresa:', err.message);
     throw err;
   }
 }
@@ -115,14 +98,13 @@ export async function getClient(userId) {
     );
     return rows; // Retorna os dados para quem chamar a função
   } catch (err) {
-    console.error('❌ Falha na conexão:', err);
+    console.error('❌ Falha na conexão:', err.message);
     throw err; // Propaga o erro para ser tratado por quem chamou
   }
   // Não feche o pool aqui! Deixe ele aberto para outras consultas
 }
 
 export async function createClient(clientData) {
-  console.log("Dados recebidos em createClient:", clientData);
   try {
     const id_client = uuidv4();
     const {
@@ -143,8 +125,6 @@ export async function createClient(clientData) {
     if (!id_user || !nome || !email) {
       throw new Error('Campos obrigatórios (id_user, nome, email) não fornecidos');
     }
-
-    console.log("Executando query com valores:", { id_client, ...clientData });
 
     // Corrigido: A query agora inclui a coluna `cnpj` e passa 13 valores,
     // correspondendo às 13 colunas na instrução INSERT.
@@ -175,10 +155,9 @@ export async function createClient(clientData) {
       [id_client]
     );
     
-    console.log("Cliente criado:", newClient[0]);
     return newClient[0];
   } catch (err) {
-    console.error('❌ Erro ao criar cliente:', err);
+    console.error('❌ Erro ao criar cliente:', err.message);
     throw err;
   }
 }
@@ -192,13 +171,12 @@ export async function getMaoDeObra(userId) {
     );
     return rows;
   } catch (err) {
-    console.error('❌ Falha na conexão:', err);
+    console.error('❌ Falha na conexão:', err.message);
     throw err;
   }
 }
 
 export async function createMaoDeObra(MaoDeObraData) {
-  console.log("Dados recebidos em createMaoDeObra:", MaoDeObraData);
   try {
     const id_Mobra = uuidv4();
     const {
@@ -206,8 +184,6 @@ export async function createMaoDeObra(MaoDeObraData) {
       laborName,
       rateToSave
     } = MaoDeObraData;
-
-    console.log("Executando query com valores:", { id_Mobra, id_user, laborName, rateToSave });
 
     const [result] = await pool.query(
       `INSERT INTO MaoDeObra (
@@ -226,10 +202,9 @@ export async function createMaoDeObra(MaoDeObraData) {
       [id_Mobra]
     );
     
-    console.log("Mão de obra criada:", newMobra[0]);
     return newMobra[0];
   } catch (err) {
-    console.error('❌ Erro ao criar Mão de obra:', err);
+    console.error('❌ Erro ao criar Mão de obra:', err.message);
     throw err;
   }
 }
@@ -242,7 +217,7 @@ export async function deleteMaoDeObra(laborId, userId) {
     );
     return result;
   } catch (err) {
-    console.error('❌ Erro ao excluir Mão de obra:', err);
+    console.error('❌ Erro ao excluir Mão de obra:', err.message);
     throw err;
   }
 }

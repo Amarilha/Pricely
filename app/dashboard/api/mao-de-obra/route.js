@@ -12,7 +12,7 @@ export async function GET(request) {
     const labors = await getMaoDeObra(userId)
     return NextResponse.json(labors)
   } catch (error) {
-    console.error('Erro ao buscar mãos de obra:', error)
+    console.error('Erro ao buscar mãos de obra:', error?.message)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -30,7 +30,7 @@ export async function POST(request) {
     const newLabor = await createMaoDeObra({ id_user: userId, laborName, rateToSave })
     return NextResponse.json(newLabor, { status: 201 })
   } catch (error) {
-    console.error('Erro ao criar mão de obra:', error)
+    console.error('Erro ao criar mão de obra:', error?.message)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
@@ -51,7 +51,7 @@ export async function DELETE(request) {
     }
     return NextResponse.json({ message: 'Mão de obra excluída com sucesso' })
   } catch (error) {
-    console.error('Erro ao excluir mão de obra:', error)
+    console.error('Erro ao excluir mão de obra:', error?.message)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

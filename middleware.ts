@@ -1,29 +1,21 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from './app/src/config/firebaseConfig'
+import { verificarToken } from './app/src/config/firebaseAdmin.js'
 
 export async function middleware(request: NextRequest) {
-  // Rotas protegidas
-  const protectedPaths = ['/dashboard']
-  const path = request.nextUrl.pathname
+  // O cookie "session" guarda o ID token do Firebase (gravado no login); só a existência dele não basta.
+  const uid = await verificarToken(request.cookies.get('session')?.value)
 
-  // Verifica se a rota atual está na lista de rotas protegidas
-  const isProtectedPath = protectedPaths.some(prefix => path.startsWith(prefix))
-
-  if (isProtectedPath) {
-    // Verifica o cookie de autenticação
-    const session = request.cookies.get('session')
-
-    // Se não houver sessão, redireciona para o login
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+  if (!uid) {
+    const resposta = NextResponse.redirect(new URL('/login', request.url))
+    resposta.cookies.delete('session')
+    return resposta
   }
 
   return NextResponse.next()
 }
 
-// Configuração das rotas que o middleware deve verificar
 export const config = {
-  matcher: ['/dashboard/:path*']
+  matcher: ['/dashboard/:path*'],
+  runtime: 'nodejs', // firebase-admin não roda no Edge
 }

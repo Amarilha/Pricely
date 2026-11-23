@@ -11,7 +11,7 @@ export async function GET(request) {
     const empresas = await getEmpresas(userId);
     return Response.json(empresas);
   } catch (error) {
-    console.error('Erro ao buscar empresas:', error);
+    console.error('Erro ao buscar empresas:', error?.message);
     return Response.json({ error: 'Erro ao buscar empresas' }, { status: 500 });
   }
 }
@@ -27,7 +27,7 @@ export async function POST(request) {
     const newCompany = await createCompany({ ...companyData, id_user: userId });
     return Response.json(newCompany, { status: 201 });
   } catch (error) {
-    console.error('Erro no endpoint POST:', error.message, error.stack);
+    console.error('Erro no endpoint POST:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
