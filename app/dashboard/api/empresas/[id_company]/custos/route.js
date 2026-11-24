@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/app/src/config/db.js';
+import { getUserId } from '@/app/src/config/firebaseAdmin.js';
 
 export async function GET(request, { params }) {
   try {
     // ✅ CORREÇÃO: Await dos params
     const { id_company } = await params;
-    const userId = request.headers.get('Authorization');
+    const userId = await getUserId(request);
     
     if (!userId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -30,7 +31,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(custos);
   } catch (error) {
-    console.error('Erro ao buscar custos:', error);
+    console.error('Erro ao buscar custos:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -42,7 +43,7 @@ export async function GET(request, { params }) {
 export async function POST(request, { params }) {
   try {
     const { id_company } = await params;
-    const userId = request.headers.get('Authorization');
+    const userId = await getUserId(request);
     
     if (!userId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -82,7 +83,7 @@ export async function POST(request, { params }) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Erro ao criar custo:', error);
+    console.error('Erro ao criar custo:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

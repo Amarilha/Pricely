@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select";
 import { AdsBanner } from "@/components/ads-banner";
-import { stateAuth } from '@/app/src/services/estadoAuth';
+import { stateAuth, apiFetch } from '@/app/src/services/estadoAuth';
 import { Trash2, Edit, PlusCircle, Building, Search, Loader2, DollarSign, Plus, Info } from 'lucide-react';
 
 const userPlan = "free";
@@ -113,9 +113,8 @@ export default function EmpresasPage() {
       
       console.log("Buscando empresas para userId:", userId);
       
-      const response = await fetch('/dashboard/api/empresas', { 
+      const response = await apiFetch('/dashboard/api/empresas', { 
         headers: { 
-          'Authorization': userId 
         } 
       });
       
@@ -311,11 +310,10 @@ const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
 
       console.log('Enviando dados para:', url, payload);
 
-      const response = await fetch(url, { 
+      const response = await apiFetch(url, { 
         method, 
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': userId
         }, 
         body: JSON.stringify(payload) 
       });
@@ -348,9 +346,9 @@ const handleCepBlur = async (cep: string, formType: 'company' | 'client') => {
       const userId = await stateAuth();
       if (!userId) throw new Error("Usuário não autenticado.");
 
-      const response = await fetch(`/dashboard/api/empresas/${companyId}`, { 
+      const response = await apiFetch(`/dashboard/api/empresas/${companyId}`, { 
         method: 'DELETE',
-        headers: { 'Authorization': userId }
+        headers: {}
       });
       
       if (!response.ok) {
@@ -386,11 +384,10 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
     console.log("📤 Enviando para:", url);
     console.log("🔑 Com userId:", userId);
 
-    const response = await fetch(url, { 
+    const response = await apiFetch(url, { 
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': userId
       }, 
       body: JSON.stringify({ 
         descricao: newCost.descricao, 
@@ -438,9 +435,9 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
       const userId = await stateAuth();
       if (!userId) throw new Error("Usuário não autenticado.");
 
-      const response = await fetch(`/dashboard/api/empresas/${id_company}/custos/${costId}`, { 
+      const response = await apiFetch(`/dashboard/api/empresas/${id_company}/custos/${costId}`, { 
         method: 'DELETE',
-        headers: { 'Authorization': userId }
+        headers: {}
       });
 
       if (!response.ok) {
@@ -475,11 +472,10 @@ const handleSaveCost = async (newCost: Omit<CustoFixo, 'id_custo_fixo'> & { id: 
       const costToUpdate = updatedCosts.find(cost => cost.id_custo_fixo === id);
       if (!costToUpdate) return;
       
-      const response = await fetch(`/dashboard/api/empresas/${managingCostsForCompany.id_company}/custos/${id}`, {
+      const response = await apiFetch(`/dashboard/api/empresas/${managingCostsForCompany.id_company}/custos/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': userId
         },
         body: JSON.stringify(costToUpdate)
       });

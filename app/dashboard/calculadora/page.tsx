@@ -34,7 +34,8 @@ import { FinancialCharts } from "@/components/calculadora-01/financial-charts"
 import { TaxCalculator } from "@/components/calculadora-01/tax-calculator"
 import { BoletoGenerator } from "@/components/calculadora-01/boleto-generator"
 import { PaymentMethodSelector } from "@/components/calculadora-01/payment-method-selector"
-import {stateAuth} from "@/app/src/services/estadoAuth"
+import { stateAuth, apiFetch } from "@/app/src/services/estadoAuth"
+import { calcularPreco, MARGEM_MAXIMA } from "@/app/src/services/preco"
 import { DateRangeSelector } from "@/components/calculadora-01/calendario"
 import OrcamentoDetalhado from "@/components/calculadora/OrcamentoDetalhado"
 import { Checkbox } from "@/components/ui/checkbox";
@@ -560,9 +561,8 @@ function ServiceQuoteGeneratorContent() {
       const userId = await stateAuth();
       console.log("fetchEmpresas:", userId),
       setLoading(true)
-      const response = await fetch('/dashboard/api/empresas',{
+      const response = await apiFetch('/dashboard/api/empresas',{
         headers: {
-          'Authorization': `${userId}`
         }
       });
       if (!response.ok) {
@@ -656,7 +656,7 @@ function ServiceQuoteGeneratorContent() {
       const cleanedCep = formDataEmpresas.cep.replace(/\D/g,'');
       const cleanedTelefone = formDataEmpresas.phone.replace(/\D/g, '');
 
-      const response = await fetch('/dashboard/api/empresas', {
+      const response = await apiFetch('/dashboard/api/empresas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -749,9 +749,8 @@ function ServiceQuoteGeneratorContent() {
         const userId = await stateAuth();
         console.log("fetchClient:", userId),
         setLoading(true)
-        const response = await fetch('/dashboard/api/client',{
+        const response = await apiFetch('/dashboard/api/client',{
           headers:{
-            'Authorization': `${userId}`
           }
         });
         if (!response.ok) {
@@ -801,7 +800,7 @@ function ServiceQuoteGeneratorContent() {
           
           
 
-        const response = await fetch('/dashboard/api/client', {
+        const response = await apiFetch('/dashboard/api/client', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1087,35 +1086,20 @@ function ServiceQuoteGeneratorContent() {
     return calcularCustoOperacional + calcularSubtotalItens
   }, [calcularCustoOperacional, calcularSubtotalItens])
 
-  const calcularLucro = useMemo(() => {
-    const subtotal = calcularSubtotalGeral
-    if (dados.margemLucro === 0) {
-    return 0;
-    }
-    return subtotal / ((100 - (dados.margemLucro || 0)) / 100);
+  const preco = useMemo(() => calcularPreco({
+    custo: calcularSubtotalGeral,
+    margem: dados.margemLucro,
+    impostoPct: dados.impostos,
+    impostoFixo: regimeTributario === 'MEI' ? 80 : null,
+    desconto: dados.desconto,
+    acrescimos: dados.acrescimos,
+  }), [calcularSubtotalGeral, dados.margemLucro, dados.impostos, regimeTributario, dados.desconto, dados.acrescimos])
 
-  }, [calcularSubtotalGeral, dados.margemLucro])
-  
-  const lucroReal = useMemo(()=>{
-    const lucroTotal = calcularLucro
-
-    return lucroTotal - calcularSubtotalGeral
-  }, [calcularSubtotalGeral, calcularLucro])
-
-  const calcularImpostos = useMemo(() => {
-    if (regimeTributario === 'MEI') {
-      return 80;
-    }
-    const subtotalComLucro = calcularSubtotalGeral + calcularLucro
-    return subtotalComLucro * ((dados.impostos || 0) / 100)
-  }, [regimeTributario, calcularSubtotalGeral, calcularLucro, dados.impostos])
-
-  const calcularTotalFinal = useMemo(() => {
-    const subtotal = calcularSubtotalGeral
-    const lucro = calcularLucro
-    const impostos = calcularImpostos
-    return lucro + impostos - (dados.desconto || 0) + (dados.acrescimos || 0)
-  }, [calcularSubtotalGeral, calcularLucro, calcularImpostos, dados.desconto, dados.acrescimos])
+  // calcularLucro = preço de venda sem impostos (custo + lucro); lucroReal = só o lucro.
+  const calcularLucro = preco.precoSemImposto
+  const lucroReal = preco.lucro
+  const calcularImpostos = preco.impostos
+  const calcularTotalFinal = preco.total
 
   // Função de formatação memoizada
   const formatarMoeda = useCallback((valor: number) => {
@@ -1218,7 +1202,7 @@ function ServiceQuoteGeneratorContent() {
         totalFinal: calcularTotalFinal,
       };
 
-      const response = await fetch('/api/dashboard/orcamentos', {
+      const response = await apiFetch('/api/dashboard/orcamentos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1940,10 +1924,12 @@ function ServiceQuoteGeneratorContent() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         
                           <div>
-                            <TooltipHelper content="Percentual de lucro que você deseja obter sobre os custos. Recomendado: 25% ou mais">
+                            <TooltipHelper content="Percentual do preço de venda (sem impostos) que fica como lucro. Ex.: 30% sobre um custo de R$ 1.000 dá preço de R$ 1.428,57. Recomendado: 25% ou mais">
                               <Label htmlFor="margem-lucro">Margem de Lucro (%)</Label>
                             </TooltipHelper>
                             <NumberInput
+                              min={0}
+                              max={MARGEM_MAXIMA}
                               value={dados.margemLucro}
                               onChange={(newValue) => setDados((prev) => ({ ...prev, margemLucro: newValue }))}
                             />
@@ -2513,7 +2499,7 @@ function ServiceQuoteGeneratorContent() {
                           </div>
                           <div className="flex justify-between">
                             <strong>Lucro Líquido:</strong>
-                            <span className="text-green-600">{formatarMoeda(calcularLucro)}</span>
+                            <span className="text-green-600">{formatarMoeda(lucroReal)}</span>
                           </div>
                           <div className="flex justify-between">
                             <strong>Margem de Lucro:</strong>

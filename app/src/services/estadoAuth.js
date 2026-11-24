@@ -6,17 +6,20 @@ import { auth, db } from "@/app/src/config/firebaseConfig.js"
 
 export function stateAuth() {
     return new Promise((resolve) => {
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                resolve(user.uid);
-                const usuario = user.uid;
-                
-                return usuario;
-            } else {
-                resolve(null);
-            }
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            unsubscribe();
+            resolve(user ? user.uid : null);
         });
     });
+}
+
+// fetch para as APIs do dashboard: envia o ID token do Firebase para o servidor validar.
+export async function apiFetch(url, init = {}) {
+    await stateAuth(); // espera o Firebase restaurar a sessão
+    const token = await auth.currentUser?.getIdToken();
+    const headers = new Headers(init.headers);
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+    return fetch(url, { ...init, headers });
 }
 
 export async function getUser(token) {

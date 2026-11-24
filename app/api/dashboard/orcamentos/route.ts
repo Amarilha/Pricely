@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getAuth } from '@clerk/nextjs/server';
-import type { NextApiRequest } from 'next';
+import { getUserId } from '@/app/src/config/firebaseAdmin.js';
 
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { userId } = getAuth(req as any);
+    const userId = await getUserId(req);
 
     if (!userId) {
       return new NextResponse(JSON.stringify({ error: 'Não autorizado' }), { status: 401 });
@@ -39,6 +38,15 @@ export async function POST(req: Request) {
     // Validação básica
     if (!empresa || !cliente || !numeroOrdem || !totalFinal) {
       return new NextResponse(JSON.stringify({ error: 'Campos obrigatórios faltando' }), { status: 400 });
+    }
+
+    // Empresa e cliente precisam ser do próprio usuário.
+    const [empresaDoUsuario, clienteDoUsuario] = await Promise.all([
+      prisma.company.findFirst({ where: { id_company: empresa.id_company, id_user: userId } }),
+      prisma.client.findFirst({ where: { id_client: cliente.id_client, id_user: userId } }),
+    ]);
+    if (!empresaDoUsuario || !clienteDoUsuario) {
+      return new NextResponse(JSON.stringify({ error: 'Empresa ou cliente não encontrado' }), { status: 404 });
     }
 
     const orcamento = await prisma.orcamento.create({
@@ -104,7 +112,7 @@ export async function POST(req: Request) {
 
     return new NextResponse(JSON.stringify(orcamento), { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar orçamento:', error);
+    console.error('Erro ao criar orçamento:', (error as any)?.code ?? (error as Error)?.name); // a mensagem do Prisma inclui os dados enviados
     return new NextResponse(JSON.stringify({ error: 'Erro interno do servidor' }), { status: 500 });
   }
 }

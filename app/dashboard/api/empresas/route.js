@@ -1,36 +1,33 @@
 // app/dashboard/api/empresas/route.js
-import { getEmpresas as fetchEmpresasFromDB } from '@/app/src/services/routes.js';
-import { createCompany as  createCompany } from '@/app/src/services/routes.js';
-
+import { getEmpresas, createCompany } from '@/app/src/services/routes.js';
+import { getUserId } from '@/app/src/config/firebaseAdmin.js';
 
 export async function GET(request) {
   try {
-    // Obtenha o userId do cabeçalho de autorização
-    const authHeader = request.headers.get('Authorization');
-    const userId = authHeader?.split(' ')[0]; // Assume formato "Bearer USER_ID"
-
+    const userId = await getUserId(request);
     if (!userId) {
-      // Usuário não autenticado
       return Response.json({ error: 'Usuário não autenticado' }, { status: 401 });
     }
-    //conexão com o banco de dados
-    const empresas = await fetchEmpresasFromDB(userId);
+    const empresas = await getEmpresas(userId);
     return Response.json(empresas);
   } catch (error) {
-    console.error('Erro ao buscar empresas:', error);
+    console.error('Erro ao buscar empresas:', error?.message);
     return Response.json({ error: 'Erro ao buscar empresas' }, { status: 500 });
   }
 }
 
-
 export async function POST(request) {
   try {
+    const userId = await getUserId(request);
+    if (!userId) {
+      return Response.json({ error: 'Usuário não autenticado' }, { status: 401 });
+    }
     const companyData = await request.json();
-    console.log("Corpo da requisição recebido no POST:", companyData);
-    const newCompany = await createCompany(companyData);
+    // O dono vem do token, nunca do corpo da requisição.
+    const newCompany = await createCompany({ ...companyData, id_user: userId });
     return Response.json(newCompany, { status: 201 });
   } catch (error) {
-    console.error('Erro no endpoint POST:', error.message, error.stack);
+    console.error('Erro no endpoint POST:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }

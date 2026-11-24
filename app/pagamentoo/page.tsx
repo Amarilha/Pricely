@@ -16,7 +16,7 @@ export default function PagamentoPage() {
         <div className="container max-w-md mx-auto py-16 px-4">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Informações de Pagamento</h1>
-            <p className="text-muted-foreground">Preencha os dados abaixo para concluir sua assinatura.</p>
+            <p className="text-muted-foreground">Confira o plano escolhido abaixo.</p>
           </div>
           <PaymentForm />
         </div>

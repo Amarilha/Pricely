@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/app/src/config/db.js';
+import { getUserId } from '@/app/src/config/firebaseAdmin.js';
 
 export async function PUT(request, { params }) {
   try {
     // ✅ CORREÇÃO: Await dos params
     const { id_company, id_custo_fixo } = await params;
-    const userId = request.headers.get('Authorization');
+    const userId = await getUserId(request);
     
     if (!userId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -39,7 +40,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ message: 'Custo atualizado com sucesso' });
   } catch (error) {
-    console.error('Erro ao atualizar custo:', error);
+    console.error('Erro ao atualizar custo:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -51,7 +52,7 @@ export async function DELETE(request, { params }) {
   try {
     // ✅ CORREÇÃO: Await dos params
     const { id_company, id_custo_fixo } = await params;
-    const userId = request.headers.get('Authorization');
+    const userId = await getUserId(request);
     
     if (!userId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -75,7 +76,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ message: 'Custo deletado com sucesso' });
   } catch (error) {
-    console.error('Erro ao deletar custo:', error);
+    console.error('Erro ao deletar custo:', error?.message);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
